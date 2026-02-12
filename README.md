@@ -1,1 +1,1 @@
-# paraphraser
+# diversify with stylistic diversity
