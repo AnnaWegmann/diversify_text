@@ -96,7 +96,8 @@ batch_2 = div.diversify(texts_2, n_styles=5)
 ### Creating a custom method
 
 ```python
-from diversify import DiversificationMethod, Diversifier
+from diversify import Diversifier
+from diversify.method.base import DiversificationMethod
 
 
 class MyMethod(DiversificationMethod):
@@ -183,7 +184,12 @@ diversify/
 ├── tests/
 │   ├── __init__.py
 │   └── test_diversify.py
-├── data/                   # Sample data
+├── example_scripts/        # Runnable examples + example data
+│   ├── data/
+│   │   └── bios_400.csv
+│   ├── utils/
+│   │   └── load_bios.py
+│   └── run_diversify_bios.py
 ├── legacy_code/            # Original scripts (reference only)
 ├── pyproject.toml
 └── README.md

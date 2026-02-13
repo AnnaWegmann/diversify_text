@@ -7,6 +7,7 @@ import pandas as pd
 from diversify import Diversifier, diversify
 from diversify.core import DiversificationMethod
 
+# ----------- FIXTURES -----------
 
 class PrefixMethod(DiversificationMethod):
     """Simple fake method for unit testing."""
@@ -47,6 +48,7 @@ class FailingMethod(DiversificationMethod):
     ):
         raise RuntimeError("boom")
 
+# ----------- TESTS -----------
 
 class TestNormalizeInput(unittest.TestCase):
     """Verify that Diversifier._normalize_input handles all input types."""

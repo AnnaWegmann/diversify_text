@@ -9,6 +9,7 @@ input text.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+import inspect
 from typing import Any, Union
 import warnings
 
@@ -39,9 +40,6 @@ class Diversifier:
         Torch device (``"cuda"``, ``"cpu"``, ``"mps"``, ...).
     methods : sequence[str | DiversificationMethod], optional
         Method names and/or pre-built method instances.
-    strict_methods : bool
-        If ``True``, fail fast when a method errors. If ``False``,
-        failed methods are replaced with fallback generation.
     fallback_method : str | DiversificationMethod
         Fallback method used to fill missing outputs.
 
@@ -61,16 +59,15 @@ class Diversifier:
         device: str | None = None,
         *,
         methods: Sequence[str | DiversificationMethod] | None = None,
-        strict_methods: bool = False,
         fallback_method: str | DiversificationMethod = "echo",
         method_registry: MethodRegistry | None = None,
     ) -> None:
         self.model_name = model_name
         self.device = device
-        self.strict_methods = strict_methods
         self._method_registry = method_registry or DEFAULT_METHOD_REGISTRY
         if methods is None:
             methods = [model_name or "tinystyler"]
+        self._validate_registered_methods(methods)
         self._methods = self._resolve_methods(methods)
         self._fallback_method = self._resolve_method(fallback_method)
 
@@ -148,8 +145,6 @@ class Diversifier:
                 )
                 styles_generated += generated_styles
             except Exception as exc:
-                if self.strict_methods:
-                    raise
                 warnings.warn(
                     f"Method '{method.name}' failed and fallback will be used: "
                     f"{type(exc).__name__}: {exc}",
@@ -199,12 +194,22 @@ class Diversifier:
         if isinstance(method, DiversificationMethod):
             return method
         if isinstance(method, str):
-            return self._method_registry.create(
-                method,
-                device=self.device,
-                model_name=self.model_name,
-            )
+            method_cls = self._method_registry.get(method)
+            init_kwargs = self._build_method_init_kwargs(method_cls)
+            return method_cls(**init_kwargs)
         raise TypeError("method must be str or DiversificationMethod instance.")
+
+    def _build_method_init_kwargs(
+        self, method_cls: type[DiversificationMethod]
+    ) -> dict[str, Any]:
+        """Pass only constructor kwargs supported by the target method class."""
+        signature = inspect.signature(method_cls)
+        init_kwargs: dict[str, Any] = {}
+        if "device" in signature.parameters:
+            init_kwargs["device"] = self.device
+        if "model_name" in signature.parameters:
+            init_kwargs["model_name"] = self.model_name
+        return init_kwargs
 
     def _resolve_methods(
         self, methods: Sequence[str | DiversificationMethod]
@@ -213,6 +218,19 @@ class Diversifier:
         if not resolved:
             raise ValueError("At least one method is required.")
         return resolved
+
+    def _validate_registered_methods(
+        self, methods: Sequence[str | DiversificationMethod]
+    ) -> None:
+        missing = sorted(
+            {m for m in methods if isinstance(m, str) and m not in self._method_registry}
+        )
+        if missing:
+            available = sorted(self._method_registry._store)  # registry source of truth
+            raise KeyError(
+                f"Unknown methods: {', '.join(missing)}. "
+                f"Available: {', '.join(available)}"
+            )
 
     @staticmethod
     def _compute_allocations(total_styles: int, n_methods: int) -> list[int]:
@@ -254,7 +272,6 @@ def diversify(
     model_name: str | None = None,
     device: str | None = None,
     methods: Sequence[str | DiversificationMethod] | None = None,
-    strict_methods: bool = False,
     fallback_method: str | DiversificationMethod = "echo",
     method_registry: MethodRegistry | None = None,
     **kwargs,
@@ -271,10 +288,8 @@ def diversify(
         Torch device.
     methods : sequence[str | DiversificationMethod], optional
         Method names and/or pre-built method instances.
-    strict_methods : bool
-        If True, raise if a method fails.
     fallback_method : str | DiversificationMethod
-        Fallback used when methods fail (when strict_methods is False).
+        Fallback used when methods fail.
     method_registry : MethodRegistry, optional
         Custom registry for method name resolution.
     **kwargs
@@ -291,7 +306,6 @@ def diversify(
         model_name=model_name,
         device=device,
         methods=methods,
-        strict_methods=strict_methods,
         fallback_method=fallback_method,
         method_registry=method_registry,
     )
