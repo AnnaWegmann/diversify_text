@@ -1,6 +1,8 @@
 """Tests for the core diversify API."""
 
 import unittest
+from pathlib import Path
+import tempfile
 
 import pandas as pd
 
@@ -47,6 +49,26 @@ class FailingMethod(DiversificationMethod):
         **kwargs,
     ):
         raise RuntimeError("boom")
+
+
+class CountingMethod(DiversificationMethod):
+    name = "counting"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def generate(
+        self,
+        texts,
+        *,
+        n_styles,
+        max_new_tokens,
+        temperature,
+        top_p,
+        **kwargs,
+    ):
+        self.calls += 1
+        return [[f"{text}:{i}" for i in range(n_styles)] for text in texts]
 
 # ----------- TESTS -----------
 
@@ -109,12 +131,78 @@ class TestDiversifyOutput(unittest.TestCase):
             self.assertIn("original", r)
             self.assertIn("paraphrases", r)
 
+    def test_split_on_punctuation_for_list_includes_original_id(self):
+        results = self.div.diversify(
+            ["One. Two!", "Single sentence"],
+            n_styles=1,
+            split_on_punctuation=True,
+        )
+        self.assertEqual(len(results), 3)
+        self.assertEqual(results[0]["original_id"], 0)
+        self.assertEqual(results[1]["original_id"], 0)
+        self.assertEqual(results[2]["original_id"], 1)
+
     def test_dataframe_input(self):
         df = pd.DataFrame({"text": ["one", "two"]})
         results = self.div.diversify(df, text_column="text")
+        self.assertIsInstance(results, pd.DataFrame)
         self.assertEqual(len(results), 2)
-        self.assertEqual(results[0]["original"], "one")
-        self.assertEqual(results[1]["original"], "two")
+        self.assertIn("style 1", results.columns)
+        self.assertIn("style 5", results.columns)
+        self.assertEqual(results.loc[0, "style 1"], "one")
+        self.assertEqual(results.loc[1, "style 1"], "two")
+
+    def test_csv_path_input_returns_dataframe_and_saves_output(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = Path(tmpdir) / "bios.csv"
+            pd.DataFrame({"bio": ["one", "two"], "id": [1, 2]}).to_csv(
+                input_path, index=False
+            )
+            results = self.div.diversify(str(input_path), text_column="bio", n_styles=2)
+            self.assertIsInstance(results, pd.DataFrame)
+            self.assertIn("style 1", results.columns)
+            self.assertIn("style 2", results.columns)
+
+            output_path = Path(tmpdir) / "bios_diversified.csv"
+            self.assertTrue(output_path.exists())
+            saved = pd.read_csv(output_path)
+            self.assertIn("style 1", saved.columns)
+
+    def test_csv_split_on_punctuation_adds_original_id(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = Path(tmpdir) / "bios.csv"
+            pd.DataFrame(
+                {
+                    "id": [10, 20],
+                    "bio": ["First sentence. Second sentence!", "Only one."],
+                }
+            ).to_csv(input_path, index=False)
+
+            results = self.div.diversify(
+                str(input_path),
+                text_column="bio",
+                n_styles=1,
+                split_on_punctuation=True,
+            )
+            self.assertIsInstance(results, pd.DataFrame)
+            self.assertEqual(len(results), 3)
+            self.assertIn("original_id", results.columns)
+            self.assertEqual(results.loc[0, "original_id"], 10)
+            self.assertEqual(results.loc[1, "original_id"], 10)
+            self.assertEqual(results.loc[2, "original_id"], 20)
+
+    def test_tsv_path_input_saves_tsv_output(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = Path(tmpdir) / "bios.tsv"
+            pd.DataFrame({"bio": ["one", "two"], "id": [1, 2]}).to_csv(
+                input_path, sep="\t", index=False
+            )
+            _ = self.div.diversify(str(input_path), text_column="bio", n_styles=1)
+
+            output_path = Path(tmpdir) / "bios_diversified.tsv"
+            self.assertTrue(output_path.exists())
+            saved = pd.read_csv(output_path, sep="\t")
+            self.assertIn("style 1", saved.columns)
 
 
 class TestConvenienceFunction(unittest.TestCase):
@@ -151,6 +239,18 @@ class TestMethodArchitecture(unittest.TestCase):
         with self.assertWarns(RuntimeWarning):
             results = div.diversify("hello", n_styles=2)
         self.assertEqual(results[0]["paraphrases"], ["hello", "hello"])
+
+    def test_unknown_method_raises_before_generation(self):
+        with self.assertRaises(KeyError):
+            Diversifier(methods=["does_not_exist"])
+
+    def test_batching_is_handled_in_core(self):
+        method = CountingMethod()
+        div = Diversifier(methods=[method])
+        results = div.diversify(["a", "b", "c", "d", "e"], n_styles=2, batch_size=2)
+        self.assertEqual(method.calls, 3)
+        self.assertEqual(len(results), 5)
+        self.assertEqual(results[0]["paraphrases"], ["a:0", "a:1"])
 
 
 if __name__ == "__main__":

@@ -57,8 +57,18 @@ import pandas as pd
 df = pd.DataFrame({"text": ["Hello world.", "How are you?"]})
 results = diversify(df, text_column="text")
 
+# CSV/TSV file path (auto-saves <input>_diversified.<ext>)
+results = diversify("example_scripts/data/bios_400.csv", text_column="bio")
+results = diversify("example_scripts/data/bios_400.tsv", text_column="bio")
+
 # Control number of paraphrases
 results = diversify("Some text.", n_styles=10)
+
+# Core batching
+results = diversify(["a", "b", "c", "d"], methods=["tinystyler"], batch_size=2)
+
+# Optional punctuation splitting (works for all input types)
+results = diversify(["One sentence. Another one!"], split_on_punctuation=True)
 
 # Use specific methods (plugins)
 results = diversify(
