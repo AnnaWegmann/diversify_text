@@ -1,13 +1,13 @@
-"""Deterministic fallback diversification approach."""
+"""Deterministic fallback diversification method."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from diversify.method.base import DiversificationApproach
+from diversify.method.base import DiversificationMethod
 
 
-class EchoApproach(DiversificationApproach):
+class EchoMethod(DiversificationMethod):
     """Echoes the input text for every requested style."""
 
     name = "echo"

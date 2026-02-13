@@ -1,4 +1,4 @@
-"""Abstract base class for diversification approaches."""
+"""Abstract base class for diversification methods."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 
-class DiversificationApproach(ABC):
-    """Interface for pluggable diversification approaches."""
+class DiversificationMethod(ABC):
+    """Interface for pluggable diversification methods."""
 
     name = "base"
 

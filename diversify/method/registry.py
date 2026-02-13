@@ -1,36 +1,36 @@
-"""Approach registry and built-in registrations."""
+"""Method registry and built-in registrations."""
 
 from __future__ import annotations
 
 from typing import Any, Callable
 
-from diversify.method.base import DiversificationApproach
-from diversify.method.echo import EchoApproach
-from diversify.method.tinystyler import TinyStylerApproach
+from diversify.method.base import DiversificationMethod
+from diversify.method.echo import EchoMethod
+from diversify.method.tinystyler import TinyStylerMethod
 
 
-ApproachFactory = Callable[..., DiversificationApproach]
+MethodFactory = Callable[..., DiversificationMethod]
 
 
-class ApproachRegistry:
-    """Registry of named diversification approach factories."""
+class MethodRegistry:
+    """Registry of named diversification method factories."""
 
     def __init__(self) -> None:
-        self._factories: dict[str, ApproachFactory] = {}
+        self._factories: dict[str, MethodFactory] = {}
 
-    def register(self, name: str, factory: ApproachFactory) -> None:
+    def register(self, name: str, factory: MethodFactory) -> None:
         self._factories[name] = factory
 
-    def create(self, name: str, **kwargs: Any) -> DiversificationApproach:
+    def create(self, name: str, **kwargs: Any) -> DiversificationMethod:
         if name not in self._factories:
             available = ", ".join(sorted(self._factories))
-            raise ValueError(f"Unknown approach '{name}'. Available: {available}")
+            raise ValueError(f"Unknown method '{name}'. Available: {available}")
         return self._factories[name](**kwargs)
 
 
-DEFAULT_APPROACH_REGISTRY = ApproachRegistry()
-DEFAULT_APPROACH_REGISTRY.register("echo", lambda **kwargs: EchoApproach())
-DEFAULT_APPROACH_REGISTRY.register(
+DEFAULT_METHOD_REGISTRY = MethodRegistry()
+DEFAULT_METHOD_REGISTRY.register("echo", lambda **kwargs: EchoMethod())
+DEFAULT_METHOD_REGISTRY.register(
     "tinystyler",
-    lambda **kwargs: TinyStylerApproach(device=kwargs.get("device")),
+    lambda **kwargs: TinyStylerMethod(device=kwargs.get("device")),
 )

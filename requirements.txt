@@ -1,4 +1,8 @@
 pandas
 torch
 transformers
+sentence-transformers
+sentencepiece
+tiktoken
+protobuf
 huggingface_hub

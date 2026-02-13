@@ -12,6 +12,10 @@ license = "MIT"
 dependencies = [
     "torch",
     "transformers",
+    "sentence-transformers",
+    "sentencepiece",
+    "tiktoken",
+    "protobuf",
     "huggingface_hub",
     "pandas",
 ]

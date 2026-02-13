@@ -1,15 +1,15 @@
-"""TinyStyler-backed diversification approach."""
+"""TinyStyler-backed diversification method."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from diversify.method.base import DiversificationApproach
+from diversify.method.base import DiversificationMethod
 from diversify.method.tinystyler.model import TinyStyler
 
 
-class TinyStylerApproach(DiversificationApproach):
-    """Diversification approach backed by TinyStyler."""
+class TinyStylerMethod(DiversificationMethod):
+    """Diversification method backed by TinyStyler."""
 
     name = "tinystyler"
 

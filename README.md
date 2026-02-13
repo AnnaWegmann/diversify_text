@@ -60,11 +60,11 @@ results = diversify(df, text_column="text")
 # Control number of paraphrases
 results = diversify("Some text.", n_styles=10)
 
-# Use specific approaches (plugins)
+# Use specific methods (plugins)
 results = diversify(
     "Some text.",
     n_styles=6,
-    approaches=["tinystyler", "echo"],  # styles are split across approaches
+    methods=["tinystyler", "echo"],  # styles are split across methods
 )
 ```
 
@@ -86,27 +86,27 @@ Each result is a dict:
 ```python
 from diversify import Diversifier
 
-div = Diversifier(device="cuda", approaches=["tinystyler"])
+div = Diversifier(device="cuda", methods=["tinystyler"])
 
 # The model is loaded once and reused
 batch_1 = div.diversify(texts_1, n_styles=5)
 batch_2 = div.diversify(texts_2, n_styles=5)
 ```
 
-### Creating a custom approach
+### Creating a custom method
 
 ```python
-from diversify import DiversificationApproach, Diversifier
+from diversify import DiversificationMethod, Diversifier
 
 
-class MyApproach(DiversificationApproach):
-    name = "my_approach"
+class MyMethod(DiversificationMethod):
+    name = "my_method"
 
     def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
         return [[f"{text} :: variant {i}" for i in range(n_styles)] for text in texts]
 
 
-div = Diversifier(approaches=[MyApproach()])
+div = Diversifier(methods=[MyMethod()])
 results = div.diversify("Hello", n_styles=3)
 ```
 
@@ -171,14 +171,14 @@ diversify/
 ├── diversify/              # Python package
 │   ├── __init__.py
 │   ├── core.py             # Diversifier orchestration & diversify() function
-│   ├── method/         # Pluggable diversification approaches
+│   ├── method/         # Pluggable diversification methods
 │   │   ├── __init__.py
-│   │   ├── base.py         # DiversificationApproach abstract class
-│   │   ├── registry.py     # Approach registry + default registrations
-│   │   ├── echo.py         # Fallback approach
-│   │   └── tinystyler/     # TinyStyler approach submodule
+│   │   ├── base.py         # DiversificationMethod abstract class
+│   │   ├── registry.py     # Method registry + default registrations
+│   │   ├── echo.py         # Fallback method
+│   │   └── tinystyler/     # TinyStyler method submodule
 │   │       ├── __init__.py
-│   │       ├── approach.py # TinyStyler-backed approach
+│   │       ├── method.py # TinyStyler-backed method
 │   │       └── model.py    # TinyStyler model wrapper
 ├── tests/
 │   ├── __init__.py

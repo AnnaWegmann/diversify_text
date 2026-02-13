@@ -1,22 +1,25 @@
-"""Pluggable diversification approaches."""
+"""Pluggable diversification methods."""
 
-from diversify.method.base import DiversificationApproach
-from diversify.method.echo import EchoApproach
-from diversify.method.registry import ApproachRegistry, DEFAULT_APPROACH_REGISTRY
+from diversify.method.base import DiversificationMethod
+from diversify.method.echo import EchoMethod
+from diversify.method.registry import (
+    DEFAULT_METHOD_REGISTRY,
+    MethodRegistry,
+)
 from diversify.method.tinystyler import (
     StyleInput,
     TinyStyler,
-    TinyStylerApproach,
+    TinyStylerMethod,
     style_transfer,
 )
 
 __all__ = [
-    "DiversificationApproach",
-    "EchoApproach",
-    "TinyStylerApproach",
+    "DiversificationMethod",
+    "EchoMethod",
+    "TinyStylerMethod",
     "StyleInput",
     "TinyStyler",
     "style_transfer",
-    "ApproachRegistry",
-    "DEFAULT_APPROACH_REGISTRY",
+    "MethodRegistry",
+    "DEFAULT_METHOD_REGISTRY",
 ]
