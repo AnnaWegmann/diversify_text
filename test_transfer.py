@@ -1,7 +1,7 @@
 """Quick smoke test: style-transfer the first 2 bios into an informal style."""
 
 import pandas as pd
-from tinystyler import TinyStyler
+from diversify.tinystyler import TinyStyler
 
 # --- Load first 2 bios ------------------------------------------------
 df = pd.read_csv("data/bios_400.csv", usecols=["id", "bio"])
