@@ -59,6 +59,13 @@ results = diversify(df, text_column="text")
 
 # Control number of paraphrases
 results = diversify("Some text.", n_styles=10)
+
+# Use specific approaches (plugins)
+results = diversify(
+    "Some text.",
+    n_styles=6,
+    approaches=["tinystyler", "echo"],  # styles are split across approaches
+)
 ```
 
 Each result is a dict:
@@ -79,11 +86,28 @@ Each result is a dict:
 ```python
 from diversify import Diversifier
 
-div = Diversifier(device="cuda")
+div = Diversifier(device="cuda", approaches=["tinystyler"])
 
 # The model is loaded once and reused
 batch_1 = div.diversify(texts_1, n_styles=5)
 batch_2 = div.diversify(texts_2, n_styles=5)
+```
+
+### Creating a custom approach
+
+```python
+from diversify import DiversificationApproach, Diversifier
+
+
+class MyApproach(DiversificationApproach):
+    name = "my_approach"
+
+    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
+        return [[f"{text} :: variant {i}" for i in range(n_styles)] for text in texts]
+
+
+div = Diversifier(approaches=[MyApproach()])
+results = div.diversify("Hello", n_styles=3)
 ```
 
 ## Running tests
@@ -146,10 +170,16 @@ This updates your lock file to ensure all versions are consistent and everything
 diversify/
 ├── diversify/              # Python package
 │   ├── __init__.py
-│   ├── core.py             # Diversifier class & diversify() function
-│   └── tinystyler/         # TinyStyler model wrapper (subpackage)
-│       ├── __init__.py
-│       └── core.py
+│   ├── core.py             # Diversifier orchestration & diversify() function
+│   ├── method/         # Pluggable diversification approaches
+│   │   ├── __init__.py
+│   │   ├── base.py         # DiversificationApproach abstract class
+│   │   ├── registry.py     # Approach registry + default registrations
+│   │   ├── echo.py         # Fallback approach
+│   │   └── tinystyler/     # TinyStyler approach submodule
+│   │       ├── __init__.py
+│   │       ├── approach.py # TinyStyler-backed approach
+│   │       └── model.py    # TinyStyler model wrapper
 ├── tests/
 │   ├── __init__.py
 │   └── test_diversify.py

@@ -1,5 +1,21 @@
 """diversify -- generate stylistic paraphrases of texts."""
 
-from diversify.core import Diversifier, diversify
+from diversify.method import (
+    ApproachRegistry,
+    DiversificationApproach,
+    EchoApproach,
+    TinyStylerApproach,
+)
+from diversify.core import (
+    Diversifier,
+    diversify,
+)
 
-__all__ = ["Diversifier", "diversify"]
+__all__ = [
+    "DiversificationApproach",
+    "ApproachRegistry",
+    "EchoApproach",
+    "TinyStylerApproach",
+    "Diversifier",
+    "diversify",
+]

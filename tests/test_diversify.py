@@ -5,6 +5,31 @@ import unittest
 import pandas as pd
 
 from diversify import Diversifier, diversify
+from diversify.core import DiversificationApproach
+
+
+class PrefixApproach(DiversificationApproach):
+    """Simple fake approach for unit testing."""
+
+    name = "prefix"
+
+    def __init__(self, prefix: str) -> None:
+        self.prefix = prefix
+
+    def generate(
+        self,
+        texts,
+        *,
+        n_styles,
+        max_new_tokens,
+        temperature,
+        top_p,
+        **kwargs,
+    ):
+        return [
+            [f"{self.prefix}:{text}:{i}" for i in range(n_styles)]
+            for text in texts
+        ]
 
 
 class TestNormalizeInput(unittest.TestCase):
@@ -46,7 +71,7 @@ class TestDiversifyOutput(unittest.TestCase):
     """Verify the shape / structure of diversify() output."""
 
     def setUp(self):
-        self.div = Diversifier()
+        self.div = Diversifier(approaches=["echo"])
 
     def test_single_text_returns_one_result(self):
         results = self.div.diversify("hello")
@@ -78,15 +103,30 @@ class TestConvenienceFunction(unittest.TestCase):
     """Verify the module-level diversify() convenience function."""
 
     def test_basic_call(self):
-        results = diversify("test input")
+        results = diversify("test input", approaches=["echo"])
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["original"], "test input")
 
     def test_list_input(self):
-        results = diversify(["a", "b"], n_styles=2)
+        results = diversify(["a", "b"], n_styles=2, approaches=["echo"])
         self.assertEqual(len(results), 2)
         for r in results:
             self.assertEqual(len(r["paraphrases"]), 2)
+
+
+class TestApproachArchitecture(unittest.TestCase):
+    def test_custom_approach_instance(self):
+        div = Diversifier(approaches=[PrefixApproach("x")])
+        results = div.diversify("hello", n_styles=3)
+        self.assertEqual(results[0]["paraphrases"], ["x:hello:0", "x:hello:1", "x:hello:2"])
+
+    def test_multiple_approaches_distribute_styles(self):
+        div = Diversifier(approaches=[PrefixApproach("a"), PrefixApproach("b")])
+        results = div.diversify("hello", n_styles=5)
+        paraphrases = results[0]["paraphrases"]
+        self.assertEqual(len(paraphrases), 5)
+        self.assertEqual(paraphrases[:3], ["a:hello:0", "a:hello:1", "a:hello:2"])
+        self.assertEqual(paraphrases[3:], ["b:hello:0", "b:hello:1"])
 
 
 if __name__ == "__main__":
