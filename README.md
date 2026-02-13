@@ -1,41 +1,42 @@
 # diversify
 
-Generate stylistic paraphrases of texts using local transformer models.
+This package helps you generate stylistically diverse paraphrases of your own texts using huggingface transformer models locally.
 
-## Setup with uv
+## Install
 
-This project uses [uv](https://docs.astral.sh/uv/) for dependency and environment management.
+> [!NOTE]
+> You must have **uv** installed before running `uv sync`.
+> Full installation guide: <https://docs.astral.sh/uv/getting-started/installation/>
 
-### Install uv
+After installing `uv` on your system, you can now follow either **development mode** or **standard installation** depending on your use case.
 
-```bash
-# macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
+### Development mode
 
-# or via Homebrew
-brew install uv
-```
+Follow these steps to set up the project for development.
 
-After installing, restart your terminal (or run `source ~/.bashrc` / `source ~/.zshrc`).
+- Clone the repo
+- Install all dependencies required for development mode:
+   ```bash
+   uv sync --group dev
+   ```
+- Activate the Python environment created by `uv`:
+   ```bash
+   source .venv/bin/activate
+   ```
 
-### Create the environment and install
+### Standard installation
 
-```bash
-# Create a virtual environment with uv (uses .venv/ by default)
-uv venv
+To use the library directly:
 
-# Activate it
-source .venv/bin/activate
-
-# Sync all dependencies from pyproject.toml
-uv pip install -e .
-```
-
-### For development (includes test dependencies)
-
-```bash
-uv pip install -e ".[dev]"
-```
+- Clone the repo
+- Install all dependencies required for standard mode:
+   ```bash
+   uv sync --no-group dev
+   ```
+- Activate the Python environment created by `uv`:
+   ```bash
+   source .venv/bin/activate
+   ```
 
 ## Usage
 
@@ -101,6 +102,44 @@ uv run pytest tests/test_diversify.py::TestDiversifyOutput::test_single_text_ret
 
 Tests are also individually runnable via PyCharm's built-in test runner (right-click any test class or method).
 
+## Working with uv
+
+### Adding packages with `uv add`
+
+To add packages to your project, always use `uv add` rather than `uv pip install`. This ensures that your dependencies are properly managed and recorded in your `pyproject.toml`.
+
+```bash
+uv add <package-name>
+```
+
+### Adding packages to the dev group
+
+If you need to add a package specifically for your development environment:
+
+```bash
+uv add --group dev <package-name>
+```
+
+### Switching between dev and standard mode
+
+After you are done with testing and want to go back to standard mode, you can remove the dev-only packages:
+
+```bash
+uv sync --no-group dev
+```
+
+This will disable all additional groups and just load your main project dependencies.
+
+### Best practice: run `uv lock -U`
+
+Whenever you upgrade, downgrade, or change versions of packages, it's good practice to run:
+
+```bash
+uv lock -U
+```
+
+This updates your lock file to ensure all versions are consistent and everything is in sync.
+
 ## Project structure
 
 ```
@@ -119,15 +158,3 @@ diversify/
 ├── pyproject.toml
 └── README.md
 ```
-
-## Installing as a package (non-dev / end-user)
-
-```bash
-# From the repo root
-pip install .
-
-# Or directly from a git URL (once published)
-# pip install git+https://github.com/<user>/diversify.git
-```
-
-This installs `diversify` into your current environment so you can `import diversify` from anywhere.
