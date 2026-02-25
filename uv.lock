@@ -194,6 +194,7 @@ dependencies = [
     { name = "sentencepiece" },
     { name = "tiktoken" },
     { name = "torch" },
+    { name = "tqdm" },
     { name = "transformers" },
 ]
 
@@ -211,6 +212,7 @@ requires-dist = [
     { name = "sentencepiece" },
     { name = "tiktoken" },
     { name = "torch" },
+    { name = "tqdm", specifier = ">=4.67.3" },
     { name = "transformers" },
 ]
 

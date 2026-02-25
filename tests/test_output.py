@@ -26,27 +26,27 @@ class TestTabularIO(unittest.TestCase):
 
     def test_csv_input_returns_dataframe_and_saves_output(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            input_path = Path(tmpdir) / "bios.csv"
-            pd.DataFrame({"bio": ["one", "two"], "id": [1, 2]}).to_csv(input_path, index=False)
+            input_path = Path(tmpdir) / "tmp.csv"
+            pd.DataFrame({"sentence": ["one", "two"], "id": [1, 2]}).to_csv(input_path, index=False)
 
-            results = self.div.diversify(str(input_path), text_column="bio", n_styles=2)
+            results = self.div.diversify(str(input_path), text_column="sentence", n_styles=2)
             self.assertIsInstance(results, pd.DataFrame)
             self.assertIn("style 1", results.columns)
             self.assertIn("style 2", results.columns)
 
-            output_path = Path(tmpdir) / "bios_diversified.csv"
+            output_path = Path(tmpdir) / "tmp_diversified.csv"
             self.assertTrue(output_path.exists())
             self.assertIn("style 1", pd.read_csv(output_path).columns)
 
     def test_tsv_input_saves_tsv_output(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            input_path = Path(tmpdir) / "bios.tsv"
-            pd.DataFrame({"bio": ["one", "two"], "id": [1, 2]}).to_csv(
+            input_path = Path(tmpdir) / "tmp.tsv"
+            pd.DataFrame({"sentence": ["one", "two"], "id": [1, 2]}).to_csv(
                 input_path, sep="\t", index=False
             )
-            self.div.diversify(str(input_path), text_column="bio", n_styles=1)
+            self.div.diversify(str(input_path), text_column="sentence", n_styles=1)
 
-            output_path = Path(tmpdir) / "bios_diversified.tsv"
+            output_path = Path(tmpdir) / "tmp_diversified.tsv"
             self.assertTrue(output_path.exists())
             self.assertIn("style 1", pd.read_csv(output_path, sep="\t").columns)
 

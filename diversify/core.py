@@ -15,6 +15,8 @@ from typing import Any, Union
 
 import pandas as pd
 
+from tqdm import tqdm
+
 from diversify._io import load_tabular_input, normalize_input
 from diversify._text import split_text_on_punctuation
 from diversify.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
@@ -149,19 +151,24 @@ class Diversifier:
         else:
             effective_batch_size = batch_size
 
+        for method in self._methods:
+            method.prepare()
+
         paraphrases_by_text: list[list[str]] = []
-        for start in range(0, len(text_list), effective_batch_size):
-            batch_texts = text_list[start : start + effective_batch_size]
-            paraphrases_by_text.extend(
-                self._diversify_batch(
-                    batch_texts=batch_texts,
-                    n_styles=n_styles,
-                    max_new_tokens=max_new_tokens,
-                    temperature=temperature,
-                    top_p=top_p,
-                    method_kwargs=method_kwargs,
+        with tqdm(total=len(text_list), desc="Diversifying", unit="text") as pbar:
+            for start in range(0, len(text_list), effective_batch_size):
+                batch_texts = text_list[start : start + effective_batch_size]
+                paraphrases_by_text.extend(
+                    self._diversify_batch(
+                        batch_texts=batch_texts,
+                        n_styles=n_styles,
+                        max_new_tokens=max_new_tokens,
+                        temperature=temperature,
+                        top_p=top_p,
+                        method_kwargs=method_kwargs,
+                    )
                 )
-            )
+                pbar.update(len(batch_texts))
 
         # --- reassemble segments if needed ---
         if segments_per_text is not None:

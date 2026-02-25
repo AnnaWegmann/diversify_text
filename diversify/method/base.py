@@ -11,6 +11,13 @@ class DiversificationMethod(ABC):
 
     name = "base"
 
+    def prepare(self) -> None:
+        """Load any resources (models, tokenizers) needed before generation.
+
+        Called once before the progress bar starts so that loading messages
+        appear before generation begins.  No-op by default.
+        """
+
     @abstractmethod
     def generate(
         self,

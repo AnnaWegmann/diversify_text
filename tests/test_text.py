@@ -58,7 +58,7 @@ class TestPunctuationSplitting(unittest.TestCase):
     def test_csv_returns_one_row_per_original(self):
         div = Diversifier(methods=["echo"])
         with tempfile.TemporaryDirectory() as tmpdir:
-            input_path = Path(tmpdir) / "bios.csv"
+            input_path = Path(tmpdir) / "tmp.csv"
             pd.DataFrame({
                 "id": [10, 20],
                 "bio": ["First sentence. Second sentence!", "Only one."],
