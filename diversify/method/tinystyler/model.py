@@ -9,6 +9,7 @@ style-transfer generation.
 from __future__ import annotations
 
 import importlib
+import warnings
 from typing import Union
 
 import torch
@@ -86,7 +87,9 @@ class TinyStyler:
         )
         tinystyler_module.__spec__.loader.exec_module(tinystyler_module)
 
-        tokenizer, model = tinystyler_module.get_tinystyler_model(self.device)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=".*tie_word_embeddings.*")  # harmless: TinyStyler saves weights explicitly
+            tokenizer, model = tinystyler_module.get_tinystyler_model(self.device)
         get_target_style_embeddings = tinystyler_module.get_target_style_embeddings
 
         return tokenizer, model, get_target_style_embeddings
