@@ -16,7 +16,7 @@ dependencies = [
     "sentencepiece",
     "tiktoken",
     "protobuf",
-    "huggingface_hub",
+    "huggingface-hub",
     "pandas",
 ]
 

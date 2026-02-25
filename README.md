@@ -2,6 +2,154 @@
 
 This package helps you generate stylistically diverse paraphrases of your own texts using huggingface transformer models locally.
 
+
+## Usage
+
+### Single text
+
+```python
+from diversify import diversify
+
+results = diversify("The experiment was conducted in a controlled lab setting.")
+```
+
+```
+[{
+    "original": "The experiment was conducted in a controlled lab setting.",
+    "paraphrases": [
+        "They ran the experiment in a controlled lab setting.",
+        "The experiment took place in a controlled lab.",
+        "A controlled lab was where the experiment was conducted.",
+        "In a controlled lab, the experiment was carried out.",
+        "The study was performed in a controlled lab environment.",
+    ]
+}]
+```
+
+### Control number of paraphrases
+
+```python
+results = diversify("Some text.", n_styles=3)
+```
+
+```
+[{"original": "Some text.", "paraphrases": ["...", "...", "..."]}]
+```
+
+### Using the class directly
+
+Recommended when processing texts across several calls — the model is loaded once and reused across calls.
+
+```python
+from diversify import Diversifier
+
+div = Diversifier(device="cuda", methods=["tinystyler"])
+
+batch_1 = div.diversify(texts_1, n_styles=5)
+batch_2 = div.diversify(texts_2, n_styles=5)
+```
+
+### List of texts
+
+```python
+results = diversify([
+    "The experiment was conducted in a controlled lab setting.",
+    "She graduated from MIT in 2019.",
+])
+```
+
+```
+[
+    {"original": "The experiment ...", "paraphrases": ["...", "...", ...]},
+    {"original": "She graduated ...", "paraphrases": ["...", "...", ...]},
+]
+```
+
+### pandas DataFrame
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"text": ["Hello world.", "How are you?"]})
+results = diversify(df, text_column="text")
+```
+
+```
+   text           style 1                 style 2                ...
+   Hello world.   Hey there, world.       Greetings, world.      ...
+   How are you?   How are you doing?      How's it going?        ...
+```
+
+### CSV / TSV file
+
+Reads the file, adds style columns, and auto-saves `<input>_diversified.<ext>`.
+
+```python
+results = diversify("bios.csv", text_column="bio")
+```
+
+```
+   bio              style 1                       style 2               ...
+   Jane is a ...    Jane works as a ...           As a ..., Jane ...    ...
+   ...
+# also saves bios_diversified.csv
+```
+
+
+### Punctuation splitting
+
+Splits each text into sentence segments internally before paraphrasing (improving quality on long texts), then reassembles the results. The output still contains one entry per original input text.
+
+```python
+results = diversify(["One sentence. Another one!"], split_on_punctuation=True, n_styles=2)
+```
+
+```
+[{
+    "original": "One sentence. Another one!",
+    "paraphrases": [
+        "A single sentence. Yet another one!",
+        "One phrase. One more!",
+    ]
+}]
+```
+
+### Multiple methods
+
+Styles are distributed evenly across methods.
+
+```python
+results = diversify("Some text.", n_styles=6, methods=["tinystyler", "echo"])
+```
+
+```
+[{"original": "Some text.", "paraphrases": ["...", "...", "...", "...", "...", "Some text."]}]
+#                                           |--- 4 from tinystyler ---|  |-- 2 from echo --|
+```
+
+
+
+### Creating a custom method
+
+```python
+from diversify import Diversifier
+from diversify.method import DiversificationMethod
+
+
+class MyMethod(DiversificationMethod):
+    name = "my_method"
+
+    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
+        return [[f"{text} :: variant {i}" for i in range(n_styles)] for text in texts]
+
+
+results = Diversifier(methods=[MyMethod()]).diversify("Hello", n_styles=3)
+```
+
+```
+[{"original": "Hello", "paraphrases": ["Hello :: variant 0", "Hello :: variant 1", "Hello :: variant 2"]}]
+```
+
 ## Install
 
 > [!NOTE]
@@ -38,101 +186,18 @@ To use the library directly:
    source .venv/bin/activate
    ```
 
-## Usage
-
-```python
-from diversify import diversify
-
-# Single text
-results = diversify("The experiment was conducted in a controlled lab setting.")
-
-# List of texts
-results = diversify([
-    "The experiment was conducted in a controlled lab setting.",
-    "She graduated from MIT in 2019.",
-])
-
-# pandas DataFrame
-import pandas as pd
-df = pd.DataFrame({"text": ["Hello world.", "How are you?"]})
-results = diversify(df, text_column="text")
-
-# CSV/TSV file path (auto-saves <input>_diversified.<ext>)
-results = diversify("example_scripts/data/bios_400.csv", text_column="bio")
-results = diversify("example_scripts/data/bios_400.tsv", text_column="bio")
-
-# Control number of paraphrases
-results = diversify("Some text.", n_styles=10)
-
-# Core batching
-results = diversify(["a", "b", "c", "d"], methods=["tinystyler"], batch_size=2)
-
-# Optional punctuation splitting (works for all input types)
-results = diversify(["One sentence. Another one!"], split_on_punctuation=True)
-
-# Use specific methods (plugins)
-results = diversify(
-    "Some text.",
-    n_styles=6,
-    methods=["tinystyler", "echo"],  # styles are split across methods
-)
-```
-
-Each result is a dict:
-
-```python
-{
-    "original": "The experiment was conducted in a controlled lab setting.",
-    "paraphrases": [
-        "They ran the experiment in a lab, everything nice and controlled.",
-        "So basically they did this experiment in a lab — pretty standard setup.",
-        # ... (n_styles total)
-    ],
-}
-```
-
-### Using the class directly (recommended when processing many texts)
-
-```python
-from diversify import Diversifier
-
-div = Diversifier(device="cuda", methods=["tinystyler"])
-
-# The model is loaded once and reused
-batch_1 = div.diversify(texts_1, n_styles=5)
-batch_2 = div.diversify(texts_2, n_styles=5)
-```
-
-### Creating a custom method
-
-```python
-from diversify import Diversifier
-from diversify.method.base import DiversificationMethod
-
-
-class MyMethod(DiversificationMethod):
-    name = "my_method"
-
-    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
-        return [[f"{text} :: variant {i}" for i in range(n_styles)] for text in texts]
-
-
-div = Diversifier(methods=[MyMethod()])
-results = div.diversify("Hello", n_styles=3)
-```
-
 ## Running tests
 
 ```bash
 # Run all tests
-uv run pytest
+pytest
 
 # Run a specific test file
-uv run pytest tests/test_diversify.py
+pytest tests/test_core.py
 
 # Run a specific test class or method
-uv run pytest tests/test_diversify.py::TestDiversifyOutput
-uv run pytest tests/test_diversify.py::TestDiversifyOutput::test_single_text_returns_one_result
+pytest tests/test_core.py::TestDiversifier
+pytest tests/test_core.py::TestDiversifier::test_single_text_returns_one_result
 ```
 
 Tests are also individually runnable via PyCharm's built-in test runner (right-click any test class or method).
@@ -179,28 +244,33 @@ This updates your lock file to ensure all versions are consistent and everything
 
 ```
 diversify/
-├── diversify/              # Python package
+├── diversify/                  # Python package
 │   ├── __init__.py
-│   ├── core.py             # Diversifier orchestration & diversify() function
-│   ├── method/         # Pluggable diversification methods
-│   │   ├── __init__.py
-│   │   ├── base.py         # DiversificationMethod abstract class
-│   │   ├── registry.py     # Method registry + default registrations
-│   │   ├── echo.py         # Fallback method
-│   │   └── tinystyler/     # TinyStyler method submodule
-│   │       ├── __init__.py
-│   │       ├── method.py # TinyStyler-backed method
-│   │       └── model.py    # TinyStyler model wrapper
+│   ├── core.py                 # Diversifier class & diversify() function
+│   ├── _io.py                  # Input normalisation & tabular file loading
+│   ├── _text.py                # Punctuation-based text splitting
+│   └── method/                 # Pluggable diversification methods
+│       ├── __init__.py
+│       ├── base.py             # DiversificationMethod abstract class
+│       ├── registry.py         # Method registry + default registrations
+│       ├── echo.py             # Echo method (returns input unchanged)
+│       └── tinystyler/         # TinyStyler method
+│           ├── __init__.py
+│           ├── method.py       # TinyStyler-backed method
+│           └── model.py        # TinyStyler model wrapper
 ├── tests/
 │   ├── __init__.py
-│   └── test_diversify.py
-├── example_scripts/        # Runnable examples + example data
+│   ├── fixtures.py             # Shared fake method implementations
+│   ├── test_core.py            # Diversifier & diversify() tests
+│   ├── test_input.py           # Input normalisation tests
+│   └── test_output.py          # Tabular I/O tests
+├── example_scripts/            # Runnable examples + example data
 │   ├── data/
 │   │   └── bios_400.csv
 │   ├── utils/
 │   │   └── load_bios.py
 │   └── run_diversify_bios.py
-├── legacy_code/            # Original scripts (reference only)
+├── legacy_code/                # Original scripts (reference only)
 ├── pyproject.toml
 └── README.md
 ```

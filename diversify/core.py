@@ -11,17 +11,13 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 import inspect
 from pathlib import Path
-import re
 from typing import Any, Union
-import warnings
 
 import pandas as pd
 
-from diversify.method import (
-    DEFAULT_METHOD_REGISTRY,
-    DiversificationMethod,
-    MethodRegistry,
-)
+from diversify._io import load_tabular_input, normalize_input
+from diversify._text import split_text_on_punctuation
+from diversify.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
 TextInput = Union[str, list[str], pd.Series, pd.DataFrame]
 DiversifyOutput = Union[list[dict], pd.DataFrame]
@@ -36,15 +32,10 @@ class Diversifier:
 
     Parameters
     ----------
-    model_name : str, optional
-        Backwards-compatible alias for selecting a single method by name.
-        If ``None``, defaults to ``"tinystyler"``.
     device : str, optional
         Torch device (``"cuda"``, ``"cpu"``, ``"mps"``, ...).
     methods : sequence[str | DiversificationMethod], optional
         Method names and/or pre-built method instances.
-    fallback_method : str | DiversificationMethod
-        Fallback method used to fill missing outputs.
 
     Example
     -------
@@ -58,21 +49,15 @@ class Diversifier:
 
     def __init__(
         self,
-        model_name: str | None = None,
         device: str | None = None,
         *,
         methods: Sequence[str | DiversificationMethod] | None = None,
-        fallback_method: str | DiversificationMethod = "echo",
-        method_registry: MethodRegistry | None = None,
     ) -> None:
-        self.model_name = model_name
         self.device = device
-        self._method_registry = method_registry or DEFAULT_METHOD_REGISTRY
         if methods is None:
-            methods = [model_name or "tinystyler"]
+            methods = ["tinystyler"]
         self._validate_registered_methods(methods)
         self._methods = self._resolve_methods(methods)
-        self._fallback_method = self._resolve_method(fallback_method)
 
     # ------------------------------------------------------------------
     # Public API
@@ -137,25 +122,25 @@ class Diversifier:
         if n_styles < 1:
             raise ValueError("n_styles must be >= 1.")
 
-        loaded_file = self._load_tabular_input(texts, text_column)
+        # --- resolve input ---
+        loaded_file = load_tabular_input(texts, text_column)
         source_df: pd.DataFrame | None = None
         input_path: Path | None = None
         input_sep: str | None = None
-        non_tabular_original_ids: list[int] | None = None
         if loaded_file is not None:
             source_df, input_path, input_sep = loaded_file
-            if split_on_punctuation:
-                source_df = self._split_tabular_by_punctuation(source_df, text_column)
-            text_list = source_df[text_column].tolist()
+            base_texts = source_df[text_column].tolist()
         else:
-            base_texts = self._normalize_input(texts, text_column)
-            if split_on_punctuation:
-                text_list, non_tabular_original_ids = self._split_non_tabular_texts(
-                    base_texts
-                )
-            else:
-                text_list = base_texts
+            base_texts = normalize_input(texts, text_column)
 
+        if split_on_punctuation:
+            segments_per_text = [split_text_on_punctuation(t) for t in base_texts]
+            text_list = [seg for segs in segments_per_text for seg in segs]
+        else:
+            segments_per_text = None
+            text_list = base_texts
+
+        # --- run generation ---
         method_kwargs = method_kwargs or {}
         if batch_size is None:
             effective_batch_size = len(text_list) if text_list else 1
@@ -167,16 +152,24 @@ class Diversifier:
         paraphrases_by_text: list[list[str]] = []
         for start in range(0, len(text_list), effective_batch_size):
             batch_texts = text_list[start : start + effective_batch_size]
-            batch_paraphrases = self._diversify_batch(
-                batch_texts=batch_texts,
-                n_styles=n_styles,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                method_kwargs=method_kwargs,
+            paraphrases_by_text.extend(
+                self._diversify_batch(
+                    batch_texts=batch_texts,
+                    n_styles=n_styles,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    method_kwargs=method_kwargs,
+                )
             )
-            paraphrases_by_text.extend(batch_paraphrases)
 
+        # --- reassemble segments if needed ---
+        if segments_per_text is not None:
+            paraphrases_by_text = self._reassemble_from_segments(
+                segments_per_text, paraphrases_by_text, n_styles
+            )
+
+        # --- format output ---
         if isinstance(texts, pd.DataFrame) or source_df is not None:
             output_df = (source_df if source_df is not None else texts).copy()
             for idx in range(n_styles):
@@ -192,94 +185,17 @@ class Diversifier:
                     )
                 )
                 final_output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_df.to_csv(
-                    final_output_path,
-                    sep=input_sep or ",",
-                    index=False,
-                )
+                output_df.to_csv(final_output_path, sep=input_sep or ",", index=False)
             return output_df
 
-        results = []
-        for idx, (original, paraphrases) in enumerate(
-            zip(text_list, paraphrases_by_text)
-        ):
-            item = {"original": original, "paraphrases": paraphrases}
-            if non_tabular_original_ids is not None:
-                item["original_id"] = non_tabular_original_ids[idx]
-            results.append(item)
-        return results
+        return [
+            {"original": original, "paraphrases": paraphrases}
+            for original, paraphrases in zip(base_texts, paraphrases_by_text)
+        ]
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    def _normalize_input(self, texts: TextInput, text_column: str) -> list[str]:
-        """Coerce any supported input type into ``list[str]``."""
-        if isinstance(texts, str):
-            return [texts]
-        if isinstance(texts, pd.Series):
-            return texts.tolist()
-        if isinstance(texts, pd.DataFrame):
-            return texts[text_column].tolist()
-        if isinstance(texts, list):
-            return texts
-        raise TypeError(
-            f"Unsupported input type {type(texts).__name__}. "
-            "Expected str, list[str], pd.Series, or pd.DataFrame."
-        )
-
-    def _load_tabular_input(
-        self, texts: TextInput, text_column: str
-    ) -> tuple[pd.DataFrame, Path, str] | None:
-        """Load CSV/TSV input when *texts* points to a supported file path."""
-        if not isinstance(texts, str):
-            return None
-        path = Path(texts)
-        suffix = path.suffix.lower()
-        if suffix not in {".csv", ".tsv"} or not path.is_file():
-            return None
-        sep = "," if suffix == ".csv" else "\t"
-        df = pd.read_csv(path, sep=sep)
-        if text_column not in df.columns:
-            available = ", ".join(df.columns)
-            raise ValueError(
-                f"Column '{text_column}' not found in {path}. Available: {available}"
-            )
-        df[text_column] = df[text_column].fillna("").astype(str).tolist()
-        return df, path, sep
-
-    @staticmethod
-    def _split_text_on_punctuation(text: str) -> list[str]:
-        parts = re.split(r"(?<=[.!?;:])\s+", text.strip())
-        cleaned = [part.strip() for part in parts if part and part.strip()]
-        return cleaned or [text.strip()]
-
-    def _split_non_tabular_texts(self, texts: list[str]) -> tuple[list[str], list[int]]:
-        split_texts: list[str] = []
-        original_ids: list[int] = []
-        for original_id, text in enumerate(texts):
-            for segment in self._split_text_on_punctuation(text):
-                split_texts.append(segment)
-                original_ids.append(original_id)
-        return split_texts, original_ids
-
-    def _split_tabular_by_punctuation(
-        self, df: pd.DataFrame, text_column: str
-    ) -> pd.DataFrame:
-        rows: list[dict[str, Any]] = []
-        has_id = "id" in df.columns
-        for idx, row in df.iterrows():
-            row_dict = row.to_dict()
-            row_original_id = row_dict["id"] if has_id else idx
-            text = str(row_dict.get(text_column, "")).strip()
-            segments = self._split_text_on_punctuation(text)
-            for segment_idx, segment in enumerate(segments):
-                new_row = dict(row_dict)
-                new_row[text_column] = segment
-                new_row["original_id"] = row_original_id
-                new_row["segment_id"] = segment_idx
-                rows.append(new_row)
-        return pd.DataFrame(rows)
 
     def _resolve_method(
         self, method: str | DiversificationMethod
@@ -287,7 +203,7 @@ class Diversifier:
         if isinstance(method, DiversificationMethod):
             return method
         if isinstance(method, str):
-            method_cls = self._method_registry.get(method)
+            method_cls = DEFAULT_METHOD_REGISTRY.get(method)
             init_kwargs = self._build_method_init_kwargs(method_cls)
             return method_cls(**init_kwargs)
         raise TypeError("method must be str or DiversificationMethod instance.")
@@ -300,8 +216,6 @@ class Diversifier:
         init_kwargs: dict[str, Any] = {}
         if "device" in signature.parameters:
             init_kwargs["device"] = self.device
-        if "model_name" in signature.parameters:
-            init_kwargs["model_name"] = self.model_name
         return init_kwargs
 
     def _resolve_methods(
@@ -316,14 +230,29 @@ class Diversifier:
         self, methods: Sequence[str | DiversificationMethod]
     ) -> None:
         missing = sorted(
-            {m for m in methods if isinstance(m, str) and m not in self._method_registry}
+            {m for m in methods if isinstance(m, str) and m not in DEFAULT_METHOD_REGISTRY}
         )
         if missing:
-            available = self._method_registry.names()
+            available = DEFAULT_METHOD_REGISTRY.names()
             raise KeyError(
                 f"Unknown methods: {', '.join(missing)}. "
                 f"Available: {', '.join(available)}"
             )
+
+    @staticmethod
+    def _reassemble_from_segments(
+        segments_per_text: list[list[str]],
+        paraphrases_by_segment: list[list[str]],
+        n_styles: int,
+    ) -> list[list[str]]:
+        """Join per-segment paraphrases back into per-original-text paraphrases."""
+        result = []
+        seg_idx = 0
+        for segs in segments_per_text:
+            seg_paras = paraphrases_by_segment[seg_idx : seg_idx + len(segs)]
+            result.append([" ".join(sp[i] for sp in seg_paras) for i in range(n_styles)])
+            seg_idx += len(segs)
+        return result
 
     @staticmethod
     def _compute_allocations(total_styles: int, n_methods: int) -> list[int]:
@@ -343,42 +272,19 @@ class Diversifier:
         allocations = self._compute_allocations(n_styles, len(self._methods))
         paraphrases_by_text = [[] for _ in batch_texts]
 
-        styles_generated = 0
         for method, allocated_styles in zip(self._methods, allocations):
             if allocated_styles <= 0:
                 continue
             kwargs = method_kwargs.get(method.name, {})
-            try:
-                partial = method.generate(
-                    batch_texts,
-                    n_styles=allocated_styles,
-                    max_new_tokens=max_new_tokens,
-                    temperature=temperature,
-                    top_p=top_p,
-                    **kwargs,
-                )
-                generated_styles = self._merge_paraphrases(
-                    paraphrases_by_text, partial, batch_texts
-                )
-                styles_generated += generated_styles
-            except Exception as exc:
-                warnings.warn(
-                    f"Method '{method.name}' failed and fallback will be used: "
-                    f"{type(exc).__name__}: {exc}",
-                    RuntimeWarning,
-                    stacklevel=2,
-                )
-
-        missing_styles = n_styles - styles_generated
-        if missing_styles > 0:
-            fallback_partial = self._fallback_method.generate(
+            partial = method.generate(
                 batch_texts,
-                n_styles=missing_styles,
+                n_styles=allocated_styles,
                 max_new_tokens=max_new_tokens,
                 temperature=temperature,
                 top_p=top_p,
+                **kwargs,
             )
-            self._merge_paraphrases(paraphrases_by_text, fallback_partial, batch_texts)
+            self._merge_paraphrases(paraphrases_by_text, partial, batch_texts)
 
         return paraphrases_by_text
 
@@ -414,11 +320,8 @@ class Diversifier:
 def diversify(
     texts: TextInput,
     *,
-    model_name: str | None = None,
     device: str | None = None,
     methods: Sequence[str | DiversificationMethod] | None = None,
-    fallback_method: str | DiversificationMethod = "echo",
-    method_registry: MethodRegistry | None = None,
     **kwargs,
 ) -> DiversifyOutput:
     """One-shot convenience function: create a :class:`Diversifier` and run it.
@@ -427,16 +330,10 @@ def diversify(
     ----------
     texts : str | list[str] | pd.Series | pd.DataFrame
         Input text(s).
-    model_name : str, optional
-        Backwards-compatible alias for selecting a single method by name.
     device : str, optional
         Torch device.
     methods : sequence[str | DiversificationMethod], optional
         Method names and/or pre-built method instances.
-    fallback_method : str | DiversificationMethod
-        Fallback used when methods fail.
-    method_registry : MethodRegistry, optional
-        Custom registry for method name resolution.
     **kwargs
         Forwarded to :meth:`Diversifier.diversify`
         (``n_styles``, ``text_column``, ``batch_size``,
@@ -448,11 +345,5 @@ def diversify(
     list[dict] | pd.DataFrame
         See :meth:`Diversifier.diversify`.
     """
-    div = Diversifier(
-        model_name=model_name,
-        device=device,
-        methods=methods,
-        fallback_method=fallback_method,
-        method_registry=method_registry,
-    )
+    div = Diversifier(device=device, methods=methods)
     return div.diversify(texts, **kwargs)
