@@ -170,16 +170,23 @@ class Diversifier:
                 )
                 pbar.update(len(batch_texts))
 
+        # --- infer actual style count from results ---
+        actual_n_styles = (
+            max((len(row) for row in paraphrases_by_text), default=n_styles)
+            if paraphrases_by_text
+            else n_styles
+        )
+
         # --- reassemble segments if needed ---
         if segments_per_text is not None:
             paraphrases_by_text = self._reassemble_from_segments(
-                segments_per_text, paraphrases_by_text, n_styles
+                segments_per_text, paraphrases_by_text, actual_n_styles
             )
 
         # --- format output ---
         if isinstance(texts, pd.DataFrame) or source_df is not None:
             output_df = (source_df if source_df is not None else texts).copy()
-            for idx in range(n_styles):
+            for idx in range(actual_n_styles):
                 output_df[f"style {idx + 1}"] = [
                     row[idx] if idx < len(row) else "" for row in paraphrases_by_text
                 ]

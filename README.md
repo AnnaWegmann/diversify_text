@@ -133,19 +133,19 @@ results = diversify("Some text.", n_styles=6, methods=["tinystyler", "echo"])
 
 TinyStyler generates each paraphrase by conditioning on a *style example* — a short sentence that demonstrates the target writing style. The style bank is the list of such examples that get cycled through when producing multiple paraphrases.
 
-The default bank contains four styles (formal, casual, objective, slang). You can replace or extend it by passing a custom bank via `method_kwargs`.
+The default bank is a dictionary mapping style labels to lists of example sentences (drawn from the CORE corpus). You can replace or extend it by passing a custom bank via `method_kwargs`.
 
-Each entry can be a single string or a list of strings (multiple examples strengthen the style signal):
+A style bank can be a `dict[str, list[str]]` or a `list[list[str]]`:
 
 ```python
 from diversify import diversify
 from diversify.method.tinystyler import DEFAULT_STYLE_BANK
 
-custom_bank = [
-    ["The results demonstrate a statistically significant effect."],          # academic
-    ["We found something really interesting — check this out!"],              # enthusiastic
-    ["Key finding: effect confirmed. Details follow."],                       # telegraphic
-]
+custom_bank = {
+    "academic": ["The results demonstrate a statistically significant effect."],
+    "enthusiastic": ["We found something really interesting — check this out!"],
+    "telegraphic": ["Key finding: effect confirmed. Details follow."],
+}
 
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
@@ -153,27 +153,25 @@ results = diversify(
 )
 ```
 
-```
-[{
-    "original": "The experiment was conducted in a controlled lab setting.",
-    "paraphrases": [
-        "The results demonstrate a significant effect in the controlled lab.",
-        "We found something really interesting — it was done in a controlled lab!",
-        "Key finding: controlled lab experiment. Details follow.",
-        "The results demonstrate a controlled experiment was conducted.",
-        "We found the experiment was done in a controlled setting!",
-    ]
-}]
-```
-
 `DEFAULT_STYLE_BANK` is exported from `diversify.method.tinystyler` so you can build on it:
 
 ```python
 from diversify.method.tinystyler import DEFAULT_STYLE_BANK
 
-extended_bank = DEFAULT_STYLE_BANK + [
-    ["The data clearly indicate a statistically significant result."],
-]
+extended_bank = {
+    **DEFAULT_STYLE_BANK,
+    "scientific": ["The data clearly indicate a statistically significant result."],
+}
+```
+
+You can also select specific styles by key name with `styles`, instead of cycling through the entire bank.
+The number of paraphrases is determined by the number of selected styles:
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    method_kwargs={"tinystyler": {"styles": ["research_article", "personal_blog", "recipe"]}},
+)
 ```
 
 ### Creating a custom method

@@ -30,11 +30,56 @@ class TinyStylerMethod(DiversificationMethod):
         return self._model
 
     @staticmethod
-    def _normalize_style_bank(style_bank: Any) -> list[list[str]]:
+    def _resolve_styles(
+        style_bank: Any = None,
+        styles: list[str] | None = None,
+    ) -> list[list[str]]:
+        """Resolve *style_bank* and optional *styles* key filter.
+
+        Parameters
+        ----------
+        style_bank : dict | list | None
+            A custom style bank.  ``None`` falls back to
+            :data:`DEFAULT_STYLE_BANK`.
+        styles : list[str] | None
+            When provided, select only these keys from the bank (which must
+            be dict-shaped).  Order is preserved.
+
+        Returns
+        -------
+        list[list[str]]
+            One list of example strings per selected style.
+        """
+        # --- obtain a dict bank when possible ---
         if style_bank is None:
-            return DEFAULT_STYLE_BANK
+            bank_dict: dict[str, list[str]] | None = DEFAULT_STYLE_BANK
+        elif isinstance(style_bank, dict):
+            bank_dict = style_bank
+        else:
+            bank_dict = None  # list-format, can't filter by key
+
+        # --- filter by key names ---
+        if styles is not None:
+            if bank_dict is None:
+                raise TypeError(
+                    "Cannot use 'styles' key selection with a list-format "
+                    "style bank. Pass a dict-format bank or use the default."
+                )
+            unknown = set(styles) - set(bank_dict.keys())
+            if unknown:
+                raise ValueError(
+                    f"Unknown style key(s): {sorted(unknown)}. "
+                    f"Available: {sorted(bank_dict.keys())}"
+                )
+            return [bank_dict[k] for k in styles]
+
+        # --- no key filter: return everything ---
+        if bank_dict is not None:
+            return list(bank_dict.values())
+
+        # legacy list-format normalisation
         if not isinstance(style_bank, list):
-            raise TypeError("style_bank must be a list of style example groups.")
+            raise TypeError("style_bank must be a list or dict of style example groups.")
         normalized: list[list[str]] = []
         for group in style_bank:
             if isinstance(group, str):
@@ -60,17 +105,23 @@ class TinyStylerMethod(DiversificationMethod):
         **kwargs: Any,
     ) -> list[list[str]]:
         model = self._ensure_model()
-        style_bank = self._normalize_style_bank(kwargs.get("style_bank"))
-        if n_styles > len(style_bank):
+        styles_arg = kwargs.get("styles")
+        style_bank = self._resolve_styles(
+            kwargs.get("style_bank"),
+            styles_arg,
+        )
+        # When explicit style keys are given, they determine the count.
+        effective_n = len(styles_arg) if styles_arg is not None else n_styles
+        if effective_n > len(style_bank):
             logger.warning(
                 "n_styles=%d exceeds the number of style bank entries (%d). "
                 "Styles will wrap around, producing repeated style patterns. "
                 "Consider adding more entries to the style bank.",
-                n_styles, len(style_bank),
+                effective_n, len(style_bank),
             )
         paraphrases_per_text = [[] for _ in texts]
 
-        for i in range(n_styles):
+        for i in range(effective_n):
             style_examples = style_bank[i % len(style_bank)]
             batch = model.transfer(
                 texts,
