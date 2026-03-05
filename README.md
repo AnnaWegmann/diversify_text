@@ -2,6 +2,25 @@
 
 This package helps you generate stylistically diverse paraphrases of your own texts using huggingface transformer models locally.
 
+## Table of contents
+
+- [Usage](#usage)
+  - [Single text](#single-text)
+  - [Control number of paraphrases](#control-number-of-paraphrases)
+  - [Using the class directly](#using-the-class-directly)
+  - [List of texts](#list-of-texts)
+  - [CSV / TSV file](#csv--tsv-file)
+  - [TXT file](#txt-file)
+  - [Controlling output location](#controlling-output-location)
+  - [Punctuation splitting](#punctuation-splitting)
+  - [Multiple methods](#multiple-methods)
+  - [Customising the TinyStyler style bank](#customising-the-tinystyler-style-bank)
+  - [Creating a custom method](#creating-a-custom-method)
+- [Install](#install)
+- [Development](#development)
+  - [Running tests](#running-tests)
+  - [Working with uv](#working-with-uv)
+- [Project structure](#project-structure)
 
 ## Usage
 
@@ -65,36 +84,51 @@ results = diversify([
 ]
 ```
 
-### pandas DataFrame
-
-```python
-import pandas as pd
-
-df = pd.DataFrame({"text": ["Hello world.", "How are you?"]})
-results = diversify(df, text_column="text")
-```
-
-```
-   text           style 1                 style 2                ...
-   Hello world.   Hey there, world.       Greetings, world.      ...
-   How are you?   How are you doing?      How's it going?        ...
-```
-
 ### CSV / TSV file
 
-Reads the file, adds style columns, and auto-saves `<input>_diversified.<ext>`.
+Reads the file and writes a JSONL file next to the input (`<input>_diversified.jsonl`).
 
 ```python
 results = diversify("bios.csv", text_column="bio")
+# writes bios_diversified.jsonl
 ```
 
-```
-   bio              style 1                       style 2               ...
-   Jane is a ...    Jane works as a ...           As a ..., Jane ...    ...
-   ...
-# also saves bios_diversified.csv
+Each line in the JSONL output is one JSON object:
+
+```json
+{"original": "Jane is a ...", "paraphrases": ["Jane works as a ...", "As a ..., Jane ..."]}
+{"original": "John studied ...", "paraphrases": ["John was educated ...", "..."]}
 ```
 
+### TXT file
+
+Each non-empty line is treated as a separate text to diversify. Output is written to `<input>.jsonl`.
+
+```python
+results = diversify("texts.txt")
+# writes texts.jsonl
+```
+
+
+### Controlling output location
+
+By default, file inputs write output next to the input file and in-memory inputs (strings, lists) return a Python list. You can override this with `output_dir` and `output_name`:
+
+```python
+# Write output to a specific directory
+results = diversify("bios.csv", text_column="bio", output_dir="/results")
+# writes /results/bios_diversified.jsonl
+
+# Also set a custom filename
+results = diversify("bios.csv", text_column="bio", output_dir="/results", output_name="my_output")
+# writes /results/my_output.jsonl
+
+# Force a list input to write to disk instead of returning in-memory
+results = diversify(["text one", "text two"], output_dir=".")
+# writes ./diversified_output.jsonl
+```
+
+The `.jsonl` extension is always added automatically.
 
 ### Punctuation splitting
 
@@ -231,7 +265,9 @@ To use the library directly:
    source .venv/bin/activate
    ```
 
-## Running tests
+## Development
+
+### Running tests
 
 ```bash
 # Run all tests
@@ -247,9 +283,9 @@ pytest tests/test_core.py::TestDiversifier::test_single_text_returns_one_result
 
 Tests are also individually runnable via PyCharm's built-in test runner (right-click any test class or method).
 
-## Working with uv
+### Working with uv
 
-### Adding packages with `uv add`
+#### Adding packages with `uv add`
 
 To add packages to your project, always use `uv add` rather than `uv pip install`. This ensures that your dependencies are properly managed and recorded in your `pyproject.toml`.
 
@@ -257,7 +293,7 @@ To add packages to your project, always use `uv add` rather than `uv pip install
 uv add <package-name>
 ```
 
-### Adding packages to the dev group
+#### Adding packages to the dev group
 
 If you need to add a package specifically for your development environment:
 
@@ -265,7 +301,7 @@ If you need to add a package specifically for your development environment:
 uv add --group dev <package-name>
 ```
 
-### Switching between dev and standard mode
+#### Switching between dev and standard mode
 
 After you are done with testing and want to go back to standard mode, you can remove the dev-only packages:
 
@@ -275,7 +311,7 @@ uv sync --no-group dev
 
 This will disable all additional groups and just load your main project dependencies.
 
-### Best practice: run `uv lock -U`
+#### Best practice: run `uv lock -U`
 
 Whenever you upgrade, downgrade, or change versions of packages, it's good practice to run:
 
@@ -292,7 +328,8 @@ diversify/
 ├── diversify/                  # Python package
 │   ├── __init__.py
 │   ├── core.py                 # Diversifier class & diversify() function
-│   ├── _io.py                  # Input normalisation & tabular file loading
+│   ├── _input.py               # Input resolution & lazy file reading
+│   ├── _output.py              # Output path resolution & JSONL writing
 │   ├── _text.py                # Punctuation-based text splitting
 │   └── method/                 # Pluggable diversification methods
 │       ├── __init__.py
@@ -308,15 +345,15 @@ diversify/
 │   ├── __init__.py
 │   ├── fixtures.py             # Shared fake method implementations
 │   ├── test_core.py            # Diversifier & diversify() tests
-│   ├── test_input.py           # Input normalisation tests
-│   └── test_output.py          # Tabular I/O tests
+│   ├── test_input.py           # Input resolution tests
+│   ├── test_output.py          # Output path & writer tests
+│   └── test_text.py            # Punctuation splitting tests
 ├── example_scripts/            # Runnable examples + example data
 │   ├── data/
 │   │   └── bios_400.csv
 │   ├── utils/
 │   │   └── load_bios.py
 │   └── run_diversify_bios.py
-├── legacy_code/                # Original scripts (reference only)
 ├── pyproject.toml
 └── README.md
 ```
