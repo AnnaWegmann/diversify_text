@@ -62,16 +62,18 @@ class TestDiversifier(unittest.TestCase):
         self.assertEqual(len(results), 5)
         self.assertEqual(results[0]["paraphrases"], ["a:0", "a:1"])
 
-    def test_iterator_input_with_output_path(self):
+    def test_iterator_input_with_output_dir(self):
         def gen():
             yield "one"
             yield "two"
 
         div = Diversifier(methods=["echo"])
         with tempfile.TemporaryDirectory() as tmpdir:
-            out = Path(tmpdir) / "out.jsonl"
-            result = div.diversify(gen(), n_styles=2, output_path=str(out))
+            result = div.diversify(
+                gen(), n_styles=2, output_dir=tmpdir, output_name="out"
+            )
             self.assertIsInstance(result, Path)
+            out = Path(tmpdir) / "out.jsonl"
             self.assertTrue(out.exists())
             lines = out.read_text(encoding="utf-8").strip().split("\n")
             self.assertEqual(len(lines), 2)
@@ -79,10 +81,19 @@ class TestDiversifier(unittest.TestCase):
             self.assertEqual(record["original"], "one")
             self.assertEqual(len(record["paraphrases"]), 2)
 
-    def test_iterator_without_output_path_raises(self):
+    def test_iterator_without_output_dir_defaults_to_cwd(self):
         div = Diversifier(methods=["echo"])
-        with self.assertRaises(ValueError):
-            div.diversify(iter(["a", "b"]), n_styles=1)
+        original_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            import os
+            os.chdir(tmpdir)
+            try:
+                result = div.diversify(iter(["a", "b"]), n_styles=1)
+                self.assertIsInstance(result, Path)
+                expected = Path(tmpdir) / "diversified_output.jsonl"
+                self.assertTrue(expected.exists())
+            finally:
+                os.chdir(original_cwd)
 
     def test_csv_file_writes_jsonl(self):
         div = Diversifier(methods=["echo"])
@@ -98,7 +109,7 @@ class TestDiversifier(unittest.TestCase):
             lines = jsonl_path.read_text(encoding="utf-8").strip().split("\n")
             self.assertEqual(len(lines), 2)
 
-    def test_txt_file_creates_diversified_files(self):
+    def test_txt_file_writes_jsonl(self):
         div = Diversifier(methods=["echo"])
         with tempfile.TemporaryDirectory() as tmpdir:
             txt_path = Path(tmpdir) / "texts.txt"
@@ -107,11 +118,10 @@ class TestDiversifier(unittest.TestCase):
             result = div.diversify(str(txt_path), n_styles=2)
             self.assertIsInstance(result, Path)
 
-            f1 = Path(tmpdir) / "texts_diversified_1.txt"
-            f2 = Path(tmpdir) / "texts_diversified_2.txt"
-            self.assertTrue(f1.exists())
-            self.assertTrue(f2.exists())
-            self.assertEqual(len(f1.read_text().strip().split("\n")), 2)
+            jsonl = Path(tmpdir) / "texts.jsonl"
+            self.assertTrue(jsonl.exists())
+            lines = jsonl.read_text(encoding="utf-8").strip().split("\n")
+            self.assertEqual(len(lines), 2)
 
 
 class TestDiversifyFunction(unittest.TestCase):

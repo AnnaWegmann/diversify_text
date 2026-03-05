@@ -16,13 +16,8 @@ from typing import Any
 
 from tqdm import tqdm
 
-from diversify._io import (
-    DiversifyOutput,
-    OutputWriter,
-    TextInput,
-    resolve_input,
-    resolve_output_path,
-)
+from diversify._input import TextInput, resolve_input
+from diversify._output import DiversifyOutput, OutputWriter, resolve_output_path
 from diversify._text import split_text_on_punctuation
 from diversify.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
@@ -79,7 +74,8 @@ class Diversifier:
         temperature: float = 1.0,
         top_p: float = 1.0,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
-        output_path: str | Path | None = None,
+        output_dir: str | Path | None = None,
+        output_name: str | None = None,
     ) -> DiversifyOutput:
         """Produce *n_styles* stylistic paraphrases for each input text.
 
@@ -107,20 +103,24 @@ class Diversifier:
         method_kwargs : mapping[str, dict], optional
             Per-method keyword arguments. Example:
             ``{"tinystyler": {"style_bank": [...]}}``.
-        output_path : str | Path, optional
-            Where to save output. Required for iterator/generator input.
-            Defaults vary by input type (see :func:`resolve_output_path`).
+        output_dir : str | Path, optional
+            Directory to write output files into.  When provided for
+            ``str`` / ``list[str]`` input, forces disk output instead of
+            in-memory.  Defaults vary by input type (see
+            :func:`resolve_output_path`).
+        output_name : str, optional
+            Base filename (without extension).  The correct extension
+            (``.jsonl`` or ``.txt``) is appended automatically.
 
         Returns
         -------
         list[dict] | Path
-            For in-memory input (``str``, ``list[str]``), returns a list
-            with one entry per input text::
+            For in-memory input (``str``, ``list[str]``) without
+            *output_dir*, returns a list with one entry per input text::
 
                 {"original": str, "paraphrases": list[str]}
 
-            For file or iterator input, returns the ``Path`` to the
-            output file(s).
+            Otherwise, returns the ``Path`` to the output file(s).
         """
         if n_styles < 1:
             raise ValueError("n_styles must be >= 1.")
@@ -128,8 +128,8 @@ class Diversifier:
             raise ValueError("batch_size must be >= 1.")
 
         # --- resolve input & output ---
-        text_iter, ctx = resolve_input(texts, text_column)
-        out_path = resolve_output_path(ctx, output_path)
+        text_iter, input_context = resolve_input(texts, text_column)
+        out_path = resolve_output_path(input_context, output_dir, output_name)
 
         # --- prepare methods (model loading etc.) ---
         method_kwargs = method_kwargs or {}
@@ -137,10 +137,10 @@ class Diversifier:
             method.prepare()
 
         # --- process batches lazily ---
-        writer = OutputWriter(ctx, n_styles, out_path)
+        writer = OutputWriter(input_context, n_styles, out_path)
         writer.open()
         try:
-            with tqdm(total=ctx.total, desc="Diversifying", unit="text") as pbar:
+            with tqdm(total=input_context.total, desc="Diversifying", unit="text") as pbar:
                 while True:
                     batch_texts = list(islice(text_iter, batch_size))
                     if not batch_texts:
@@ -327,7 +327,8 @@ def diversify(
         Forwarded to :meth:`Diversifier.diversify`
         (``n_styles``, ``text_column``, ``batch_size``,
         ``split_on_punctuation``, ``max_new_tokens``,
-        ``temperature``, ``top_p``, ``method_kwargs``, ``output_path``).
+        ``temperature``, ``top_p``, ``method_kwargs``,
+        ``output_dir``, ``output_name``).
 
     Returns
     -------
