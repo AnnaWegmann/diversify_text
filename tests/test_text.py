@@ -1,11 +1,10 @@
 """Tests for punctuation splitting — the split_text_on_punctuation function
 and the split_on_punctuation=True behaviour in Diversifier."""
 
+import json
+import tempfile
 import unittest
 from pathlib import Path
-import tempfile
-
-import pandas as pd
 
 from diversify import Diversifier
 from diversify._text import split_text_on_punctuation
@@ -48,28 +47,29 @@ class TestPunctuationSplitting(unittest.TestCase):
         self.assertEqual(results[1]["original"], "Single sentence")
 
     def test_segments_are_reassembled_in_paraphrase(self):
-        # PrefixMethod returns "<prefix>:<text>:<i>" per segment.
-        # With two segments and n_styles=1, the paraphrase should be the
-        # two segment paraphrases joined with a space.
         div = Diversifier(methods=[PrefixMethod("p")])
         results = div.diversify("One. Two!", n_styles=1, split_on_punctuation=True)
         self.assertEqual(results[0]["paraphrases"], ["p:One.:0 p:Two!:0"])
 
-    def test_csv_returns_one_row_per_original(self):
+    def test_csv_with_punctuation_writes_one_jsonl_record_per_original(self):
         div = Diversifier(methods=["echo"])
         with tempfile.TemporaryDirectory() as tmpdir:
             input_path = Path(tmpdir) / "tmp.csv"
-            pd.DataFrame({
-                "id": [10, 20],
-                "bio": ["First sentence. Second sentence!", "Only one."],
-            }).to_csv(input_path, index=False)
-
-            results = div.diversify(
-                str(input_path), text_column="bio", n_styles=1, split_on_punctuation=True
+            input_path.write_text(
+                "id,bio\n10,First sentence. Second sentence!\n20,Only one.\n",
+                encoding="utf-8",
             )
-            self.assertIsInstance(results, pd.DataFrame)
-            self.assertEqual(len(results), 2)
-            self.assertIn("style 1", results.columns)
+
+            result = div.diversify(
+                str(input_path), text_column="bio", n_styles=1,
+                split_on_punctuation=True,
+            )
+            self.assertIsInstance(result, Path)
+            jsonl_path = Path(tmpdir) / "tmp_diversified.jsonl"
+            lines = jsonl_path.read_text(encoding="utf-8").strip().split("\n")
+            self.assertEqual(len(lines), 2)
+            record = json.loads(lines[0])
+            self.assertEqual(record["original"], "First sentence. Second sentence!")
 
 
 if __name__ == "__main__":

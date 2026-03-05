@@ -187,8 +187,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "huggingface-hub" },
-    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "pandas", version = "3.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "protobuf" },
     { name = "sentence-transformers" },
     { name = "sentencepiece" },
@@ -200,13 +198,14 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pandas", version = "3.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "huggingface-hub" },
-    { name = "pandas" },
     { name = "protobuf" },
     { name = "sentence-transformers" },
     { name = "sentencepiece" },
@@ -217,7 +216,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest" }]
+dev = [
+    { name = "pandas" },
+    { name = "pytest" },
+]
 
 [[package]]
 name = "exceptiongroup"

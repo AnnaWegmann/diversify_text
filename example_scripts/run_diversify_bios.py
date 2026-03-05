@@ -1,4 +1,4 @@
-"""Run diversify over the full bios dataset and write CSV output.
+"""Run diversify over the full bios dataset and write JSONL output.
 
 Example:
     python example_scripts/run_diversify_bios.py --methods tinystyler --n-styles 3
@@ -8,7 +8,6 @@ import argparse
 from pathlib import Path
 
 from diversify import Diversifier
-from utils.load_bios import load_bios
 
 
 def parse_methods(raw: str) -> list[str]:
@@ -21,16 +20,16 @@ def parse_methods(raw: str) -> list[str]:
 def main() -> None:
     script_dir = Path(__file__).resolve().parent
     default_input = script_dir / "data" / "bios_400.csv"
-    default_output = script_dir / "data" / "bios_400_diversified.csv"
+    default_output = script_dir / "data" / "bios_400_diversified.jsonl"
 
     parser = argparse.ArgumentParser(
-        description="Diversify all bios in a CSV and save CSV results."
+        description="Diversify all bios in a CSV and save JSONL results."
     )
     parser.add_argument("--input", default=str(default_input), help="Input CSV path.")
     parser.add_argument(
         "--output",
         default=str(default_output),
-        help="Output CSV path.",
+        help="Output JSONL path.",
     )
     parser.add_argument(
         "--text-column",
@@ -52,11 +51,8 @@ def main() -> None:
     parser.add_argument("--device", default=None, help="Torch device (cpu/cuda/mps).")
     args = parser.parse_args()
 
-    input_path = Path(args.input)
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    df = load_bios(path=input_path, text_column=args.text_column)
 
     methods = parse_methods(args.methods)
     diversifier = Diversifier(
@@ -64,17 +60,15 @@ def main() -> None:
         methods=methods,
     )
 
-    output_df = diversifier.diversify(
-        df,
+    result = diversifier.diversify(
+        args.input,
         n_styles=args.n_styles,
         text_column=args.text_column,
         batch_size=args.batch_size,
         split_on_punctuation=args.split_on_punctuation,
+        output_path=str(output_path),
     )
-    if not hasattr(output_df, "to_csv"):
-        raise TypeError("Expected DataFrame output for DataFrame input.")
-    output_df.to_csv(output_path, index=False)
-    print(f"Wrote diversified bios CSV to: {output_path}")
+    print(f"Wrote diversified bios to: {result}")
 
 
 if __name__ == "__main__":

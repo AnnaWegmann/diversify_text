@@ -1,8 +1,9 @@
 """Tests for core Diversifier behaviour: method architecture, batching, convenience function."""
 
+import json
+import tempfile
 import unittest
-
-import pandas as pd
+from pathlib import Path
 
 from diversify import Diversifier, diversify
 
@@ -60,6 +61,57 @@ class TestDiversifier(unittest.TestCase):
         self.assertEqual(method.calls, 3)
         self.assertEqual(len(results), 5)
         self.assertEqual(results[0]["paraphrases"], ["a:0", "a:1"])
+
+    def test_iterator_input_with_output_path(self):
+        def gen():
+            yield "one"
+            yield "two"
+
+        div = Diversifier(methods=["echo"])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out = Path(tmpdir) / "out.jsonl"
+            result = div.diversify(gen(), n_styles=2, output_path=str(out))
+            self.assertIsInstance(result, Path)
+            self.assertTrue(out.exists())
+            lines = out.read_text(encoding="utf-8").strip().split("\n")
+            self.assertEqual(len(lines), 2)
+            record = json.loads(lines[0])
+            self.assertEqual(record["original"], "one")
+            self.assertEqual(len(record["paraphrases"]), 2)
+
+    def test_iterator_without_output_path_raises(self):
+        div = Diversifier(methods=["echo"])
+        with self.assertRaises(ValueError):
+            div.diversify(iter(["a", "b"]), n_styles=1)
+
+    def test_csv_file_writes_jsonl(self):
+        div = Diversifier(methods=["echo"])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            csv_path = Path(tmpdir) / "data.csv"
+            csv_path.write_text("text\nhello\nworld\n", encoding="utf-8")
+
+            result = div.diversify(str(csv_path), text_column="text", n_styles=2)
+            self.assertIsInstance(result, Path)
+
+            jsonl_path = Path(tmpdir) / "data_diversified.jsonl"
+            self.assertTrue(jsonl_path.exists())
+            lines = jsonl_path.read_text(encoding="utf-8").strip().split("\n")
+            self.assertEqual(len(lines), 2)
+
+    def test_txt_file_creates_diversified_files(self):
+        div = Diversifier(methods=["echo"])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            txt_path = Path(tmpdir) / "texts.txt"
+            txt_path.write_text("line one\nline two\n", encoding="utf-8")
+
+            result = div.diversify(str(txt_path), n_styles=2)
+            self.assertIsInstance(result, Path)
+
+            f1 = Path(tmpdir) / "texts_diversified_1.txt"
+            f2 = Path(tmpdir) / "texts_diversified_2.txt"
+            self.assertTrue(f1.exists())
+            self.assertTrue(f2.exists())
+            self.assertEqual(len(f1.read_text().strip().split("\n")), 2)
 
 
 class TestDiversifyFunction(unittest.TestCase):
