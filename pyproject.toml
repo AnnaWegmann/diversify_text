@@ -25,6 +25,11 @@ dev = [
     "pytest",
     "pandas",
 ]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme",
+    "sphinx-copybutton",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
