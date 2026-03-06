@@ -74,6 +74,13 @@ class TestResolveOutputPath(unittest.TestCase):
         result = resolve_output_path(input_context, output_name="my_results")
         self.assertEqual(result, Path("/tmp/my_results.jsonl"))
 
+    def test_output_name_with_jsonl_extension_not_doubled(self):
+        input_context = InputContext(
+            kind=InputKind.FILE_CSV, input_path=Path("/tmp/data.csv")
+        )
+        result = resolve_output_path(input_context, output_name="out.jsonl")
+        self.assertEqual(result, Path("/tmp/out.jsonl"))
+
     # -- Both output_dir and output_name --
 
     def test_output_dir_and_name_together(self):
