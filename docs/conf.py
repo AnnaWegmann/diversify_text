@@ -1,0 +1,61 @@
+"""Sphinx configuration for diversify documentation."""
+
+import sys
+from pathlib import Path
+
+# -- Path setup --------------------------------------------------------
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+# -- Project information ------------------------------------------------
+project = "diversify"
+copyright = "2025, Anna Wegmann"
+author = "Anna Wegmann"
+release = "0.1.0"
+
+# -- General configuration ----------------------------------------------
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
+    "sphinx_copybutton",
+]
+
+# Mock heavy dependencies so docs build without torch, transformers, etc.
+autodoc_mock_imports = [
+    "torch",
+    "transformers",
+    "sentence_transformers",
+    "sentencepiece",
+    "tiktoken",
+    "protobuf",
+    "huggingface_hub",
+    "tqdm",
+]
+
+# Napoleon settings (NumPy-style docstrings)
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = True
+napoleon_use_param = True
+napoleon_use_rtype = True
+
+# Autodoc settings
+autodoc_member_order = "bysource"
+autodoc_typehints = "description"
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": False,
+    "show-inheritance": True,
+}
+
+# Intersphinx for linking to Python stdlib docs
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}
+
+# -- HTML output ---------------------------------------------------------
+html_theme = "sphinx_rtd_theme"
+html_title = "diversify"
+
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
