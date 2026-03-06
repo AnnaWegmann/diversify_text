@@ -2,6 +2,8 @@
 
 This package helps you generate stylistically diverse paraphrases of your own texts using huggingface transformer models locally.
 
+**[Full documentation](https://annawegmann.github.io/diversify/)**
+
 ## Table of contents
 
 - [Usage](#usage)
@@ -9,20 +11,16 @@ This package helps you generate stylistically diverse paraphrases of your own te
   - [Control number of paraphrases](#control-number-of-paraphrases)
   - [Using the class directly](#using-the-class-directly)
   - [List of texts](#list-of-texts)
-  - [CSV / TSV file](#csv--tsv-file)
-  - [TXT file](#txt-file)
-  - [Controlling output location](#controlling-output-location)
-  - [Punctuation splitting](#punctuation-splitting)
-  - [Multiple methods](#multiple-methods)
   - [Customising the TinyStyler style bank](#customising-the-tinystyler-style-bank)
-  - [Creating a custom method](#creating-a-custom-method)
 - [Install](#install)
 - [Development](#development)
   - [Running tests](#running-tests)
   - [Working with uv](#working-with-uv)
-- [Project structure](#project-structure)
+  - [Building docs locally](#building-docs-locally)
 
 ## Usage
+
+For file inputs (CSV, TSV, TXT), output options, punctuation splitting, and creating custom methods, see the [full usage guide](https://annawegmann.github.io/diversify/usage.html).
 
 ### Single text
 
@@ -83,85 +81,6 @@ results = diversify([
     {"original": "She graduated ...", "paraphrases": ["...", "...", ...]},
 ]
 ```
-
-### CSV / TSV file
-
-Reads the file and writes a JSONL file next to the input (`<input>_diversified.jsonl`).
-
-```python
-results = diversify("bios.csv", text_column="bio")
-# writes bios_diversified.jsonl
-```
-
-Each line in the JSONL output is one JSON object:
-
-```json
-{"original": "Jane is a ...", "paraphrases": ["Jane works as a ...", "As a ..., Jane ..."]}
-{"original": "John studied ...", "paraphrases": ["John was educated ...", "..."]}
-```
-
-### TXT file
-
-Each non-empty line is treated as a separate text to diversify. Output is written to `<input>.jsonl`.
-
-```python
-results = diversify("texts.txt")
-# writes texts.jsonl
-```
-
-
-### Controlling output location
-
-By default, file inputs write output next to the input file and in-memory inputs (strings, lists) return a Python list. You can override this with `output_dir` and `output_name`:
-
-```python
-# Write output to a specific directory
-results = diversify("bios.csv", text_column="bio", output_dir="/results")
-# writes /results/bios_diversified.jsonl
-
-# Also set a custom filename
-results = diversify("bios.csv", text_column="bio", output_dir="/results", output_name="my_output")
-# writes /results/my_output.jsonl
-
-# Force a list input to write to disk instead of returning in-memory
-results = diversify(["text one", "text two"], output_dir=".")
-# writes ./diversified_output.jsonl
-```
-
-The `.jsonl` extension is always added automatically.
-
-### Punctuation splitting
-
-Splits each text into sentence segments internally before paraphrasing (improving quality on long texts), then reassembles the results. The output still contains one entry per original input text.
-
-```python
-results = diversify(["One sentence. Another one!"], split_on_punctuation=True, n_styles=2)
-```
-
-```
-[{
-    "original": "One sentence. Another one!",
-    "paraphrases": [
-        "A single sentence. Yet another one!",
-        "One phrase. One more!",
-    ]
-}]
-```
-
-### Multiple methods
-
-Styles are distributed evenly across methods.
-
-```python
-results = diversify("Some text.", n_styles=6, methods=["tinystyler", "echo"])
-```
-
-```
-[{"original": "Some text.", "paraphrases": ["...", "...", "...", "...", "...", "Some text."]}]
-#                                           |--- 4 from tinystyler ---|  |-- 2 from echo --|
-```
-
-
 
 ### Customising the TinyStyler style bank
 
@@ -321,39 +240,10 @@ uv lock -U
 
 This updates your lock file to ensure all versions are consistent and everything is in sync.
 
-## Project structure
+### Building docs locally
 
-```
-diversify/
-├── diversify/                  # Python package
-│   ├── __init__.py
-│   ├── core.py                 # Diversifier class & diversify() function
-│   ├── _input.py               # Input resolution & lazy file reading
-│   ├── _output.py              # Output path resolution & JSONL writing
-│   ├── _text.py                # Punctuation-based text splitting
-│   └── method/                 # Pluggable diversification methods
-│       ├── __init__.py
-│       ├── base.py             # DiversificationMethod abstract class
-│       ├── registry.py         # Method registry + default registrations
-│       ├── echo.py             # Echo method (returns input unchanged)
-│       └── tinystyler/         # TinyStyler method
-│           ├── __init__.py
-│           ├── method.py       # TinyStyler-backed method
-│           ├── model.py        # TinyStyler model wrapper
-│           └── styles.py       # Default style bank
-├── tests/
-│   ├── __init__.py
-│   ├── fixtures.py             # Shared fake method implementations
-│   ├── test_core.py            # Diversifier & diversify() tests
-│   ├── test_input.py           # Input resolution tests
-│   ├── test_output.py          # Output path & writer tests
-│   └── test_text.py            # Punctuation splitting tests
-├── example_scripts/            # Runnable examples + example data
-│   ├── data/
-│   │   └── bios_400.csv
-│   ├── utils/
-│   │   └── load_bios.py
-│   └── run_diversify_bios.py
-├── pyproject.toml
-└── README.md
+```bash
+uv sync --group docs
+sphinx-build -b html docs docs/_build/html
+open docs/_build/html/index.html
 ```
