@@ -66,7 +66,7 @@ def resolve_output_path(
         Base filename (without extension).  The correct extension is
         appended automatically.  If the name already contains an
         extension it is **not** stripped — the correct extension is
-        appended after it.
+        appended after it — unless it already ends with ``.jsonl``.
 
     Returns
     -------
@@ -101,7 +101,9 @@ def resolve_output_path(
         name = "diversified_output"
 
     # --- build final path with the correct extension ---
-    result = directory / f"{name}.jsonl"
+    if not name.endswith(".jsonl"):
+        name = f"{name}.jsonl"
+    result = directory / name
 
     _log.info("Output will be written to %s", result)
     return result
@@ -182,20 +184,32 @@ class OutputWriter:
             One inner list per original text, each containing *n_styles*
             paraphrased variants.  For example, with 2 styles and 2
             texts: ``[["a_style1", "a_style2"], ["b_style1", "b_style2"]]``.
+        Raises
+        ------
+        ValueError
+            If ``originals`` and ``paraphrases_by_text`` have different
+            lengths.
         """
-        if self._output_path is None:
-            # In-memory mode: accumulate dicts.
-            for orig, paras in zip(originals, paraphrases_by_text):
-                self._accumulated.append(
-                    {"original": orig, "paraphrases": paras}
-                )
-            return
+        if len(originals) != len(paraphrases_by_text):
+            raise ValueError(
+                f"originals has {len(originals)} items but "
+                f"paraphrases_by_text has {len(paraphrases_by_text)}."
+            )
 
-        # Disk mode: write one JSON object per line.
-        assert self._handle is not None
-        for orig, paras in zip(originals, paraphrases_by_text):
+        for i, (orig, paras) in enumerate(zip(originals, paraphrases_by_text)):
+            if len(paras) != self._n_styles:
+                _log.warning(
+                    "Expected %d paraphrases for text %d, got %d.",
+                    self._n_styles, i, len(paras),
+                )
             record = {"original": orig, "paraphrases": paras}
-            self._handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+            if self._output_path is None:
+                self._accumulated.append(record)
+            else:
+                assert self._handle is not None
+                self._handle.write(
+                    json.dumps(record, ensure_ascii=False) + "\n"
+                )
 
     def finish(self) -> DiversifyOutput:
         """Close the file handle and return the final result.
