@@ -66,7 +66,8 @@ def main() -> None:
         text_column=args.text_column,
         batch_size=args.batch_size,
         split_on_punctuation=args.split_on_punctuation,
-        output_path=str(output_path),
+        output_dir=output_path.parent,
+        output_name=output_path.stem,
     )
     print(f"Wrote diversified bios to: {result}")
 
