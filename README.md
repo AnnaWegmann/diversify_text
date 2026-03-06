@@ -2,8 +2,25 @@
 
 This package helps you generate stylistically diverse paraphrases of your own texts using huggingface transformer models locally.
 
+**[Full documentation](https://annawegmann.github.io/diversify/)**
+
+## Table of contents
+
+- [Usage](#usage)
+  - [Single text](#single-text)
+  - [Control number of paraphrases](#control-number-of-paraphrases)
+  - [Using the class directly](#using-the-class-directly)
+  - [List of texts](#list-of-texts)
+  - [Customising the TinyStyler style bank](#customising-the-tinystyler-style-bank)
+- [Install](#install)
+- [Development](#development)
+  - [Running tests](#running-tests)
+  - [Working with uv](#working-with-uv)
+  - [Building docs locally](#building-docs-locally)
 
 ## Usage
+
+For file inputs (CSV, TSV, TXT), output options, punctuation splitting, and creating custom methods, see the [full usage guide](https://annawegmann.github.io/diversify/usage.html).
 
 ### Single text
 
@@ -64,70 +81,6 @@ results = diversify([
     {"original": "She graduated ...", "paraphrases": ["...", "...", ...]},
 ]
 ```
-
-### pandas DataFrame
-
-```python
-import pandas as pd
-
-df = pd.DataFrame({"text": ["Hello world.", "How are you?"]})
-results = diversify(df, text_column="text")
-```
-
-```
-   text           style 1                 style 2                ...
-   Hello world.   Hey there, world.       Greetings, world.      ...
-   How are you?   How are you doing?      How's it going?        ...
-```
-
-### CSV / TSV file
-
-Reads the file, adds style columns, and auto-saves `<input>_diversified.<ext>`.
-
-```python
-results = diversify("bios.csv", text_column="bio")
-```
-
-```
-   bio              style 1                       style 2               ...
-   Jane is a ...    Jane works as a ...           As a ..., Jane ...    ...
-   ...
-# also saves bios_diversified.csv
-```
-
-
-### Punctuation splitting
-
-Splits each text into sentence segments internally before paraphrasing (improving quality on long texts), then reassembles the results. The output still contains one entry per original input text.
-
-```python
-results = diversify(["One sentence. Another one!"], split_on_punctuation=True, n_styles=2)
-```
-
-```
-[{
-    "original": "One sentence. Another one!",
-    "paraphrases": [
-        "A single sentence. Yet another one!",
-        "One phrase. One more!",
-    ]
-}]
-```
-
-### Multiple methods
-
-Styles are distributed evenly across methods.
-
-```python
-results = diversify("Some text.", n_styles=6, methods=["tinystyler", "echo"])
-```
-
-```
-[{"original": "Some text.", "paraphrases": ["...", "...", "...", "...", "...", "Some text."]}]
-#                                           |--- 4 from tinystyler ---|  |-- 2 from echo --|
-```
-
-
 
 ### Customising the TinyStyler style bank
 
@@ -231,7 +184,9 @@ To use the library directly:
    source .venv/bin/activate
    ```
 
-## Running tests
+## Development
+
+### Running tests
 
 ```bash
 # Run all tests
@@ -247,9 +202,9 @@ pytest tests/test_core.py::TestDiversifier::test_single_text_returns_one_result
 
 Tests are also individually runnable via PyCharm's built-in test runner (right-click any test class or method).
 
-## Working with uv
+### Working with uv
 
-### Adding packages with `uv add`
+#### Adding packages with `uv add`
 
 To add packages to your project, always use `uv add` rather than `uv pip install`. This ensures that your dependencies are properly managed and recorded in your `pyproject.toml`.
 
@@ -257,7 +212,7 @@ To add packages to your project, always use `uv add` rather than `uv pip install
 uv add <package-name>
 ```
 
-### Adding packages to the dev group
+#### Adding packages to the dev group
 
 If you need to add a package specifically for your development environment:
 
@@ -265,7 +220,7 @@ If you need to add a package specifically for your development environment:
 uv add --group dev <package-name>
 ```
 
-### Switching between dev and standard mode
+#### Switching between dev and standard mode
 
 After you are done with testing and want to go back to standard mode, you can remove the dev-only packages:
 
@@ -275,7 +230,7 @@ uv sync --no-group dev
 
 This will disable all additional groups and just load your main project dependencies.
 
-### Best practice: run `uv lock -U`
+#### Best practice: run `uv lock -U`
 
 Whenever you upgrade, downgrade, or change versions of packages, it's good practice to run:
 
@@ -285,38 +240,10 @@ uv lock -U
 
 This updates your lock file to ensure all versions are consistent and everything is in sync.
 
-## Project structure
+### Building docs locally
 
-```
-diversify/
-├── diversify/                  # Python package
-│   ├── __init__.py
-│   ├── core.py                 # Diversifier class & diversify() function
-│   ├── _io.py                  # Input normalisation & tabular file loading
-│   ├── _text.py                # Punctuation-based text splitting
-│   └── method/                 # Pluggable diversification methods
-│       ├── __init__.py
-│       ├── base.py             # DiversificationMethod abstract class
-│       ├── registry.py         # Method registry + default registrations
-│       ├── echo.py             # Echo method (returns input unchanged)
-│       └── tinystyler/         # TinyStyler method
-│           ├── __init__.py
-│           ├── method.py       # TinyStyler-backed method
-│           ├── model.py        # TinyStyler model wrapper
-│           └── styles.py       # Default style bank
-├── tests/
-│   ├── __init__.py
-│   ├── fixtures.py             # Shared fake method implementations
-│   ├── test_core.py            # Diversifier & diversify() tests
-│   ├── test_input.py           # Input normalisation tests
-│   └── test_output.py          # Tabular I/O tests
-├── example_scripts/            # Runnable examples + example data
-│   ├── data/
-│   │   └── bios_400.csv
-│   ├── utils/
-│   │   └── load_bios.py
-│   └── run_diversify_bios.py
-├── legacy_code/                # Original scripts (reference only)
-├── pyproject.toml
-└── README.md
+```bash
+uv sync --group docs
+sphinx-build -b html docs docs/_build/html
+open docs/_build/html/index.html
 ```

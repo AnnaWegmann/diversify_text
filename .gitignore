@@ -15,5 +15,8 @@ uv.lock
 # IDE
 .idea/
 
+# Sphinx documentation
+docs/_build/
+
 # OS
 .DS_Store

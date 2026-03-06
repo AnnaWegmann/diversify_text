@@ -17,13 +17,18 @@ dependencies = [
     "tiktoken",
     "protobuf",
     "huggingface-hub",
-    "pandas",
     "tqdm>=4.67.3",
 ]
 
 [dependency-groups]
 dev = [
     "pytest",
+    "pandas",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme",
+    "sphinx-copybutton",
 ]
 
 [tool.pytest.ini_options]

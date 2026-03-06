@@ -10,19 +10,16 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 import inspect
+from itertools import islice
 from pathlib import Path
-from typing import Any, Union
-
-import pandas as pd
+from typing import Any
 
 from tqdm import tqdm
 
-from diversify._io import load_tabular_input, normalize_input
+from diversify._input import TextInput, resolve_input
+from diversify._output import DiversifyOutput, OutputWriter, resolve_output_path
 from diversify._text import split_text_on_punctuation
 from diversify.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
-
-TextInput = Union[str, list[str], pd.Series, pd.DataFrame]
-DiversifyOutput = Union[list[dict], pd.DataFrame]
 
 
 class Diversifier:
@@ -71,29 +68,29 @@ class Diversifier:
         *,
         n_styles: int = 5,
         text_column: str = "text",
-        batch_size: int | None = None,
+        batch_size: int = 32,
         split_on_punctuation: bool = False,
         max_new_tokens: int = 128,
         temperature: float = 1.0,
         top_p: float = 1.0,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
-        output_path: str | Path | None = None,
+        output_dir: str | Path | None = None,
+        output_name: str | None = None,
     ) -> DiversifyOutput:
         """Produce *n_styles* stylistic paraphrases for each input text.
 
         Parameters
         ----------
-        texts : str | list[str] | pd.Series | pd.DataFrame
-            Input text(s).  When a :class:`~pandas.DataFrame` is passed,
-            the column specified by *text_column* is used.
+        texts : str | list[str] | Iterable[str]
+            A single text, a list of texts, a generator/iterable of texts,
+            or a path to a ``.csv``, ``.tsv``, or ``.txt`` file.
         n_styles : int
             Number of stylistically diverse paraphrases to generate per
             input text.
         text_column : str
-            Column name to read when *texts* is a DataFrame.
-        batch_size : int, optional
-            Number of texts to process per generation batch. If omitted,
-            all texts are processed in a single batch.
+            Column name to extract when *texts* points to a CSV/TSV file.
+        batch_size : int
+            Number of texts to pull from the input iterator per batch.
         split_on_punctuation : bool
             If True, split each input text into punctuation-delimited
             segments before running methods.
@@ -106,106 +103,84 @@ class Diversifier:
         method_kwargs : mapping[str, dict], optional
             Per-method keyword arguments. Example:
             ``{"tinystyler": {"style_bank": [...]}}``.
-        output_path : str | Path, optional
-            When *texts* is a CSV/TSV filepath, save diversified output to this
-            location. If omitted, defaults to
-            ``<input_stem>_diversified<original_suffix>``.
+        output_dir : str | Path, optional
+            Directory to write output files into.  When provided for
+            ``str`` / ``list[str]`` input, forces disk output instead of
+            in-memory.  Defaults vary by input type (see
+            :func:`resolve_output_path`).
+        output_name : str, optional
+            Base filename (without extension).  The ``.jsonl`` extension
+            is appended automatically.
 
         Returns
         -------
-        list[dict] | pd.DataFrame
-            For non-DataFrame input, returns a list with one entry per input text::
+        list[dict] | Path
+            For in-memory input (``str``, ``list[str]``) without
+            *output_dir*, returns a list with one entry per input text::
 
                 {"original": str, "paraphrases": list[str]}
 
-            For DataFrame input, returns a copy of the input DataFrame with
-            added columns ``style 1`` .. ``style n``.
+            Otherwise, returns the ``Path`` to the output file(s).
         """
         if n_styles < 1:
             raise ValueError("n_styles must be >= 1.")
+        if batch_size < 1:
+            raise ValueError("batch_size must be >= 1.")
 
-        # --- resolve input ---
-        loaded_file = load_tabular_input(texts, text_column)
-        source_df: pd.DataFrame | None = None
-        input_path: Path | None = None
-        input_sep: str | None = None
-        if loaded_file is not None:
-            source_df, input_path, input_sep = loaded_file
-            base_texts = source_df[text_column].tolist()
-        else:
-            base_texts = normalize_input(texts, text_column)
+        # --- resolve input & output ---
+        text_iter, input_context = resolve_input(texts, text_column)
+        out_path = resolve_output_path(input_context, output_dir, output_name)
 
-        if split_on_punctuation:
-            segments_per_text = [split_text_on_punctuation(t) for t in base_texts]
-            text_list = [seg for segs in segments_per_text for seg in segs]
-        else:
-            segments_per_text = None
-            text_list = base_texts
-
-        # --- run generation ---
+        # --- prepare methods (model loading etc.) ---
         method_kwargs = method_kwargs or {}
-        if batch_size is None:
-            effective_batch_size = len(text_list) if text_list else 1
-        elif batch_size < 1:
-            raise ValueError("batch_size must be >= 1 when provided.")
-        else:
-            effective_batch_size = batch_size
-
         for method in self._methods:
             method.prepare()
 
-        paraphrases_by_text: list[list[str]] = []
-        with tqdm(total=len(text_list), desc="Diversifying", unit="text") as pbar:
-            for start in range(0, len(text_list), effective_batch_size):
-                batch_texts = text_list[start : start + effective_batch_size]
-                paraphrases_by_text.extend(
-                    self._diversify_batch(
-                        batch_texts=batch_texts,
-                        n_styles=n_styles,
-                        max_new_tokens=max_new_tokens,
-                        temperature=temperature,
-                        top_p=top_p,
-                        method_kwargs=method_kwargs,
-                    )
-                )
-                pbar.update(len(batch_texts))
+        # --- process batches lazily ---
+        writer = OutputWriter(input_context, n_styles, out_path)
+        writer.open()
+        try:
+            with tqdm(total=input_context.total, desc="Diversifying", unit="text") as pbar:
+                while True:
+                    batch_texts = list(islice(text_iter, batch_size))
+                    if not batch_texts:
+                        break
 
-        # --- infer actual style count from results ---
-        actual_n_styles = (
-            max((len(row) for row in paraphrases_by_text), default=n_styles)
-            if paraphrases_by_text
-            else n_styles
-        )
+                    if split_on_punctuation:
+                        segments_per_text = [
+                            split_text_on_punctuation(t) for t in batch_texts
+                        ]
+                        flat_segments = [
+                            seg for segs in segments_per_text for seg in segs
+                        ]
+                        paraphrases_by_segment = self._diversify_batch(
+                            batch_texts=flat_segments,
+                            n_styles=n_styles,
+                            max_new_tokens=max_new_tokens,
+                            temperature=temperature,
+                            top_p=top_p,
+                            method_kwargs=method_kwargs,
+                        )
+                        paraphrases_by_text = self._reassemble_from_segments(
+                            segments_per_text, paraphrases_by_segment, n_styles
+                        )
+                    else:
+                        paraphrases_by_text = self._diversify_batch(
+                            batch_texts=batch_texts,
+                            n_styles=n_styles,
+                            max_new_tokens=max_new_tokens,
+                            temperature=temperature,
+                            top_p=top_p,
+                            method_kwargs=method_kwargs,
+                        )
 
-        # --- reassemble segments if needed ---
-        if segments_per_text is not None:
-            paraphrases_by_text = self._reassemble_from_segments(
-                segments_per_text, paraphrases_by_text, actual_n_styles
-            )
+                    writer.write_batch(batch_texts, paraphrases_by_text)
+                    pbar.update(len(batch_texts))
+        except Exception:
+            writer.finish()
+            raise
 
-        # --- format output ---
-        if isinstance(texts, pd.DataFrame) or source_df is not None:
-            output_df = (source_df if source_df is not None else texts).copy()
-            for idx in range(actual_n_styles):
-                output_df[f"style {idx + 1}"] = [
-                    row[idx] if idx < len(row) else "" for row in paraphrases_by_text
-                ]
-            if input_path is not None:
-                final_output_path = (
-                    Path(output_path)
-                    if output_path is not None
-                    else input_path.with_name(
-                        f"{input_path.stem}_diversified{input_path.suffix}"
-                    )
-                )
-                final_output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_df.to_csv(final_output_path, sep=input_sep or ",", index=False)
-            return output_df
-
-        return [
-            {"original": original, "paraphrases": paraphrases}
-            for original, paraphrases in zip(base_texts, paraphrases_by_text)
-        ]
+        return writer.finish()
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -342,7 +317,7 @@ def diversify(
 
     Parameters
     ----------
-    texts : str | list[str] | pd.Series | pd.DataFrame
+    texts : str | list[str] | Iterable[str]
         Input text(s).
     device : str, optional
         Torch device.
@@ -352,11 +327,12 @@ def diversify(
         Forwarded to :meth:`Diversifier.diversify`
         (``n_styles``, ``text_column``, ``batch_size``,
         ``split_on_punctuation``, ``max_new_tokens``,
-        ``temperature``, ``top_p``, ``method_kwargs``, ``output_path``).
+        ``temperature``, ``top_p``, ``method_kwargs``,
+        ``output_dir``, ``output_name``).
 
     Returns
     -------
-    list[dict] | pd.DataFrame
+    list[dict] | Path
         See :meth:`Diversifier.diversify`.
     """
     div = Diversifier(device=device, methods=methods)
