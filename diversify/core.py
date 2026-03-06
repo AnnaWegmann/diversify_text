@@ -109,8 +109,8 @@ class Diversifier:
             in-memory.  Defaults vary by input type (see
             :func:`resolve_output_path`).
         output_name : str, optional
-            Base filename (without extension).  The correct extension
-            (``.jsonl`` or ``.txt``) is appended automatically.
+            Base filename (without extension).  The ``.jsonl`` extension
+            is appended automatically.
 
         Returns
         -------
