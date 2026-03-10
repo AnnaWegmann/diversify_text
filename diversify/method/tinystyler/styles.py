@@ -24,6 +24,16 @@ Import and pass to the method via ``method_kwargs`` to override or extend:
 Examples are drawn from the CORE corpus (https://doi.org/10.1007/s10579-013-9256-1).
 """
 
+DEFAULT_STYLES: list[str] = [
+    "discussion_forum",
+    "encyclopedia_article",
+    "song_lyrics",
+    "transcript_of_video_audio",
+    "personal_blog",
+    # "research_article", song_lyrics
+    # "formal_speech",
+]
+
 DEFAULT_STYLE_BANK: dict[str, list[str]] = {
     "advice": [
         "Sometimes, people just don't feel well. But if you don't feel well more than sometimes, it may be helpful to talk to someone about it.",
