@@ -12,6 +12,24 @@ Control number of paraphrases
 
    [{"original": "Some text.", "paraphrases": ["...", "...", "..."]}]
 
+Reproducibility (seed)
+----------------------
+
+``diversify`` sets a random seed (default ``51173``) so that repeated calls
+produce the same output. The seed is logged at the start of each run.
+
+To get a different set of paraphrases, pass a different seed:
+
+.. code-block:: python
+
+   results = diversify("Some text.", seed=123)
+
+To disable seeding entirely (non-deterministic output):
+
+.. code-block:: python
+
+   results = diversify("Some text.", seed=None)
+
 List of texts
 -------------
 
