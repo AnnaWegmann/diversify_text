@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 import inspect
+import logging
 from itertools import islice
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,8 @@ from diversify._input import TextInput, resolve_input
 from diversify._output import DiversifyOutput, OutputWriter, resolve_output_path
 from diversify._text import split_text_on_punctuation
 from diversify.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
+
+logger = logging.getLogger(__name__)
 
 
 class Diversifier:
@@ -73,7 +76,7 @@ class Diversifier:
         max_new_tokens: int = 128,
         temperature: float = 1.0,
         top_p: float = 1.0,
-        seed: int | None = None,
+        seed: int = 51173,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
         output_dir: str | Path | None = None,
         output_name: str | None = None,
@@ -101,8 +104,10 @@ class Diversifier:
             Sampling temperature.
         top_p : float
             Nucleus-sampling probability mass.
-        seed : int, optional
-            Random seed for reproducible output.
+        seed : int
+            Random seed for reproducible output.  Defaults to ``51173``.
+            Pass a different integer to get a new set of outputs, or
+            ``None`` to disable seeding (non-deterministic).
         method_kwargs : mapping[str, dict], optional
             Per-method keyword arguments. Example:
             ``{"tinystyler": {"style_bank": [...]}}``.
@@ -142,6 +147,7 @@ class Diversifier:
         if seed is not None:
             import torch
             torch.manual_seed(seed)
+            logger.info("Using random seed: %d", seed)
 
         # --- process batches lazily ---
         writer = OutputWriter(input_context, n_styles, out_path)
