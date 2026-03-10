@@ -73,9 +73,9 @@ class Diversifier:
         text_column: str = "text",
         batch_size: int = 32,
         split_on_punctuation: bool = False,
-        max_new_tokens: int = 128,
-        temperature: float = 1.0,
-        top_p: float = 1.0,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
         seed: int = 51173,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
         output_dir: str | Path | None = None,
@@ -98,12 +98,15 @@ class Diversifier:
         split_on_punctuation : bool
             If True, split each input text into punctuation-delimited
             segments before running methods.
-        max_new_tokens : int
+        max_new_tokens : int, optional
             Maximum number of tokens to generate per paraphrase.
-        temperature : float
-            Sampling temperature.
-        top_p : float
-            Nucleus-sampling probability mass.
+            ``None`` lets each method choose its own default.
+        temperature : float, optional
+            Sampling temperature.  ``None`` lets each method choose
+            its own default.
+        top_p : float, optional
+            Nucleus-sampling probability mass.  ``None`` lets each
+            method choose its own default.
         seed : int
             Random seed for reproducible output.  Defaults to ``51173``.
             Pass a different integer to get a new set of outputs, or

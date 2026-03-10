@@ -7,9 +7,14 @@ from typing import Any
 
 from diversify.method.base import DiversificationMethod
 from diversify.method.tinystyler.model import TinyStyler
-from diversify.method.tinystyler.styles import DEFAULT_STYLE_BANK
+from diversify.method.tinystyler.styles import DEFAULT_STYLE_BANK, DEFAULT_STYLES
 
 logger = logging.getLogger(__name__)
+
+_DEFAULT_TEMPERATURE = 0.7
+_DEFAULT_TOP_P = 0.9
+_MAX_NEW_TOKENS_FACTOR = 1.2
+_MAX_NEW_TOKENS_CAP = 128
 
 
 class TinyStylerMethod(DiversificationMethod):
@@ -99,13 +104,33 @@ class TinyStylerMethod(DiversificationMethod):
         texts: list[str],
         *,
         n_styles: int,
-        max_new_tokens: int,
-        temperature: float,
-        top_p: float,
+        max_new_tokens: int | None,
+        temperature: float | None,
+        top_p: float | None,
         **kwargs: Any,
     ) -> list[list[str]]:
         model = self._ensure_model()
+
+        # Apply TinyStyler-specific defaults for parameters not set by
+        # the caller.
+        temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
+        top_p = top_p if top_p is not None else _DEFAULT_TOP_P
+
+        # Cap max_new_tokens at 1.2× the longest input or 128, whichever
+        # is smaller.  An explicit caller value is used as-is.
+        input_token_counts = [
+            len(ids)
+            for ids in model._tokenizer(texts, truncation=True)["input_ids"]
+        ]
+        dynamic_cap = min(
+            int(max(input_token_counts) * _MAX_NEW_TOKENS_FACTOR),
+            _MAX_NEW_TOKENS_CAP,
+        )
+        max_new_tokens = max_new_tokens if max_new_tokens is not None else dynamic_cap
+
         styles_arg = kwargs.get("styles")
+        if styles_arg is None and kwargs.get("style_bank") is None:
+            styles_arg = DEFAULT_STYLES[:n_styles]
         style_bank = self._resolve_styles(
             kwargs.get("style_bank"),
             styles_arg,
@@ -119,6 +144,10 @@ class TinyStylerMethod(DiversificationMethod):
                 "Consider adding more entries to the style bank.",
                 effective_n, len(style_bank),
             )
+        if styles_arg is not None:
+            logger.info("Using styles: %s", ", ".join(styles_arg))
+        else:
+            logger.info("Using %d style(s) from style bank.", effective_n)
         paraphrases_per_text = [[] for _ in texts]
 
         for i in range(effective_n):

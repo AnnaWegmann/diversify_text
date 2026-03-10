@@ -17,9 +17,9 @@ class EchoMethod(DiversificationMethod):
         texts: list[str],
         *,
         n_styles: int,
-        max_new_tokens: int,
-        temperature: float,
-        top_p: float,
+        max_new_tokens: int | None,
+        temperature: float | None,
+        top_p: float | None,
         **kwargs: Any,
     ) -> list[list[str]]:
         return [[text for _ in range(n_styles)] for text in texts]
