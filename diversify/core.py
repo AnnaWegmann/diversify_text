@@ -73,6 +73,7 @@ class Diversifier:
         max_new_tokens: int = 128,
         temperature: float = 1.0,
         top_p: float = 1.0,
+        seed: int | None = None,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
         output_dir: str | Path | None = None,
         output_name: str | None = None,
@@ -100,6 +101,8 @@ class Diversifier:
             Sampling temperature.
         top_p : float
             Nucleus-sampling probability mass.
+        seed : int, optional
+            Random seed for reproducible output.
         method_kwargs : mapping[str, dict], optional
             Per-method keyword arguments. Example:
             ``{"tinystyler": {"style_bank": [...]}}``.
@@ -135,6 +138,10 @@ class Diversifier:
         method_kwargs = method_kwargs or {}
         for method in self._methods:
             method.prepare()
+
+        if seed is not None:
+            import torch
+            torch.manual_seed(seed)
 
         # --- process batches lazily ---
         writer = OutputWriter(input_context, n_styles, out_path)
@@ -327,8 +334,8 @@ def diversify(
         Forwarded to :meth:`Diversifier.diversify`
         (``n_styles``, ``text_column``, ``batch_size``,
         ``split_on_punctuation``, ``max_new_tokens``,
-        ``temperature``, ``top_p``, ``method_kwargs``,
-        ``output_dir``, ``output_name``).
+        ``temperature``, ``top_p``, ``seed``,
+        ``method_kwargs``, ``output_dir``, ``output_name``).
 
     Returns
     -------
