@@ -18,6 +18,7 @@ dependencies = [
     "protobuf",
     "huggingface-hub",
     "tqdm>=4.67.3",
+    "mutual-implication-score",
 ]
 
 [dependency-groups]
