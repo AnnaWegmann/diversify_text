@@ -98,6 +98,8 @@ class MISFilter:
         list[float]
             MIS scores in [0, 1], one per pair.
         """
+        if len(originals) != len(paraphrases):
+            raise ValueError("originals and paraphrases must have the same length")
         import torch
         from torch.utils.data import DataLoader
 
