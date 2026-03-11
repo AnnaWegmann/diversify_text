@@ -34,6 +34,7 @@ autodoc_mock_imports = [
     "huggingface_hub",
     "tqdm",
     "mutual_implication_score",
+    "pysbd",
 ]
 
 # Napoleon settings (NumPy-style docstrings)
