@@ -53,8 +53,9 @@ class IndexedMethod(DiversificationMethod):
         self.call_count = 0
 
     def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
-        self.call_count += 1
-        return [
+        result = [
             [f"{text}:s{i}:c{self.call_count}" for i in range(n_styles)]
             for text in texts
         ]
+        self.call_count += 1
+        return result
