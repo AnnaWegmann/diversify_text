@@ -9,7 +9,6 @@ input text.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-import inspect
 import logging
 from itertools import islice
 from pathlib import Path
@@ -62,8 +61,7 @@ class Diversifier:
         self.device = device
         if methods is None:
             methods = ["tinystyler"]
-        self._validate_registered_methods(methods)
-        self._methods = self._resolve_methods(methods)
+        self._methods = DEFAULT_METHOD_REGISTRY.resolve(methods, device=device)
         self._mis_filter: MISFilter | None = None
         if similarity_filter:
             self._mis_filter = MISFilter(device=device, **filter_kwargs)
@@ -215,48 +213,6 @@ class Diversifier:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    def _resolve_method(
-        self, method: str | DiversificationMethod
-    ) -> DiversificationMethod:
-        if isinstance(method, DiversificationMethod):
-            return method
-        if isinstance(method, str):
-            method_cls = DEFAULT_METHOD_REGISTRY.get(method)
-            init_kwargs = self._build_method_init_kwargs(method_cls)
-            return method_cls(**init_kwargs)
-        raise TypeError("method must be str or DiversificationMethod instance.")
-
-    def _build_method_init_kwargs(
-        self, method_cls: type[DiversificationMethod]
-    ) -> dict[str, Any]:
-        """Pass only constructor kwargs supported by the target method class."""
-        signature = inspect.signature(method_cls)
-        init_kwargs: dict[str, Any] = {}
-        if "device" in signature.parameters:
-            init_kwargs["device"] = self.device
-        return init_kwargs
-
-    def _resolve_methods(
-        self, methods: Sequence[str | DiversificationMethod]
-    ) -> list[DiversificationMethod]:
-        resolved = [self._resolve_method(a) for a in methods]
-        if not resolved:
-            raise ValueError("At least one method is required.")
-        return resolved
-
-    def _validate_registered_methods(
-        self, methods: Sequence[str | DiversificationMethod]
-    ) -> None:
-        missing = sorted(
-            {m for m in methods if isinstance(m, str) and m not in DEFAULT_METHOD_REGISTRY}
-        )
-        if missing:
-            available = DEFAULT_METHOD_REGISTRY.names()
-            raise KeyError(
-                f"Unknown methods: {', '.join(missing)}. "
-                f"Available: {', '.join(available)}"
-            )
 
     @staticmethod
     def _compute_allocations(total_styles: int, n_methods: int) -> list[int]:

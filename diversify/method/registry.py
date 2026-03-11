@@ -4,7 +4,9 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias
+import inspect
+from collections.abc import Sequence
+from typing import Any, TypeAlias
 
 from diversify.method.base import DiversificationMethod
 from diversify.method.echo import EchoMethod
@@ -31,6 +33,56 @@ class MethodRegistry:
             raise KeyError(f"Unknown method '{name}'. Available: {available}")
         return self._store[name]
 
+    def resolve(
+        self,
+        methods: Sequence[str | DiversificationMethod],
+        **kwargs: Any,
+    ) -> list[DiversificationMethod]:
+        """Resolve a sequence of method names/instances into ready instances.
+
+        String entries are looked up in the registry and instantiated.
+        Pre-built :class:`DiversificationMethod` instances are passed
+        through as-is.  Extra *kwargs* (e.g. ``device``) are forwarded
+        to each constructor only if it accepts them.
+
+        Parameters
+        ----------
+        methods : sequence[str | DiversificationMethod]
+            Method names and/or pre-built instances.
+        **kwargs
+            Keyword arguments forwarded to method constructors
+            (only those accepted by the constructor signature).
+
+        Returns
+        -------
+        list[DiversificationMethod]
+
+        Raises
+        ------
+        KeyError
+            If a string name is not registered.
+        TypeError
+            If an element is neither ``str`` nor
+            :class:`DiversificationMethod`.
+        ValueError
+            If the resulting list is empty.
+        """
+        resolved: list[DiversificationMethod] = []
+        for method in methods:
+            if isinstance(method, DiversificationMethod):
+                resolved.append(method)
+            elif isinstance(method, str):
+                method_cls = self.get(method)
+                init_kwargs = _build_init_kwargs(method_cls, kwargs)
+                resolved.append(method_cls(**init_kwargs))
+            else:
+                raise TypeError(
+                    "method must be str or DiversificationMethod instance."
+                )
+        if not resolved:
+            raise ValueError("At least one method is required.")
+        return resolved
+
     def unregister(self, name: str) -> None:
         if name not in self._store:
             raise KeyError(f"Method '{name}' is not registered.")
@@ -41,6 +93,15 @@ class MethodRegistry:
 
     def __contains__(self, name: str) -> bool:
         return name in self._store
+
+
+def _build_init_kwargs(
+    method_cls: type[DiversificationMethod],
+    available: dict[str, Any],
+) -> dict[str, Any]:
+    """Return only the *available* kwargs that *method_cls* accepts."""
+    sig = inspect.signature(method_cls)
+    return {k: v for k, v in available.items() if k in sig.parameters}
 
 
 DEFAULT_METHOD_REGISTRY = MethodRegistry()
