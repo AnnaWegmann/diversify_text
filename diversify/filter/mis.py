@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_MIN_SCORE = 0.80
-_DEFAULT_N_CANDIDATES = 5
+_DEFAULT_MIN_SCORE = 0.70
+_DEFAULT_N_CANDIDATES = 3
 
 
 class MISFilter:
@@ -55,8 +55,11 @@ class MISFilter:
         if self._mis is None:
             from mutual_implication_score import MIS
 
-            logger.info("Loading MIS model on %s ...", self.device)
-            self._mis = MIS(device=self.device)
+            from diversify._utils import suppress_hf_load_noise
+
+            with suppress_hf_load_noise():
+                logger.info("Loading MIS model on %s ...", self.device)
+                self._mis = MIS(device=self.device)
             logger.info("MIS model loaded.")
         return self._mis
 
@@ -66,6 +69,18 @@ class MISFilter:
         paraphrases: list[str],
     ) -> list[float]:
         """Compute MIS scores for aligned (original, paraphrase) pairs.
+
+        Re-implementation of ``MIS.compute()`` from
+        `mutual_implication_score <https://github.com/s-nlp/mutual_implication_score/blob/b47c88e978f510b3dee1d4bde1f22b054c67ad62/mutual_implication_score/mis_wrapper.py#L38>`_.
+        The upstream version crashes on NumPy ≥ 2.0 because
+        ``model()`` returns shape ``(batch, 1)`` tensors, and after
+        ``.cpu().numpy()`` + ``list.extend()`` each element is a 1-D
+        array of shape ``(1,)`` on which ``float()`` raises
+        ``TypeError: only 0-dimensional arrays can be converted to
+        Python scalars``.
+
+        Fix: added ``.flatten()`` before ``.tolist()`` so the tensor is
+        squeezed to 1-D before conversion.
 
         Parameters
         ----------
@@ -79,8 +94,40 @@ class MISFilter:
         list[float]
             MIS scores in [0, 1], one per pair.
         """
+        import torch
+        from torch.utils.data import DataLoader
+
         mis = self._ensure_model()
-        return mis.compute(originals, paraphrases)
+
+        # Follows the structure of MIS.compute():
+        # https://github.com/s-nlp/mutual_implication_score/blob/b47c88e978f510b3dee1d4bde1f22b054c67ad62/mutual_implication_score/mis_wrapper.py#L38
+        #
+        # Changes from upstream:
+        # - PairsDatasetInference replaced with list(zip(...)) (equivalent)
+        # - merged_prob uses .flatten().tolist() instead of .cpu().numpy()
+        #   followed by float(e), which crashes on NumPy ≥ 2.0.
+        dataset_direct = list(zip(originals, paraphrases))
+        dataloader_direct = DataLoader(dataset_direct, batch_size=16)
+        dataset_reverse = list(zip(paraphrases, originals))
+        dataloader_reverse = DataLoader(dataset_reverse, batch_size=16)
+
+        preds = []
+        for b1, b2 in zip(dataloader_direct, dataloader_reverse):
+            with torch.no_grad():
+                tokenized1 = mis.tokenizer(
+                    *b1, padding=True, truncation="longest_first",
+                    return_tensors="pt",
+                ).to(mis.device)
+                tokenized2 = mis.tokenizer(
+                    *b2, padding=True, truncation="longest_first",
+                    return_tensors="pt",
+                ).to(mis.device)
+                merged_prob = mis.model(tokenized1, tokenized2)
+                merged_prob = torch.sigmoid(merged_prob)
+            # upstream: merged_prob.cpu().numpy() then float(e) — crashes on
+            # NumPy ≥ 2.0 because elements are shape-(1,) arrays.
+            preds.extend(merged_prob.cpu().flatten().tolist())
+        return preds
 
     def score_batch(
         self,
