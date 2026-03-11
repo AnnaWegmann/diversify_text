@@ -3,12 +3,26 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "diversify"
+name = "diversify-text"
 version = "0.1.0"
 description = "Generate stylistic paraphrases of texts using local transformer models."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+authors = [
+    { name = "Anna Wegmann" },
+]
+keywords = ["paraphrase", "nlp", "text-generation", "style-transfer", "augmentation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "torch",
     "transformers",
@@ -18,7 +32,12 @@ dependencies = [
     "protobuf",
     "huggingface-hub",
     "tqdm>=4.67.3",
+    "mutual-implication-score",
+    "pysbd>=0.3.4",
 ]
+
+[project.urls]
+# Homepage = "https://github.com/<user>/diversify-text"  # uncomment when public
 
 [dependency-groups]
 dev = [

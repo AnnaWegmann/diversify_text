@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diversify._input import InputKind, resolve_input
+from diversify_text._input import InputKind, resolve_input
 
 
 class TestResolveInput(unittest.TestCase):

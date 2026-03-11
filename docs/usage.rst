@@ -12,6 +12,27 @@ Control number of paraphrases
 
    [{"original": "Some text.", "paraphrases": ["...", "...", "..."]}]
 
+Reproducibility (seed)
+----------------------
+
+``diversify`` sets a default random seed (``51173``) to make runs more
+reproducible.  The seed is applied to Python's ``random``, PyTorch
+(CPU and CUDA), and NumPy.  It is logged at the start of each run, but
+exact determinism is **not** guaranteed across different hardware, library
+versions, or backends.
+
+To get a different set of paraphrases, pass a different seed:
+
+.. code-block:: python
+
+   results = diversify("Some text.", seed=123)
+
+To disable seeding entirely (non-deterministic output):
+
+.. code-block:: python
+
+   results = diversify("Some text.", seed=None)
+
 List of texts
 -------------
 
@@ -81,44 +102,19 @@ inputs (strings, lists) return a Python list. You can override this with
 
 The ``.jsonl`` extension is always added automatically.
 
-Punctuation splitting
----------------------
+Longer texts
+-------------
 
-Splits each text into sentence segments internally before paraphrasing
-(improving quality on long texts), then reassembles the results. The output
-still contains one entry per original input text.
-
-.. code-block:: python
-
-   results = diversify(
-       ["One sentence. Another one!"],
-       split_on_punctuation=True,
-       n_styles=2,
-   )
-
-.. code-block:: python
-
-   [{
-       "original": "One sentence. Another one!",
-       "paraphrases": [
-           "A single sentence. Yet another one!",
-           "One phrase. One more!",
-       ]
-   }]
+For tips on handling longer texts (punctuation splitting, increasing
+``max_new_tokens``), see :doc:`longer_texts`.
 
 Multiple methods
 ----------------
 
-Styles are distributed evenly across methods.
+.. note::
 
-.. code-block:: python
-
-   results = diversify("Some text.", n_styles=6, methods=["tinystyler", "echo"])
-
-.. code-block:: python
-
-   [{"original": "Some text.", "paraphrases": ["...", "...", "...", "...", "...", "Some text."]}]
-   #                                           |--- 4 from tinystyler ---|  |-- 2 from echo --|
+   Support for combining multiple generation methods is planned for a future
+   release. Currently, TinyStyler is the only built-in generation method.
 
 Customising the TinyStyler style bank
 --------------------------------------
@@ -136,8 +132,8 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
 
 .. code-block:: python
 
-   from diversify import diversify
-   from diversify.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text import diversify
+   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
 
    custom_bank = {
        "academic": ["The results demonstrate a statistically significant effect."],
@@ -150,12 +146,12 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
        method_kwargs={"tinystyler": {"style_bank": custom_bank}},
    )
 
-``DEFAULT_STYLE_BANK`` is exported from ``diversify.method.tinystyler`` so you
+``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.method.tinystyler`` so you
 can build on it:
 
 .. code-block:: python
 
-   from diversify.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
 
    extended_bank = {
        **DEFAULT_STYLE_BANK,
@@ -173,13 +169,15 @@ the number of selected styles:
        method_kwargs={"tinystyler": {"styles": ["research_article", "personal_blog", "recipe"]}},
    )
 
+.. _creating-a-custom-method:
+
 Creating a custom method
 ------------------------
 
 .. code-block:: python
 
-   from diversify import Diversifier
-   from diversify.method import DiversificationMethod
+   from diversify_text import Diversifier
+   from diversify_text.method import DiversificationMethod
 
 
    class MyMethod(DiversificationMethod):

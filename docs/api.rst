@@ -4,37 +4,43 @@ API Reference
 Top-level API
 -------------
 
-.. autofunction:: diversify.diversify
+.. autofunction:: diversify_text.diversify
 
-.. autoclass:: diversify.Diversifier
+.. autoclass:: diversify_text.Diversifier
    :members:
    :undoc-members: false
 
 Input resolution
 ----------------
 
-.. automodule:: diversify._input
+.. automodule:: diversify_text._input
    :members:
    :undoc-members: false
 
 Output writing
 --------------
 
-.. automodule:: diversify._output
+.. automodule:: diversify_text._output
    :members:
    :undoc-members: false
 
-Text processing
----------------
+Preprocessing
+-------------
 
-.. automodule:: diversify._text
+.. automodule:: diversify_text._preprocess
+   :members:
+
+Postprocessing
+--------------
+
+.. automodule:: diversify_text._postprocess
    :members:
 
 Methods
 -------
 
-.. autoclass:: diversify.method.base.DiversificationMethod
+.. autoclass:: diversify_text.method.base.DiversificationMethod
    :members:
 
-.. autoclass:: diversify.method.registry.MethodRegistry
+.. autoclass:: diversify_text.method.registry.MethodRegistry
    :members:

@@ -9,17 +9,21 @@ input text.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-import inspect
+import logging
 from itertools import islice
 from pathlib import Path
 from typing import Any
 
 from tqdm import tqdm
 
-from diversify._input import TextInput, resolve_input
-from diversify._output import DiversifyOutput, OutputWriter, resolve_output_path
-from diversify._text import split_text_on_punctuation
-from diversify.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
+from diversify_text._input import TextInput, resolve_input
+from diversify_text._output import DiversifyOutput, OutputWriter, resolve_output_path
+from diversify_text._postprocess import postprocess
+from diversify_text._preprocess import preprocess
+from diversify_text.filter.mis import MISFilter
+from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
+
+logger = logging.getLogger(__name__)
 
 
 class Diversifier:
@@ -51,12 +55,16 @@ class Diversifier:
         device: str | None = None,
         *,
         methods: Sequence[str | DiversificationMethod] | None = None,
+        similarity_filter: bool = False,
+        **filter_kwargs: Any,
     ) -> None:
         self.device = device
         if methods is None:
             methods = ["tinystyler"]
-        self._validate_registered_methods(methods)
-        self._methods = self._resolve_methods(methods)
+        self._methods = DEFAULT_METHOD_REGISTRY.resolve(methods, device=device)
+        self._mis_filter: MISFilter | None = None
+        if similarity_filter:
+            self._mis_filter = MISFilter(device=device, **filter_kwargs)
 
     # ------------------------------------------------------------------
     # Public API
@@ -69,11 +77,12 @@ class Diversifier:
         n_styles: int = 5,
         text_column: str = "text",
         batch_size: int = 32,
-        split_on_punctuation: bool = False,
-        max_new_tokens: int = 128,
-        temperature: float = 1.0,
-        top_p: float = 1.0,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        seed: int | None = 51173,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
+        preprocess_kwargs: dict[str, Any] | None = None,
         output_dir: str | Path | None = None,
         output_name: str | None = None,
     ) -> DiversifyOutput:
@@ -91,18 +100,29 @@ class Diversifier:
             Column name to extract when *texts* points to a CSV/TSV file.
         batch_size : int
             Number of texts to pull from the input iterator per batch.
-        split_on_punctuation : bool
-            If True, split each input text into punctuation-delimited
-            segments before running methods.
-        max_new_tokens : int
+        max_new_tokens : int, optional
             Maximum number of tokens to generate per paraphrase.
-        temperature : float
-            Sampling temperature.
-        top_p : float
-            Nucleus-sampling probability mass.
+            ``None`` lets each method choose its own default.
+        temperature : float, optional
+            Sampling temperature.  ``None`` lets each method choose
+            its own default.
+        top_p : float, optional
+            Nucleus-sampling probability mass.  ``None`` lets each
+            method choose its own default.
+        seed : int
+            Random seed for more reproducible output.  Seeds Python's
+            ``random``, PyTorch (CPU + CUDA), and NumPy if available.
+            Defaults to ``51173``.  Exact determinism is not guaranteed
+            across different hardware or library versions.  Pass a
+            different integer to get a new set of outputs, or ``None``
+            to disable seeding.
         method_kwargs : mapping[str, dict], optional
             Per-method keyword arguments. Example:
             ``{"tinystyler": {"style_bank": [...]}}``.
+        preprocess_kwargs : dict, optional
+            Keyword arguments forwarded to
+            :func:`~diversify_text._preprocess.preprocess`.  Example:
+            ``{"split_on_punctuation": True}``.
         output_dir : str | Path, optional
             Directory to write output files into.  When provided for
             ``str`` / ``list[str]`` input, forces disk output instead of
@@ -133,10 +153,32 @@ class Diversifier:
 
         # --- prepare methods (model loading etc.) ---
         method_kwargs = method_kwargs or {}
+        preprocess_kwargs = preprocess_kwargs or {}
         for method in self._methods:
             method.prepare()
+        if self._mis_filter is not None:
+            self._mis_filter.prepare()
+
+        if seed is not None:
+            import random
+            import torch
+            random.seed(seed)
+            torch.manual_seed(seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(seed)
+            try:
+                import numpy as np
+                np.random.seed(seed)
+            except ImportError:
+                pass
+            logger.info("Using random seed: %d", seed)
 
         # --- process batches lazily ---
+        n_candidates = (
+            self._mis_filter.n_candidates
+            if self._mis_filter is not None
+            else 1
+        )
         writer = OutputWriter(input_context, n_styles, out_path)
         writer.open()
         try:
@@ -146,33 +188,31 @@ class Diversifier:
                     if not batch_texts:
                         break
 
-                    if split_on_punctuation:
-                        segments_per_text = [
-                            split_text_on_punctuation(t) for t in batch_texts
-                        ]
-                        flat_segments = [
-                            seg for segs in segments_per_text for seg in segs
-                        ]
-                        paraphrases_by_segment = self._diversify_batch(
-                            batch_texts=flat_segments,
+                    generation_texts, preprocess_context = preprocess(
+                        batch_texts, **preprocess_kwargs
+                    )
+
+                    # Generate n_candidates sets of paraphrases.
+                    all_candidates: list[list[list[str]]] = []
+                    for _ in range(n_candidates):
+                        candidate = self._diversify_batch(
+                            batch_texts=generation_texts,
                             n_styles=n_styles,
                             max_new_tokens=max_new_tokens,
                             temperature=temperature,
                             top_p=top_p,
                             method_kwargs=method_kwargs,
                         )
-                        paraphrases_by_text = self._reassemble_from_segments(
-                            segments_per_text, paraphrases_by_segment, n_styles
+                        candidate = postprocess(candidate, preprocess_context)
+                        all_candidates.append(candidate)
+
+                    if self._mis_filter is not None:
+                        paraphrases_by_text = self._mis_filter.select_best(
+                            batch_texts=batch_texts,
+                            all_candidates=all_candidates,
                         )
                     else:
-                        paraphrases_by_text = self._diversify_batch(
-                            batch_texts=batch_texts,
-                            n_styles=n_styles,
-                            max_new_tokens=max_new_tokens,
-                            temperature=temperature,
-                            top_p=top_p,
-                            method_kwargs=method_kwargs,
-                        )
+                        paraphrases_by_text = all_candidates[0]
 
                     writer.write_batch(batch_texts, paraphrases_by_text)
                     pbar.update(len(batch_texts))
@@ -185,63 +225,6 @@ class Diversifier:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    def _resolve_method(
-        self, method: str | DiversificationMethod
-    ) -> DiversificationMethod:
-        if isinstance(method, DiversificationMethod):
-            return method
-        if isinstance(method, str):
-            method_cls = DEFAULT_METHOD_REGISTRY.get(method)
-            init_kwargs = self._build_method_init_kwargs(method_cls)
-            return method_cls(**init_kwargs)
-        raise TypeError("method must be str or DiversificationMethod instance.")
-
-    def _build_method_init_kwargs(
-        self, method_cls: type[DiversificationMethod]
-    ) -> dict[str, Any]:
-        """Pass only constructor kwargs supported by the target method class."""
-        signature = inspect.signature(method_cls)
-        init_kwargs: dict[str, Any] = {}
-        if "device" in signature.parameters:
-            init_kwargs["device"] = self.device
-        return init_kwargs
-
-    def _resolve_methods(
-        self, methods: Sequence[str | DiversificationMethod]
-    ) -> list[DiversificationMethod]:
-        resolved = [self._resolve_method(a) for a in methods]
-        if not resolved:
-            raise ValueError("At least one method is required.")
-        return resolved
-
-    def _validate_registered_methods(
-        self, methods: Sequence[str | DiversificationMethod]
-    ) -> None:
-        missing = sorted(
-            {m for m in methods if isinstance(m, str) and m not in DEFAULT_METHOD_REGISTRY}
-        )
-        if missing:
-            available = DEFAULT_METHOD_REGISTRY.names()
-            raise KeyError(
-                f"Unknown methods: {', '.join(missing)}. "
-                f"Available: {', '.join(available)}"
-            )
-
-    @staticmethod
-    def _reassemble_from_segments(
-        segments_per_text: list[list[str]],
-        paraphrases_by_segment: list[list[str]],
-        n_styles: int,
-    ) -> list[list[str]]:
-        """Join per-segment paraphrases back into per-original-text paraphrases."""
-        result = []
-        seg_idx = 0
-        for segs in segments_per_text:
-            seg_paras = paraphrases_by_segment[seg_idx : seg_idx + len(segs)]
-            result.append([" ".join(sp[i] for sp in seg_paras) for i in range(n_styles)])
-            seg_idx += len(segs)
-        return result
 
     @staticmethod
     def _compute_allocations(total_styles: int, n_methods: int) -> list[int]:
@@ -311,6 +294,7 @@ def diversify(
     *,
     device: str | None = None,
     methods: Sequence[str | DiversificationMethod] | None = None,
+    similarity_filter: bool = False,
     **kwargs,
 ) -> DiversifyOutput:
     """One-shot convenience function: create a :class:`Diversifier` and run it.
@@ -323,11 +307,15 @@ def diversify(
         Torch device.
     methods : sequence[str | DiversificationMethod], optional
         Method names and/or pre-built method instances.
+    similarity_filter : bool
+        When ``True``, score each paraphrase with the Mutual Implication
+        Score model and select the best candidate above a minimum score.
     **kwargs
-        Forwarded to :meth:`Diversifier.diversify`
+        Forwarded to :class:`Diversifier` (``min_score``,
+        ``n_candidates``) and :meth:`Diversifier.diversify`
         (``n_styles``, ``text_column``, ``batch_size``,
-        ``split_on_punctuation``, ``max_new_tokens``,
-        ``temperature``, ``top_p``, ``method_kwargs``,
+        ``max_new_tokens``, ``temperature``, ``top_p``, ``seed``,
+        ``method_kwargs``, ``preprocess_kwargs``,
         ``output_dir``, ``output_name``).
 
     Returns
@@ -335,5 +323,13 @@ def diversify(
     list[dict] | Path
         See :meth:`Diversifier.diversify`.
     """
-    div = Diversifier(device=device, methods=methods)
+    # Separate filter kwargs from diversify() kwargs.
+    filter_keys = {"min_score", "n_candidates"}
+    filter_kwargs = {k: kwargs.pop(k) for k in filter_keys if k in kwargs}
+    div = Diversifier(
+        device=device,
+        methods=methods,
+        similarity_filter=similarity_filter,
+        **filter_kwargs,
+    )
     return div.diversify(texts, **kwargs)

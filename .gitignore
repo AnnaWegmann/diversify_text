@@ -20,3 +20,9 @@ docs/_build/
 
 # OS
 .DS_Store
+
+# Example scripts and data (kept locally for testing)
+example_scripts/
+
+# Utility scripts
+scripts/

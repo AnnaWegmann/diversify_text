@@ -24,9 +24,9 @@ class DiversificationMethod(ABC):
         texts: list[str],
         *,
         n_styles: int,
-        max_new_tokens: int,
-        temperature: float,
-        top_p: float,
+        max_new_tokens: int | None,
+        temperature: float | None,
+        top_p: float | None,
         **kwargs: Any,
     ) -> list[list[str]]:
         """Return paraphrases per input text.

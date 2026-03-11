@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diversify import Diversifier, diversify
+from diversify_text import Diversifier, diversify
 
 from tests.fixtures import CountingMethod, FailingMethod, PrefixMethod
 

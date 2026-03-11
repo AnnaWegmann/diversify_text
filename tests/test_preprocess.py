@@ -1,36 +1,54 @@
-"""Tests for punctuation splitting — the split_text_on_punctuation function
-and the split_on_punctuation=True behaviour in Diversifier."""
+"""Tests for sentence splitting and the split_on_punctuation=True behaviour
+in Diversifier."""
 
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from diversify import Diversifier
-from diversify._text import split_text_on_punctuation
+from diversify_text import Diversifier
+from diversify_text._preprocess import split_sentences
 from tests.fixtures import PrefixMethod
 
 
-class TestPunctuationSplitting(unittest.TestCase):
+class TestSentenceSplitting(unittest.TestCase):
 
-    # --- split_text_on_punctuation ---
+    # --- split_sentences ---
 
     def test_splits_on_period(self):
         self.assertEqual(
-            split_text_on_punctuation("First. Second."),
+            split_sentences("First. Second."),
             ["First.", "Second."],
         )
 
     def test_splits_on_multiple_punctuation_types(self):
         self.assertEqual(
-            split_text_on_punctuation("One! Two? Three."),
+            split_sentences("One! Two? Three."),
             ["One!", "Two?", "Three."],
         )
 
     def test_no_split_for_single_sentence(self):
         self.assertEqual(
-            split_text_on_punctuation("Just one sentence."),
+            split_sentences("Just one sentence."),
             ["Just one sentence."],
+        )
+
+    def test_handles_abbreviations(self):
+        self.assertEqual(
+            split_sentences("Dr. Smith went home. He was tired."),
+            ["Dr. Smith went home.", "He was tired."],
+        )
+
+    def test_handles_decimals(self):
+        self.assertEqual(
+            split_sentences("He scored 3.5 points. That was good."),
+            ["He scored 3.5 points.", "That was good."],
+        )
+
+    def test_empty_string(self):
+        self.assertEqual(
+            split_sentences(""),
+            [""],
         )
 
     # --- Diversifier with split_on_punctuation=True ---
@@ -40,7 +58,7 @@ class TestPunctuationSplitting(unittest.TestCase):
         results = div.diversify(
             ["One. Two!", "Single sentence"],
             n_styles=1,
-            split_on_punctuation=True,
+            preprocess_kwargs={"split_on_punctuation": True},
         )
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]["original"], "One. Two!")
@@ -48,7 +66,10 @@ class TestPunctuationSplitting(unittest.TestCase):
 
     def test_segments_are_reassembled_in_paraphrase(self):
         div = Diversifier(methods=[PrefixMethod("p")])
-        results = div.diversify("One. Two!", n_styles=1, split_on_punctuation=True)
+        results = div.diversify(
+            "One. Two!", n_styles=1,
+            preprocess_kwargs={"split_on_punctuation": True},
+        )
         self.assertEqual(results[0]["paraphrases"], ["p:One.:0 p:Two!:0"])
 
     def test_csv_with_punctuation_writes_one_jsonl_record_per_original(self):
@@ -62,7 +83,7 @@ class TestPunctuationSplitting(unittest.TestCase):
 
             result = div.diversify(
                 str(input_path), text_column="bio", n_styles=1,
-                split_on_punctuation=True,
+                preprocess_kwargs={"split_on_punctuation": True},
             )
             self.assertIsInstance(result, Path)
             jsonl_path = Path(tmpdir) / "tmp_diversified.jsonl"

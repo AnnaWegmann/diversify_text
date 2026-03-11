@@ -1,5 +1,5 @@
-diversify
-=========
+diversify-text
+==============
 
 Generate stylistically diverse paraphrases of your own texts using
 local transformer models.
@@ -10,4 +10,6 @@ local transformer models.
 
    quickstart
    usage
+   longer_texts
+   methods
    api

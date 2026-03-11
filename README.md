@@ -1,6 +1,10 @@
-# diversify
+# diversify-text
 
 This package helps you generate stylistically diverse paraphrases of your own texts using huggingface transformer models locally.
+
+```bash
+pip install diversify-text
+```
 
 **[Full documentation](https://annawegmann.github.io/diversify/)**
 
@@ -25,7 +29,7 @@ For file inputs (CSV, TSV, TXT), output options, punctuation splitting, and crea
 ### Single text
 
 ```python
-from diversify import diversify
+from diversify_text import diversify
 
 results = diversify("The experiment was conducted in a controlled lab setting.")
 ```
@@ -58,7 +62,7 @@ results = diversify("Some text.", n_styles=3)
 Recommended when processing texts across several calls — the model is loaded once and reused across calls.
 
 ```python
-from diversify import Diversifier
+from diversify_text import Diversifier
 
 div = Diversifier(device="cuda", methods=["tinystyler"])
 
@@ -91,8 +95,8 @@ The default bank is a dictionary mapping style labels to lists of example senten
 A style bank can be a `dict[str, list[str]]` or a `list[list[str]]`:
 
 ```python
-from diversify import diversify
-from diversify.method.tinystyler import DEFAULT_STYLE_BANK
+from diversify_text import diversify
+from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
 
 custom_bank = {
     "academic": ["The results demonstrate a statistically significant effect."],
@@ -106,10 +110,10 @@ results = diversify(
 )
 ```
 
-`DEFAULT_STYLE_BANK` is exported from `diversify.method.tinystyler` so you can build on it:
+`DEFAULT_STYLE_BANK` is exported from `diversify_text.method.tinystyler` so you can build on it:
 
 ```python
-from diversify.method.tinystyler import DEFAULT_STYLE_BANK
+from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
 
 extended_bank = {
     **DEFAULT_STYLE_BANK,
@@ -130,8 +134,8 @@ results = diversify(
 ### Creating a custom method
 
 ```python
-from diversify import Diversifier
-from diversify.method import DiversificationMethod
+from diversify_text import Diversifier
+from diversify_text.method import DiversificationMethod
 
 
 class MyMethod(DiversificationMethod):

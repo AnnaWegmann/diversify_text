@@ -22,7 +22,7 @@ from typing import Union
 
 TextInput = Union[str, "list[str]", "Iterable[str]"]
 
-_log = logging.getLogger("diversify")
+_log = logging.getLogger(__name__)
 
 
 # ------------------------------------------------------------------
