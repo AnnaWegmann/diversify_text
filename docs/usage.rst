@@ -99,30 +99,11 @@ inputs (strings, lists) return a Python list. You can override this with
 
 The ``.jsonl`` extension is always added automatically.
 
-Punctuation splitting
----------------------
+Longer texts
+-------------
 
-Splits each text into sentence segments internally before paraphrasing
-(improving quality on long texts), then reassembles the results. The output
-still contains one entry per original input text.
-
-.. code-block:: python
-
-   results = diversify(
-       ["One sentence. Another one!"],
-       split_on_punctuation=True,
-       n_styles=2,
-   )
-
-.. code-block:: python
-
-   [{
-       "original": "One sentence. Another one!",
-       "paraphrases": [
-           "A single sentence. Yet another one!",
-           "One phrase. One more!",
-       ]
-   }]
+For tips on handling longer texts (punctuation splitting, increasing
+``max_new_tokens``), see :doc:`longer_texts`.
 
 Multiple methods
 ----------------
