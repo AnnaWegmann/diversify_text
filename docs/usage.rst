@@ -127,16 +127,10 @@ still contains one entry per original input text.
 Multiple methods
 ----------------
 
-Styles are distributed evenly across methods.
+.. note::
 
-.. code-block:: python
-
-   results = diversify("Some text.", n_styles=6, methods=["tinystyler", "echo"])
-
-.. code-block:: python
-
-   [{"original": "Some text.", "paraphrases": ["...", "...", "...", "...", "...", "Some text."]}]
-   #                                           |--- 4 from tinystyler ---|  |-- 2 from echo --|
+   Support for combining multiple generation methods is planned for a future
+   release. Currently, TinyStyler is the only built-in generation method.
 
 Customising the TinyStyler style bank
 --------------------------------------
@@ -190,6 +184,8 @@ the number of selected styles:
        "The experiment was conducted in a controlled lab setting.",
        method_kwargs={"tinystyler": {"styles": ["research_article", "personal_blog", "recipe"]}},
    )
+
+.. _creating-a-custom-method:
 
 Creating a custom method
 ------------------------

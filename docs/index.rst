@@ -10,4 +10,5 @@ local transformer models.
 
    quickstart
    usage
+   methods
    api
