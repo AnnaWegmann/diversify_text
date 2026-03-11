@@ -1,5 +1,5 @@
-"""Tests for punctuation splitting — the split_text_on_punctuation function
-and the split_on_punctuation=True behaviour in Diversifier."""
+"""Tests for sentence splitting and the split_on_punctuation=True behaviour
+in Diversifier."""
 
 import json
 import tempfile
@@ -7,30 +7,48 @@ import unittest
 from pathlib import Path
 
 from diversify import Diversifier
-from diversify._text import split_text_on_punctuation
+from diversify._preprocess import split_sentences
 from tests.fixtures import PrefixMethod
 
 
-class TestPunctuationSplitting(unittest.TestCase):
+class TestSentenceSplitting(unittest.TestCase):
 
-    # --- split_text_on_punctuation ---
+    # --- split_sentences ---
 
     def test_splits_on_period(self):
         self.assertEqual(
-            split_text_on_punctuation("First. Second."),
+            split_sentences("First. Second."),
             ["First.", "Second."],
         )
 
     def test_splits_on_multiple_punctuation_types(self):
         self.assertEqual(
-            split_text_on_punctuation("One! Two? Three."),
+            split_sentences("One! Two? Three."),
             ["One!", "Two?", "Three."],
         )
 
     def test_no_split_for_single_sentence(self):
         self.assertEqual(
-            split_text_on_punctuation("Just one sentence."),
+            split_sentences("Just one sentence."),
             ["Just one sentence."],
+        )
+
+    def test_handles_abbreviations(self):
+        self.assertEqual(
+            split_sentences("Dr. Smith went home. He was tired."),
+            ["Dr. Smith went home.", "He was tired."],
+        )
+
+    def test_handles_decimals(self):
+        self.assertEqual(
+            split_sentences("He scored 3.5 points. That was good."),
+            ["He scored 3.5 points.", "That was good."],
+        )
+
+    def test_empty_string(self):
+        self.assertEqual(
+            split_sentences(""),
+            [""],
         )
 
     # --- Diversifier with split_on_punctuation=True ---
