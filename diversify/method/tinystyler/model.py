@@ -8,35 +8,16 @@ style-transfer generation.
 
 from __future__ import annotations
 
-import contextlib
 import importlib
 import logging
-import warnings
 from typing import Union
 
 import torch
 from huggingface_hub import hf_hub_download
 
+from diversify._utils import suppress_hf_load_noise
+
 logger = logging.getLogger(__name__)
-
-
-@contextlib.contextmanager
-def _suppress_load_noise():
-    """Silence harmless noise emitted when loading HuggingFace models.
-
-    Covers two sources that Python's warnings module alone cannot reach:
-    - Tied-weights notices from the transformers logging system.
-    - Unexpected-key load reports from the style-embedding model.
-    """
-    transformers_logger = logging.getLogger("transformers")
-    prev_level = transformers_logger.level
-    transformers_logger.setLevel(logging.ERROR)
-    try:
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message=".*tie.*weight.*")
-            yield
-    finally:
-        transformers_logger.setLevel(prev_level)
 
 StyleInput = Union[torch.Tensor, list[str]]
 
@@ -51,7 +32,7 @@ class TinyStyler:
         )
 
     def get_style_embedding(self, example_texts: list[str]) -> torch.Tensor:
-        with _suppress_load_noise():
+        with suppress_hf_load_noise():
             return self._get_style_embeddings_fn([example_texts], self.device).to(
                 self.device
             )
@@ -112,7 +93,7 @@ class TinyStyler:
         tinystyler_module.__spec__.loader.exec_module(tinystyler_module)
 
         logger.info("Loading TinyStyler model on %s ...", self.device)
-        with _suppress_load_noise():
+        with suppress_hf_load_noise():
             tokenizer, model = tinystyler_module.get_tinystyler_model(self.device)
         logger.info("TinyStyler model loaded.")
         get_target_style_embeddings = tinystyler_module.get_target_style_embeddings
