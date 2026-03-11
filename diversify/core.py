@@ -80,7 +80,7 @@ class Diversifier:
         max_new_tokens: int | None = None,
         temperature: float | None = None,
         top_p: float | None = None,
-        seed: int = 51173,
+        seed: int | None = 51173,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
         preprocess_kwargs: dict[str, Any] | None = None,
         output_dir: str | Path | None = None,
