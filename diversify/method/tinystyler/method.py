@@ -116,7 +116,7 @@ class TinyStylerMethod(DiversificationMethod):
         temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
         top_p = top_p if top_p is not None else _DEFAULT_TOP_P
 
-        # Cap max_new_tokens at 1.2× the longest input or 128, whichever
+        # Cap max_new_tokens at _MAX_NEW_TOKENS_FACTOR the longest input or _MAX_NEW_TOKENS_CAP, whichever
         # is smaller.  An explicit caller value is used as-is.
         input_token_counts = [
             len(ids)
