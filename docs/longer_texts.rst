@@ -15,7 +15,7 @@ length (up to 256 tokens). You can override this with ``max_new_tokens``:
 
 .. code-block:: python
 
-   from diversify_text import diversify_text
+   from diversify_text import diversify
 
    results = diversify(
        "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. "
