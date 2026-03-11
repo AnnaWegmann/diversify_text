@@ -182,3 +182,85 @@ class MISFilter:
             [i for i, s in enumerate(scores) if s < self.min_score]
             for scores in scores_by_text
         ]
+
+    def select_best(
+        self,
+        batch_texts: list[str],
+        all_candidates: list[list[list[str]]],
+    ) -> list[list[str]]:
+        """Select the best paraphrase per style from pre-generated candidates.
+
+        Scores the first candidate set; if all pass, returns it immediately.
+        Otherwise scores remaining candidates and picks the highest-scoring
+        option per (text, style) position.
+
+        Parameters
+        ----------
+        batch_texts : list[str]
+            Original input texts.
+        all_candidates : list[list[list[str]]]
+            Shape ``[n_candidates][n_texts][n_styles]``.  Each candidate set
+            contains the same styles in the same order, produced by separate
+            calls to the generation method with temperature sampling.
+
+        Returns
+        -------
+        list[list[str]]
+            Shape ``[n_texts][n_styles]`` — one paraphrase per style.
+        """
+        n_candidates = len(all_candidates)
+        n_texts = len(batch_texts)
+        n_styles = len(all_candidates[0][0]) if n_texts > 0 else 0
+
+        # Score the first candidate set.
+        first_scores = self.score_batch(batch_texts, all_candidates[0])
+        failures = self.identify_failures(first_scores)
+        total_failures = sum(len(fl) for fl in failures)
+
+        if total_failures == 0:
+            return [list(row) for row in all_candidates[0]]
+
+        for t_idx, failed_styles in enumerate(failures):
+            for s_idx in failed_styles:
+                logger.info(
+                    "MIS filter: text %d, style %d scored %.2f (below %.2f).",
+                    t_idx, s_idx, first_scores[t_idx][s_idx], self.min_score,
+                )
+        logger.info(
+            "MIS filter: %d/%d paraphrase(s) below %.2f. "
+            "Selecting from %d candidates.",
+            total_failures, n_texts * n_styles, self.min_score, n_candidates,
+        )
+
+        # Score remaining candidate sets.
+        all_scores = [first_scores]
+        for candidate in all_candidates[1:]:
+            all_scores.append(self.score_batch(batch_texts, candidate))
+
+        # For each (text, style): keep first candidate if it passes,
+        # otherwise pick the best across all candidates.
+        result = [list(row) for row in all_candidates[0]]
+        for t_idx, failed_styles in enumerate(failures):
+            for s_idx in failed_styles:
+                best_c = max(
+                    range(n_candidates),
+                    key=lambda c: all_scores[c][t_idx][s_idx],
+                )
+                result[t_idx][s_idx] = all_candidates[best_c][t_idx][s_idx]
+
+        # Log any remaining below-threshold paraphrases.
+        below = sum(
+            1
+            for t_idx, failed_styles in enumerate(failures)
+            for s_idx in failed_styles
+            if max(all_scores[c][t_idx][s_idx] for c in range(n_candidates))
+            < self.min_score
+        )
+        if below > 0:
+            logger.warning(
+                "MIS filter: %d/%d paraphrases remain below %.2f. "
+                "Keeping best-scoring attempts.",
+                below, n_texts * n_styles, self.min_score,
+            )
+
+        return result
