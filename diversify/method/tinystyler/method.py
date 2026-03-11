@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_TEMPERATURE = 0.7
 _DEFAULT_TOP_P = 0.9
-_MAX_NEW_TOKENS_FACTOR = 1.2
-_MAX_NEW_TOKENS_CAP = 128
+_MAX_NEW_TOKENS_FACTOR = 2.0
+_MAX_NEW_TOKENS_CAP = 256
 
 
 class TinyStylerMethod(DiversificationMethod):
