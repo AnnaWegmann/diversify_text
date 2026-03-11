@@ -49,7 +49,7 @@ constraints are dropped entirely).
 Splitting on punctuation
 ------------------------
 
-This package also provides the option to ``split_on_punctuation=True``.
+This package also provides the option to split on punctuation.
 This splits each input into sentence-level segments, paraphrases each segment
 independently (where the model works best), and reassembles the results:
 
@@ -59,7 +59,7 @@ independently (where the model works best), and reassembles the results:
        "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. "
        "Despite their families' financial constraints, both parents attended "
        "the University of Oxford.",
-       split_on_punctuation=True,
+       preprocess_kwargs={"split_on_punctuation": True},
    )
 
 .. code-block:: python
@@ -90,6 +90,6 @@ limit for individual segments that may still be long:
        "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. "
        "Despite their families' financial constraints, both parents attended "
        "the University of Oxford.",
-       split_on_punctuation=True,
+       preprocess_kwargs={"split_on_punctuation": True},
        max_new_tokens=512,
    )
