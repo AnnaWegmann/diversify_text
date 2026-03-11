@@ -17,7 +17,8 @@ pip install diversify-text
   - [List of texts](#list-of-texts)
   - [Customising the TinyStyler style bank](#customising-the-tinystyler-style-bank)
 - [Install](#install)
-- [Development](#development)
+- [Contributing](#contributing)
+  - [Development setup](#development-setup)
   - [Running tests](#running-tests)
   - [Working with uv](#working-with-uv)
   - [Building docs locally](#building-docs-locally)
@@ -154,41 +155,26 @@ results = Diversifier(methods=[MyMethod()]).diversify("Hello", n_styles=3)
 
 ## Install
 
+```bash
+pip install diversify-text
+```
+
+Requires Python 3.10+.
+
+## Contributing
+
+### Development setup
+
 > [!NOTE]
-> You must have **uv** installed before running `uv sync`.
+> You must have **uv** installed.
 > Full installation guide: <https://docs.astral.sh/uv/getting-started/installation/>
 
-After installing `uv` on your system, you can now follow either **development mode** or **standard installation** depending on your use case.
-
-### Development mode
-
-Follow these steps to set up the project for development.
-
-- Clone the repo
-- Install all dependencies required for development mode:
-   ```bash
-   uv sync --group dev
-   ```
-- Activate the Python environment created by `uv`:
-   ```bash
-   source .venv/bin/activate
-   ```
-
-### Standard installation
-
-To use the library directly:
-
-- Clone the repo
-- Install all dependencies required for standard mode:
-   ```bash
-   uv sync --no-group dev
-   ```
-- Activate the Python environment created by `uv`:
-   ```bash
-   source .venv/bin/activate
-   ```
-
-## Development
+```bash
+git clone https://github.com/AnnaWegmann/diversify_text.git
+cd diversify_text
+uv sync --group dev
+source .venv/bin/activate
+```
 
 ### Running tests
 

@@ -24,5 +24,8 @@ docs/_build/
 # Example scripts and data (kept locally for testing)
 example_scripts/
 
+# Legacy code (kept locally, not in repo)
+legacy_code/
+
 # Utility scripts
 scripts/
