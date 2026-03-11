@@ -8,9 +8,9 @@ import inspect
 from collections.abc import Sequence
 from typing import Any, TypeAlias
 
-from diversify.method.base import DiversificationMethod
-from diversify.method.echo import EchoMethod
-from diversify.method.tinystyler import TinyStylerMethod
+from diversify_text.method.base import DiversificationMethod
+from diversify_text.method.echo import EchoMethod
+from diversify_text.method.tinystyler import TinyStylerMethod
 
 
 MethodType: TypeAlias = type[DiversificationMethod]

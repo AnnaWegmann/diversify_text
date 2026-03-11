@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diversify import Diversifier
-from diversify._preprocess import split_sentences
+from diversify_text import Diversifier
+from diversify_text._preprocess import split_sentences
 from tests.fixtures import PrefixMethod
 
 

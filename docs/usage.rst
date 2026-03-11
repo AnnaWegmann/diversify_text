@@ -16,8 +16,10 @@ Reproducibility (seed)
 ----------------------
 
 ``diversify`` sets a default random seed (``51173``) to make runs more
-reproducible. The seed is logged at the start of each run, but exact
-determinism is not guaranteed across all hardware or backends.
+reproducible.  The seed is applied to Python's ``random``, PyTorch
+(CPU and CUDA), and NumPy.  It is logged at the start of each run, but
+exact determinism is **not** guaranteed across different hardware, library
+versions, or backends.
 
 To get a different set of paraphrases, pass a different seed:
 
@@ -130,8 +132,8 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
 
 .. code-block:: python
 
-   from diversify import diversify
-   from diversify.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text import diversify
+   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
 
    custom_bank = {
        "academic": ["The results demonstrate a statistically significant effect."],
@@ -144,12 +146,12 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
        method_kwargs={"tinystyler": {"style_bank": custom_bank}},
    )
 
-``DEFAULT_STYLE_BANK`` is exported from ``diversify.method.tinystyler`` so you
+``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.method.tinystyler`` so you
 can build on it:
 
 .. code-block:: python
 
-   from diversify.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
 
    extended_bank = {
        **DEFAULT_STYLE_BANK,
@@ -174,8 +176,8 @@ Creating a custom method
 
 .. code-block:: python
 
-   from diversify import Diversifier
-   from diversify.method import DiversificationMethod
+   from diversify_text import Diversifier
+   from diversify_text.method import DiversificationMethod
 
 
    class MyMethod(DiversificationMethod):

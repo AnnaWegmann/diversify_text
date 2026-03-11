@@ -11,9 +11,9 @@ import logging
 from pathlib import Path
 from typing import IO, Any, Union
 
-from diversify._input import InputContext, InputKind
+from diversify_text._input import InputContext, InputKind
 
-_log = logging.getLogger("diversify")
+_log = logging.getLogger(__name__)
 
 
 # ------------------------------------------------------------------

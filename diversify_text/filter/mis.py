@@ -59,7 +59,7 @@ class MISFilter:
         if self._mis is None:
             from mutual_implication_score import MIS
 
-            from diversify._utils import suppress_hf_load_noise
+            from diversify_text._utils import suppress_hf_load_noise
 
             with suppress_hf_load_noise():
                 logger.info("Loading MIS model on %s ...", self.device)

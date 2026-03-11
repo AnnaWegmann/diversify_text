@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from diversify._preprocess import PreprocessContext
+from diversify_text._preprocess import PreprocessContext
 
 
 def reassemble_segments(
@@ -15,7 +15,7 @@ def reassemble_segments(
     ----------
     segments_per_text : list[list[str]]
         The sentence segments for each original text (from
-        :func:`~diversify._preprocess.split_sentences`).
+        :func:`~diversify_text._preprocess.split_sentences`).
     paraphrases_by_segment : list[list[str]]
         Flat list of paraphrases for every segment, shape
         ``[total_segments][n_styles]``.
@@ -42,7 +42,7 @@ def postprocess(
     """Undo preprocessing transformations on a candidate set.
 
     Applies the inverse of each step performed by
-    :func:`~diversify._preprocess.preprocess`, using the state stored in
+    :func:`~diversify_text._preprocess.preprocess`, using the state stored in
     *context*.
 
     Parameters
@@ -50,7 +50,7 @@ def postprocess(
     candidate : list[list[str]]
         Raw generation output, shape ``[n_generation_texts][n_styles]``.
     context : PreprocessContext
-        Context returned by :func:`~diversify._preprocess.preprocess`.
+        Context returned by :func:`~diversify_text._preprocess.preprocess`.
 
     Returns
     -------

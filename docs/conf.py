@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # -- Project information ------------------------------------------------
-project = "diversify"
+project = "diversify-text"
 copyright = "2025, Anna Wegmann"
 author = "Anna Wegmann"
 release = "0.1.0"
@@ -60,6 +60,6 @@ intersphinx_mapping = {
 
 # -- HTML output ---------------------------------------------------------
 html_theme = "sphinx_rtd_theme"
-html_title = "diversify"
+html_title = "diversify-text"
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

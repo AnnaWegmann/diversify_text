@@ -15,7 +15,7 @@ from typing import Union
 import torch
 from huggingface_hub import hf_hub_download
 
-from diversify._utils import suppress_hf_load_noise
+from diversify_text._utils import suppress_hf_load_noise
 
 logger = logging.getLogger(__name__)
 

@@ -13,7 +13,7 @@ _SEGMENTER = pysbd.Segmenter(language="en", clean=False)
 @dataclass
 class PreprocessContext:
     """State produced by :func:`preprocess` and consumed by
-    :func:`~diversify._postprocess.postprocess`.
+    :func:`~diversify_text._postprocess.postprocess`.
 
     New preprocessing steps can add fields here without changing the
     caller in ``core.py``.
@@ -43,7 +43,7 @@ def preprocess(
 
     Returns the (possibly transformed) texts to feed into the generation
     method, together with a :class:`PreprocessContext` that
-    :func:`~diversify._postprocess.postprocess` needs to undo the
+    :func:`~diversify_text._postprocess.postprocess` needs to undo the
     transformations.
 
     Parameters
@@ -53,7 +53,7 @@ def preprocess(
     split_on_punctuation : bool
         If ``True``, split each text into sentence-level segments and
         flatten the result.  The per-text segment mapping is stored in
-        the context so that :func:`~diversify._postprocess.postprocess`
+        the context so that :func:`~diversify_text._postprocess.postprocess`
         can reassemble them.
 
     Returns
@@ -61,7 +61,7 @@ def preprocess(
     generation_texts : list[str]
         Texts to pass to the generation method.
     context : PreprocessContext
-        Context needed by :func:`~diversify._postprocess.postprocess`.
+        Context needed by :func:`~diversify_text._postprocess.postprocess`.
     """
     context = PreprocessContext()
 

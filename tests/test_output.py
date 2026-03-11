@@ -5,8 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diversify._input import InputContext, InputKind
-from diversify._output import OutputWriter, resolve_output_path
+from diversify_text._input import InputContext, InputKind
+from diversify_text._output import OutputWriter, resolve_output_path
 
 
 class TestResolveOutputPath(unittest.TestCase):

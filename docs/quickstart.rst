@@ -23,7 +23,7 @@ Basic usage
 
 .. code-block:: python
 
-   from diversify import diversify
+   from diversify_text import diversify
 
    results = diversify("The experiment was conducted in a controlled lab setting.")
 
@@ -75,7 +75,7 @@ once and reused:
 
 .. code-block:: python
 
-   from diversify import Diversifier
+   from diversify_text import Diversifier
 
    div = Diversifier(device="cuda", methods=["tinystyler"])
 

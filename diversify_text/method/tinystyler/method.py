@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from diversify.method.base import DiversificationMethod
-from diversify.method.tinystyler.model import TinyStyler
-from diversify.method.tinystyler.styles import DEFAULT_STYLE_BANK, DEFAULT_STYLES
+from diversify_text.method.base import DiversificationMethod
+from diversify_text.method.tinystyler.model import TinyStyler
+from diversify_text.method.tinystyler.styles import DEFAULT_STYLE_BANK, DEFAULT_STYLES
 
 logger = logging.getLogger(__name__)
 

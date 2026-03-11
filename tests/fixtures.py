@@ -1,6 +1,6 @@
 """Shared fake DiversificationMethod implementations for tests."""
 
-from diversify.method import DiversificationMethod
+from diversify_text.method import DiversificationMethod
 
 
 class PrefixMethod(DiversificationMethod):

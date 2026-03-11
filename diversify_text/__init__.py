@@ -1,8 +1,8 @@
-"""diversify -- generate stylistic paraphrases of texts."""
+"""diversify-text -- generate stylistic paraphrases of texts."""
 
 import logging
 
-from diversify.core import (
+from diversify_text.core import (
     Diversifier,
     diversify,
 )
@@ -14,7 +14,7 @@ __all__ = [
 
 # Configure a clean handler for the diversify logger so INFO/WARNING messages
 # are visible without requiring the user to set up logging themselves.
-_logger = logging.getLogger("diversify")
+_logger = logging.getLogger("diversify_text")
 _logger.setLevel(logging.INFO)
 _handler = logging.StreamHandler()
 _handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))

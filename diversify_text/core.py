@@ -16,12 +16,12 @@ from typing import Any
 
 from tqdm import tqdm
 
-from diversify._input import TextInput, resolve_input
-from diversify._output import DiversifyOutput, OutputWriter, resolve_output_path
-from diversify._postprocess import postprocess
-from diversify._preprocess import preprocess
-from diversify.filter.mis import MISFilter
-from diversify.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
+from diversify_text._input import TextInput, resolve_input
+from diversify_text._output import DiversifyOutput, OutputWriter, resolve_output_path
+from diversify_text._postprocess import postprocess
+from diversify_text._preprocess import preprocess
+from diversify_text.filter.mis import MISFilter
+from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
 logger = logging.getLogger(__name__)
 
@@ -110,15 +110,18 @@ class Diversifier:
             Nucleus-sampling probability mass.  ``None`` lets each
             method choose its own default.
         seed : int
-            Random seed for reproducible output.  Defaults to ``51173``.
-            Pass a different integer to get a new set of outputs, or
-            ``None`` to disable seeding (non-deterministic).
+            Random seed for more reproducible output.  Seeds Python's
+            ``random``, PyTorch (CPU + CUDA), and NumPy if available.
+            Defaults to ``51173``.  Exact determinism is not guaranteed
+            across different hardware or library versions.  Pass a
+            different integer to get a new set of outputs, or ``None``
+            to disable seeding.
         method_kwargs : mapping[str, dict], optional
             Per-method keyword arguments. Example:
             ``{"tinystyler": {"style_bank": [...]}}``.
         preprocess_kwargs : dict, optional
             Keyword arguments forwarded to
-            :func:`~diversify._preprocess.preprocess`.  Example:
+            :func:`~diversify_text._preprocess.preprocess`.  Example:
             ``{"split_on_punctuation": True}``.
         output_dir : str | Path, optional
             Directory to write output files into.  When provided for
@@ -157,8 +160,17 @@ class Diversifier:
             self._mis_filter.prepare()
 
         if seed is not None:
+            import random
             import torch
+            random.seed(seed)
             torch.manual_seed(seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(seed)
+            try:
+                import numpy as np
+                np.random.seed(seed)
+            except ImportError:
+                pass
             logger.info("Using random seed: %d", seed)
 
         # --- process batches lazily ---

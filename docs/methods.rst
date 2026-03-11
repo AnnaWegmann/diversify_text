@@ -1,8 +1,8 @@
 Methods
 =======
 
-``diversify`` uses a pluggable method architecture. Each method is a
-:class:`~diversify.method.base.DiversificationMethod` subclass that generates
+``diversify-text`` uses a pluggable method architecture. Each method is a
+:class:`~diversify_text.method.base.DiversificationMethod` subclass that generates
 paraphrases using a different model or algorithm.
 
 Overview
@@ -32,7 +32,7 @@ authorship-embedding representations.
 
 Given a source text and a set of style example sentences, TinyStyler generates
 a paraphrase that preserves the content while shifting toward the demonstrated
-writing style. ``diversify`` cycles through different style groups from a
+writing style. ``diversify-text`` cycles through different style groups from a
 configurable *style bank* to produce multiple stylistically diverse outputs.
 
 .. note::
@@ -46,7 +46,7 @@ configurable *style bank* to produce multiple stylistically diverse outputs.
 the `CORE corpus <https://doi.org/10.1007/s10579-013-9256-1>`_, the
 `TinyStyler repository <https://github.com/zacharyhorvitz/TinyStyler>`_ and
 the `STEL demo for the formality dimension <https://github.com/nlpsoc/STEL/blob/main/Data/STEL/dimensions/quad_stel-dimension_formal-100_sample.tsv>`_.
-See :data:`diversify.method.tinystyler.styles.DEFAULT_STYLE_BANK` for the
+See :data:`diversify_text.method.tinystyler.styles.DEFAULT_STYLE_BANK` for the
 full list of available styles.
 
 **Citation:**
@@ -77,4 +77,4 @@ Adding a new method
 -------------------
 
 See :ref:`creating-a-custom-method` in the Usage Guide for instructions on
-implementing your own :class:`~diversify.method.base.DiversificationMethod`.
+implementing your own :class:`~diversify_text.method.base.DiversificationMethod`.

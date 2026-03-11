@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from diversify.method.base import DiversificationMethod
+from diversify_text.method.base import DiversificationMethod
 
 
 class EchoMethod(DiversificationMethod):

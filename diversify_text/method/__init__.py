@@ -1,7 +1,7 @@
 """Pluggable diversification methods."""
 
-from diversify.method.base import DiversificationMethod
-from diversify.method.registry import (
+from diversify_text.method.base import DiversificationMethod
+from diversify_text.method.registry import (
     DEFAULT_METHOD_REGISTRY,
     MethodRegistry,
 )

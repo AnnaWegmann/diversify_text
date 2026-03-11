@@ -8,7 +8,7 @@ groups (modulo the bank length) are used.
 
 Import and pass to the method via ``method_kwargs`` to override or extend:
 
-    from diversify.method.tinystyler import DEFAULT_STYLE_BANK
+    from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
 
     custom_bank = {
         **DEFAULT_STYLE_BANK,
