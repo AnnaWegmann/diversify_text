@@ -58,7 +58,7 @@ class TestSentenceSplitting(unittest.TestCase):
         results = div.diversify(
             ["One. Two!", "Single sentence"],
             n_styles=1,
-            split_on_punctuation=True,
+            preprocess_kwargs={"split_on_punctuation": True},
         )
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]["original"], "One. Two!")
@@ -66,7 +66,10 @@ class TestSentenceSplitting(unittest.TestCase):
 
     def test_segments_are_reassembled_in_paraphrase(self):
         div = Diversifier(methods=[PrefixMethod("p")])
-        results = div.diversify("One. Two!", n_styles=1, split_on_punctuation=True)
+        results = div.diversify(
+            "One. Two!", n_styles=1,
+            preprocess_kwargs={"split_on_punctuation": True},
+        )
         self.assertEqual(results[0]["paraphrases"], ["p:One.:0 p:Two!:0"])
 
     def test_csv_with_punctuation_writes_one_jsonl_record_per_original(self):
@@ -80,7 +83,7 @@ class TestSentenceSplitting(unittest.TestCase):
 
             result = div.diversify(
                 str(input_path), text_column="bio", n_styles=1,
-                split_on_punctuation=True,
+                preprocess_kwargs={"split_on_punctuation": True},
             )
             self.assertIsInstance(result, Path)
             jsonl_path = Path(tmpdir) / "tmp_diversified.jsonl"
