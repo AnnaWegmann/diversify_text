@@ -35,9 +35,17 @@ a paraphrase that preserves the content while shifting toward the demonstrated
 writing style. ``diversify`` cycles through different style groups from a
 configurable *style bank* to produce multiple stylistically diverse outputs.
 
+.. note::
+
+   TinyStyler is based on `CISR <https://huggingface.co/AnnaWegmann/Style-Embedding>`_
+   style embeddings, which have been shown to work well for **social-media-like
+   settings** and **formality transfer**. The model may not perform as expected
+   when reproducing other styles.
+
 **Default style bank.** The built-in bank contains named styles drawn from
-the `CORE corpus <https://doi.org/10.1007/s10579-013-9256-1>`_ and the
-`TinyStyler repository <https://github.com/zacharyhorvitz/TinyStyler>`_.
+the `CORE corpus <https://doi.org/10.1007/s10579-013-9256-1>`_, the
+`TinyStyler repository <https://github.com/zacharyhorvitz/TinyStyler>`_ and
+the `STEL demo for the formality dimension <https://github.com/nlpsoc/STEL/blob/main/Data/STEL/dimensions/quad_stel-dimension_formal-100_sample.tsv>`_.
 See :data:`diversify.method.tinystyler.styles.DEFAULT_STYLE_BANK` for the
 full list of available styles.
 

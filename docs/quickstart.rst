@@ -32,11 +32,38 @@ Basic usage
    [{
        "original": "The experiment was conducted in a controlled lab setting.",
        "paraphrases": [
-           "They ran the experiment in a controlled lab setting.",
-           "The experiment took place in a controlled lab.",
-           "A controlled lab was where the experiment was conducted.",
-           "In a controlled lab, the experiment was carried out.",
-           "The study was performed in a controlled lab environment.",
+           "the experiment was in a controlled lab setting so it didnt suck...",
+           "Well it was a controlled lab setting that the experiment was conducted in.",
+           "Did you know that the experiment was conducted in a controlled lab setting? It was a re-test.",
+           "I heard the experiment was conducted in a controlled lab setting.",
+           "I mean, this experiment was conducted in a controlled lab setting, so that was a good thing.",
+       ]
+   }]
+
+Similarity filter
+-----------------
+
+Enable the similarity filter to score each paraphrase with the
+`Mutual Implication Score <https://huggingface.co/s-nlp/Mutual_Implication_Score>`_
+model and automatically select the best candidate above a minimum score:
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       similarity_filter=True,
+   )
+
+.. code-block:: python
+
+   [{
+       "original": "The experiment was conducted in a controlled lab setting.",
+       "paraphrases": [
+           "the experiment was in a controlled lab setting so it didnt suck...",
+           "Well it was a controlled lab setting that the experiment was conducted in.",
+           "Can you explain the experiment? It was conducted in a controlled lab setting.",
+           "I heard the experiment was conducted in a controlled lab setting.",
+           "I mean, this experiment was conducted in a controlled lab setting, so that was a good thing.",
        ]
    }]
 
