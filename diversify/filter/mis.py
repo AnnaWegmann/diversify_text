@@ -46,6 +46,10 @@ class MISFilter:
         self.min_score = min_score
         self.n_candidates = n_candidates
         self._mis = None
+        if self.n_candidates < 1:
+            raise ValueError("n_candidates must be at least 1")
+        if not (0 <= self.min_score <= 1):
+            raise ValueError("min_score must be in [0, 1]")
 
     def prepare(self) -> None:
         """Pre-load the MIS model."""
