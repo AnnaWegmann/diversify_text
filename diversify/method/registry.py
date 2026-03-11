@@ -72,9 +72,9 @@ class MethodRegistry:
             if isinstance(method, DiversificationMethod):
                 resolved.append(method)
             elif isinstance(method, str):
-                method_cls = self.get(method)
-                init_kwargs = _build_init_kwargs(method_cls, kwargs)
-                resolved.append(method_cls(**init_kwargs))
+                method_class = self.get(method)
+                init_kwargs = _build_init_kwargs(method_class, kwargs)
+                resolved.append(method_class(**init_kwargs))
             else:
                 raise TypeError(
                     "method must be str or DiversificationMethod instance."
