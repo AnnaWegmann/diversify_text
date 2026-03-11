@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import pysbd  # https://github.com/nipunsadvilkar/pySBD, published at EMLNP 2020, rule-based
+import pysbd  # https://github.com/nipunsadvilkar/pySBD, published at EMNLP 2020, rule-based
 
 
 _SEGMENTER = pysbd.Segmenter(language="en", clean=False)
