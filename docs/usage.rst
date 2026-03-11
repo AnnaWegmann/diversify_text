@@ -15,8 +15,9 @@ Control number of paraphrases
 Reproducibility (seed)
 ----------------------
 
-``diversify`` sets a random seed (default ``51173``) so that repeated calls
-produce the same output. The seed is logged at the start of each run.
+``diversify`` sets a default random seed (``51173``) to make runs more
+reproducible. The seed is logged at the start of each run, but exact
+determinism is not guaranteed across all hardware or backends.
 
 To get a different set of paraphrases, pass a different seed:
 
