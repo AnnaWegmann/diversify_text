@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["paraphrase", "nlp", "text-generation", "style-transfer", "augmentation"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -37,7 +37,10 @@ dependencies = [
 ]
 
 [project.urls]
-# Homepage = "https://github.com/<user>/diversify-text"  # uncomment when public
+Homepage = "https://github.com/AnnaWegmann/diversify_text"
+Documentation = "https://annawegmann.github.io/diversify_text/"
+Repository = "https://github.com/AnnaWegmann/diversify_text"
+Issues = "https://github.com/AnnaWegmann/diversify_text/issues"
 
 [dependency-groups]
 dev = [
@@ -49,6 +52,9 @@ docs = [
     "sphinx-rtd-theme",
     "sphinx-copybutton",
 ]
+
+[tool.hatch.build.targets.sdist]
+exclude = [".github/", "docs/", "tests/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
