@@ -63,7 +63,9 @@ Caching
 The ``diversify()`` function automatically caches loaded models between calls.
 The generation model and the similarity filter are cached independently, so
 toggling ``similarity_filter`` does not reload the generation model and vice
-versa. Call ``clear_cache()`` to free the memory when you are done:
+versa. Call ``clear_cache()`` to release cached model references when you are done.
+On CUDA devices, memory may remain reserved by the underlying framework's caching
+allocator and be reused in future calls rather than immediately returned to the OS/driver:
 
 .. code-block:: python
 
