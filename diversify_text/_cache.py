@@ -58,6 +58,7 @@ def get_methods(
             device=device,
         )
         _cached_methods_key = key
+    assert _cached_methods is not None
     return _cached_methods
 
 
