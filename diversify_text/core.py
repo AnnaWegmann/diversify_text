@@ -20,7 +20,7 @@ from diversify_text._input import TextInput, resolve_input
 from diversify_text._output import DiversifyOutput, OutputWriter, resolve_output_path
 from diversify_text._postprocess import postprocess
 from diversify_text._preprocess import preprocess
-from diversify_text._cache import get_methods, get_mis_filter
+from diversify_text import _cache
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
@@ -335,8 +335,8 @@ def diversify(
     filter_kwargs = {k: kwargs.pop(k) for k in filter_keys if k in kwargs}
 
     # Retrieve cached (or freshly resolved) components.
-    cached_methods = get_methods(device, methods)
-    mis_filter = get_mis_filter(device, **filter_kwargs) if similarity_filter else None
+    cached_methods = _cache.get_methods(device, methods)
+    mis_filter = _cache.get_mis_filter(device, **filter_kwargs) if similarity_filter else None
 
     # Build a Diversifier from the cached components.  Passing pre-built
     # method instances is essentially free (the registry passes them
