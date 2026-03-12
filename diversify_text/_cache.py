@@ -15,6 +15,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from diversify_text._utils import default_device
 from diversify_text.filter.mis import MISFilter, _DEFAULT_MIN_SCORE, _DEFAULT_N_CANDIDATES
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
@@ -51,10 +52,13 @@ def get_methods(
     """Return cached generation methods, resolving only on config change."""
     global _cached_methods, _cached_methods_key
 
+    device = device or default_device()
+    if methods is None:
+        methods = ["tinystyler"]
     key = _methods_cache_key(device, methods)
     if _cached_methods_key != key:
         _cached_methods = DEFAULT_METHOD_REGISTRY.resolve(
-            methods if methods is not None else ["tinystyler"],
+            methods,
             device=device,
         )
         _cached_methods_key = key
@@ -73,6 +77,7 @@ def get_mis_filter(
     """
     global _cached_mis_filter, _cached_mis_key
 
+    device = device or default_device()
     key = _mis_cache_key(device)
     if _cached_mis_key != key:
         _cached_mis_filter = MISFilter(device=device, **filter_kwargs)
