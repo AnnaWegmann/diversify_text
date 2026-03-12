@@ -4,19 +4,9 @@ Quickstart
 Installation
 ------------
 
-.. note::
-
-   You must have **uv** installed before running ``uv sync``.
-   Full installation guide: https://docs.astral.sh/uv/getting-started/installation/
-
-After installing ``uv`` on your system, clone the repo and install:
-
 .. code-block:: bash
 
-   git clone https://github.com/AnnaWegmann/diversify.git
-   cd diversify
-   uv sync
-   source .venv/bin/activate
+   pip install diversify-text
 
 Basic usage
 -----------
