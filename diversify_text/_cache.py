@@ -49,7 +49,15 @@ def get_methods(
     device: str | None,
     methods: Sequence[str | DiversificationMethod] | None,
 ) -> list[DiversificationMethod]:
-    """Return cached generation methods, resolving only on config change."""
+    """Return cached generation methods, resolving only on config change.
+
+    The current implementation treats the entire method list as a single
+    cache key: any change (addition, removal, reordering) invalidates
+    the whole cache and reloads all methods from scratch.  This is fine
+    while only one method is used, but may cause unnecessary reloads
+    when multiple methods are combined.  A future improvement could
+    cache each method individually.
+    """
     global _cached_methods, _cached_methods_key
 
     device = device or default_device()

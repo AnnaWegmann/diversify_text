@@ -346,6 +346,15 @@ def diversify(
     -----
     The internal cache is not thread-safe.  For multi-threaded
     applications, use :class:`Diversifier` directly.
+
+    .. note::
+
+       Generation methods are cached as a group: any change to the
+       ``methods`` list (addition, removal, or reordering) invalidates
+       the entire cache and reloads all methods.  This is acceptable
+       while only one method is used, but may cause unnecessary reloads
+       when combining multiple methods.  For fine-grained control over
+       model lifetimes, use :class:`Diversifier` directly.
     """
     # Separate filter kwargs from diversify() kwargs.
     filter_keys = {"min_score", "n_candidates"}
