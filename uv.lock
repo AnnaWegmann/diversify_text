@@ -201,7 +201,7 @@ wheels = [
 
 [[package]]
 name = "diversify-text"
-version = "0.1.0"
+version = "0.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "huggingface-hub" },
@@ -241,7 +241,7 @@ requires-dist = [
     { name = "tiktoken" },
     { name = "torch" },
     { name = "tqdm", specifier = ">=4.67.3" },
-    { name = "transformers" },
+    { name = "transformers", specifier = ">=5.3.0" },
 ]
 
 [package.metadata.requires-dev]

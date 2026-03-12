@@ -42,7 +42,9 @@ class MISFilter:
         min_score: float = _DEFAULT_MIN_SCORE,
         n_candidates: int = _DEFAULT_N_CANDIDATES,
     ) -> None:
-        self.device = device or "cpu"
+        from diversify_text._utils import default_device
+
+        self.device = device or default_device()
         self.min_score = min_score
         self.n_candidates = n_candidates
         self._mis = None

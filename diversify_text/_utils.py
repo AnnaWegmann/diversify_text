@@ -7,6 +7,17 @@ import logging
 import warnings
 
 
+def default_device() -> str:
+    """Return the best available torch device (``"cuda"``, ``"mps"``, or ``"cpu"``)."""
+    import torch
+
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 @contextlib.contextmanager
 def suppress_hf_load_noise():
     """Silence harmless noise emitted when loading HuggingFace models.

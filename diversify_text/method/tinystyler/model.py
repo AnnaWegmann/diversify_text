@@ -15,7 +15,7 @@ from typing import Union
 import torch
 from huggingface_hub import hf_hub_download
 
-from diversify_text._utils import suppress_hf_load_noise
+from diversify_text._utils import default_device, suppress_hf_load_noise
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class TinyStyler:
     """Manages TinyStyler model lifecycle and exposes style-transfer helpers."""
 
     def __init__(self, device: str | None = None) -> None:
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device or default_device()
         self._tokenizer, self._model, self._get_style_embeddings_fn = (
             self._load_model()
         )
