@@ -6,7 +6,7 @@ This package helps you generate stylistically diverse paraphrases of your own te
 pip install diversify-text
 ```
 
-**[Full documentation](https://annawegmann.github.io/diversify/)**
+**[Full documentation](https://annawegmann.github.io/diversify_text/)**
 
 ## Table of contents
 
@@ -25,7 +25,7 @@ pip install diversify-text
 
 ## Usage
 
-For file inputs (CSV, TSV, TXT), output options, punctuation splitting, and creating custom methods, see the [full usage guide](https://annawegmann.github.io/diversify/usage.html).
+For file inputs (CSV, TSV, TXT), output options, punctuation splitting, and creating custom methods, see the [full usage guide](https://annawegmann.github.io/diversify_text/usage.html).
 
 ### Single text
 
