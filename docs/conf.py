@@ -3,16 +3,18 @@
 """
 
 import sys
+import tomllib
 from pathlib import Path
 
 # -- Path setup --------------------------------------------------------
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+_root = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_root))
 
 # -- Project information ------------------------------------------------
 project = "diversify-text"
 copyright = "2025, Anna Wegmann"
 author = "Anna Wegmann"
-release = "0.1.2"
+release = tomllib.loads((_root / "pyproject.toml").read_text())["project"]["version"]
 
 # -- General configuration ----------------------------------------------
 extensions = [
