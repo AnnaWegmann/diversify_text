@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 project = "diversify-text"
 copyright = "2025, Anna Wegmann"
 author = "Anna Wegmann"
-release = "0.1.0"
+release = "0.1.1"
 
 # -- General configuration ----------------------------------------------
 extensions = [
