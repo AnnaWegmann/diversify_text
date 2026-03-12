@@ -20,7 +20,7 @@ from diversify_text._input import TextInput, resolve_input
 from diversify_text._output import DiversifyOutput, OutputWriter, resolve_output_path
 from diversify_text._postprocess import postprocess
 from diversify_text._preprocess import preprocess
-from diversify_text import _cache
+import diversify_text._cache as _cache
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
