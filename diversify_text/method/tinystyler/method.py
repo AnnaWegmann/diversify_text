@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 _DEFAULT_TEMPERATURE = 0.7
 _DEFAULT_TOP_P = 0.9
 _MAX_NEW_TOKENS_FACTOR = 2.0
+_MAX_NEW_TOKENS_FLOOR = 50
 _MAX_NEW_TOKENS_CAP = 256
 
 
@@ -116,15 +117,19 @@ class TinyStylerMethod(DiversificationMethod):
         temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
         top_p = top_p if top_p is not None else _DEFAULT_TOP_P
 
-        # Cap max_new_tokens at _MAX_NEW_TOKENS_FACTOR the longest input or _MAX_NEW_TOKENS_CAP, whichever
-        # is smaller.  An explicit caller value is used as-is.
+        # Cap max_new_tokens between _MAX_NEW_TOKENS_FLOOR and
+        # _MAX_NEW_TOKENS_CAP, scaling with the longest input.
+        # An explicit caller value is used as-is.
         input_token_counts = [
             len(ids)
             for ids in model._tokenizer(texts, truncation=True)["input_ids"]
         ]
-        dynamic_cap = min(
-            int(max(input_token_counts) * _MAX_NEW_TOKENS_FACTOR),
-            _MAX_NEW_TOKENS_CAP,
+        dynamic_cap = max(
+            _MAX_NEW_TOKENS_FLOOR,
+            min(
+                int(max(input_token_counts) * _MAX_NEW_TOKENS_FACTOR),
+                _MAX_NEW_TOKENS_CAP,
+            ),
         )
         max_new_tokens = max_new_tokens if max_new_tokens is not None else dynamic_cap
 
