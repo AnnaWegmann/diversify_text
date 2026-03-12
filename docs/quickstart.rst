@@ -57,11 +57,25 @@ model and automatically select the best candidate above a minimum score:
        ]
    }]
 
+Caching
+-------
+
+The ``diversify()`` function automatically caches loaded models between calls.
+The generation model and the similarity filter are cached independently, so
+toggling ``similarity_filter`` does not reload the generation model and vice
+versa. Call ``clear_cache()`` to free the memory when you are done:
+
+.. code-block:: python
+
+   from diversify_text import clear_cache
+
+   clear_cache()
+
 Using the class directly
 ------------------------
 
-Recommended when processing texts across several calls — the model is loaded
-once and reused:
+You can also instantiate a ``Diversifier`` yourself for full control over the
+model lifecycle:
 
 .. code-block:: python
 

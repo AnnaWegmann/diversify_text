@@ -20,6 +20,7 @@ from diversify_text._input import TextInput, resolve_input
 from diversify_text._output import DiversifyOutput, OutputWriter, resolve_output_path
 from diversify_text._postprocess import postprocess
 from diversify_text._preprocess import preprocess
+from diversify_text._cache import get_methods, get_mis_filter
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
@@ -285,7 +286,7 @@ class Diversifier:
 
 
 # ------------------------------------------------------------------
-# Module-level convenience function
+# Module-level convenience function (with per-model caching)
 # ------------------------------------------------------------------
 
 
@@ -298,6 +299,12 @@ def diversify(
     **kwargs,
 ) -> DiversifyOutput:
     """One-shot convenience function: create a :class:`Diversifier` and run it.
+
+    The generation method(s) and the MIS filter are cached independently
+    between calls.  Switching ``similarity_filter`` on or off reuses the
+    cached generation models, and changing methods reuses the cached MIS
+    model.  A component is only recreated when its own configuration
+    (device, method names, filter thresholds) changes.
 
     Parameters
     ----------
@@ -326,10 +333,16 @@ def diversify(
     # Separate filter kwargs from diversify() kwargs.
     filter_keys = {"min_score", "n_candidates"}
     filter_kwargs = {k: kwargs.pop(k) for k in filter_keys if k in kwargs}
-    div = Diversifier(
-        device=device,
-        methods=methods,
-        similarity_filter=similarity_filter,
-        **filter_kwargs,
-    )
+
+    # Retrieve cached (or freshly resolved) components.
+    cached_methods = get_methods(device, methods)
+    mis_filter = get_mis_filter(device, **filter_kwargs) if similarity_filter else None
+
+    # Build a Diversifier from the cached components.  Passing pre-built
+    # method instances is essentially free (the registry passes them
+    # through without reloading), and prepare() is a no-op when models
+    # are already loaded.
+    div = Diversifier(device=device, methods=cached_methods)
+    div._mis_filter = mis_filter
+
     return div.diversify(texts, **kwargs)

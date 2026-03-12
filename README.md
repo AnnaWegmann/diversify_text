@@ -13,6 +13,7 @@ pip install diversify-text
 - [Usage](#usage)
   - [Single text](#single-text)
   - [Control number of paraphrases](#control-number-of-paraphrases)
+  - [Caching](#caching)
   - [Using the class directly](#using-the-class-directly)
   - [List of texts](#list-of-texts)
   - [Customising the TinyStyler style bank](#customising-the-tinystyler-style-bank)
@@ -58,9 +59,23 @@ results = diversify("Some text.", n_styles=3)
 [{"original": "Some text.", "paraphrases": ["...", "...", "..."]}]
 ```
 
+### Caching
+
+The `diversify()` function automatically caches loaded models between calls.
+The generation model and the similarity filter are cached independently, so
+toggling `similarity_filter` does not reload the generation model and vice
+versa. Call `clear_cache()` to free the memory when you are done:
+
+```python
+from diversify_text import clear_cache
+
+clear_cache()
+```
+
 ### Using the class directly
 
-Recommended when processing texts across several calls — the model is loaded once and reused across calls.
+You can also instantiate a `Diversifier` yourself for full control over the
+model lifecycle:
 
 ```python
 from diversify_text import Diversifier
