@@ -84,7 +84,11 @@ def get_mis_filter(
 
 
 def clear_cache() -> None:
-    """Free all cached models and release their memory."""
+    """Drop references to all cached models so their memory can be reclaimed when possible.
+
+    This clears Python-level caches but does not guarantee immediate GPU/CPU
+    memory release (e.g., allocator pools may retain reserved memory).
+    """
     global _cached_methods, _cached_methods_key
     global _cached_mis_filter, _cached_mis_key
 
