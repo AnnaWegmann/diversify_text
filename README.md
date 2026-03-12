@@ -64,7 +64,7 @@ results = diversify("Some text.", n_styles=3)
 The `diversify()` function automatically caches loaded models between calls.
 The generation model and the similarity filter are cached independently, so
 toggling `similarity_filter` does not reload the generation model and vice
-versa. Call `clear_cache()` to free the memory when you are done:
+versa. Call `clear_cache()` to drop cached models and allow memory to be reclaimed when possible:
 
 ```python
 from diversify_text import clear_cache
