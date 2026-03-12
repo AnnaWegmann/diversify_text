@@ -20,6 +20,7 @@ from diversify_text._input import TextInput, resolve_input
 from diversify_text._output import DiversifyOutput, OutputWriter, resolve_output_path
 from diversify_text._postprocess import postprocess
 from diversify_text._preprocess import preprocess
+import diversify_text._cache as _cache
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
@@ -56,15 +57,23 @@ class Diversifier:
         *,
         methods: Sequence[str | DiversificationMethod] | None = None,
         similarity_filter: bool = False,
+        _methods: list[DiversificationMethod] | None = None,
+        _mis_filter: MISFilter | None = None,
         **filter_kwargs: Any,
     ) -> None:
         self.device = device
-        if methods is None:
-            methods = ["tinystyler"]
-        self._methods = DEFAULT_METHOD_REGISTRY.resolve(methods, device=device)
-        self._mis_filter: MISFilter | None = None
-        if similarity_filter:
+        if _methods is not None:
+            self._methods = _methods
+        else:
+            if methods is None:
+                methods = ["tinystyler"]
+            self._methods = DEFAULT_METHOD_REGISTRY.resolve(methods, device=device)
+        if _mis_filter is not None:
+            self._mis_filter = _mis_filter
+        elif similarity_filter:
             self._mis_filter = MISFilter(device=device, **filter_kwargs)
+        else:
+            self._mis_filter: MISFilter | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -285,7 +294,7 @@ class Diversifier:
 
 
 # ------------------------------------------------------------------
-# Module-level convenience function
+# Module-level convenience function (with per-model caching)
 # ------------------------------------------------------------------
 
 
@@ -298,6 +307,16 @@ def diversify(
     **kwargs,
 ) -> DiversifyOutput:
     """One-shot convenience function: create a :class:`Diversifier` and run it.
+
+    The generation method(s) and the MIS filter are cached independently
+    between calls.  Generation methods are cached per (``device``,
+    resolved method list), while the MIS filter is cached per ``device``.
+    Switching ``similarity_filter`` on or off reuses the cached generation
+    models, and changing methods reuses the cached MIS filter when
+    possible.  Expensive components are only recreated when their
+    respective cache keys change; changing filter thresholds (``min_score``,
+    ``n_candidates``) updates the existing MIS filter instance rather than
+    reloading it.
 
     Parameters
     ----------
@@ -322,14 +341,30 @@ def diversify(
     -------
     list[dict] | Path
         See :meth:`Diversifier.diversify`.
+
+    Notes
+    -----
+    The internal cache is not thread-safe.  For multi-threaded
+    applications, use :class:`Diversifier` directly.
+
+    .. note::
+
+       Generation methods are cached as a group: any change to the
+       ``methods`` list (addition, removal, or reordering) invalidates
+       the entire cache and reloads all methods.  This is acceptable
+       while only one method is used, but may cause unnecessary reloads
+       when combining multiple methods.  For fine-grained control over
+       model lifetimes, use :class:`Diversifier` directly.
     """
     # Separate filter kwargs from diversify() kwargs.
     filter_keys = {"min_score", "n_candidates"}
     filter_kwargs = {k: kwargs.pop(k) for k in filter_keys if k in kwargs}
-    div = Diversifier(
-        device=device,
-        methods=methods,
-        similarity_filter=similarity_filter,
-        **filter_kwargs,
-    )
+
+    # Retrieve cached (or freshly resolved) components.
+    cached_methods = _cache.get_methods(device, methods)
+    mis_filter = _cache.get_mis_filter(device, **filter_kwargs) if similarity_filter else None
+
+    # Build a Diversifier from the cached components.
+    div = Diversifier(device=device, _methods=cached_methods, _mis_filter=mis_filter)
+
     return div.diversify(texts, **kwargs)

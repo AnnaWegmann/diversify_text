@@ -2,6 +2,7 @@
 
 import logging
 
+from diversify_text._cache import clear_cache
 from diversify_text.core import (
     Diversifier,
     diversify,
@@ -9,6 +10,7 @@ from diversify_text.core import (
 
 __all__ = [
     "Diversifier",
+    "clear_cache",
     "diversify",
 ]
 

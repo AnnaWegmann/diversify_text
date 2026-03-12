@@ -45,13 +45,29 @@ class MISFilter:
         from diversify_text._utils import default_device
 
         self.device = device or default_device()
-        self.min_score = min_score
-        self.n_candidates = n_candidates
+        self.min_score = min_score  # validated by setter
+        self.n_candidates = n_candidates  # validated by setter
         self._mis = None
-        if self.n_candidates < 1:
-            raise ValueError("n_candidates must be at least 1")
-        if not (0 <= self.min_score <= 1):
+
+    @property
+    def min_score(self) -> float:
+        return self._min_score
+
+    @min_score.setter
+    def min_score(self, value: float) -> None:
+        if not (0 <= value <= 1):
             raise ValueError("min_score must be in [0, 1]")
+        self._min_score = value
+
+    @property
+    def n_candidates(self) -> int:
+        return self._n_candidates
+
+    @n_candidates.setter
+    def n_candidates(self, value: int) -> None:
+        if value < 1:
+            raise ValueError("n_candidates must be at least 1")
+        self._n_candidates = value
 
     def prepare(self) -> None:
         """Pre-load the MIS model."""
