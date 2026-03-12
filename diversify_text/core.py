@@ -309,12 +309,14 @@ def diversify(
     """One-shot convenience function: create a :class:`Diversifier` and run it.
 
     The generation method(s) and the MIS filter are cached independently
-    between calls.  Switching ``similarity_filter`` on or off reuses the
-    cached generation models, and changing methods reuses the cached MIS
-    filter when possible.  Expensive components are only recreated when
-    their cache key changes (currently the ``device``); changing filter
-    thresholds (``min_score``, ``n_candidates``) updates the existing
-    MIS filter instance rather than reloading it.
+    between calls.  Generation methods are cached per (``device``,
+    resolved method list), while the MIS filter is cached per ``device``.
+    Switching ``similarity_filter`` on or off reuses the cached generation
+    models, and changing methods reuses the cached MIS filter when
+    possible.  Expensive components are only recreated when their
+    respective cache keys change; changing filter thresholds (``min_score``,
+    ``n_candidates``) updates the existing MIS filter instance rather than
+    reloading it.
 
     Parameters
     ----------
