@@ -57,15 +57,23 @@ class Diversifier:
         *,
         methods: Sequence[str | DiversificationMethod] | None = None,
         similarity_filter: bool = False,
+        _methods: list[DiversificationMethod] | None = None,
+        _mis_filter: MISFilter | None = None,
         **filter_kwargs: Any,
     ) -> None:
         self.device = device
-        if methods is None:
-            methods = ["tinystyler"]
-        self._methods = DEFAULT_METHOD_REGISTRY.resolve(methods, device=device)
-        self._mis_filter: MISFilter | None = None
-        if similarity_filter:
+        if _methods is not None:
+            self._methods = _methods
+        else:
+            if methods is None:
+                methods = ["tinystyler"]
+            self._methods = DEFAULT_METHOD_REGISTRY.resolve(methods, device=device)
+        if _mis_filter is not None:
+            self._mis_filter = _mis_filter
+        elif similarity_filter:
             self._mis_filter = MISFilter(device=device, **filter_kwargs)
+        else:
+            self._mis_filter: MISFilter | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -329,6 +337,11 @@ def diversify(
     -------
     list[dict] | Path
         See :meth:`Diversifier.diversify`.
+
+    Notes
+    -----
+    The internal cache is not thread-safe.  For multi-threaded
+    applications, use :class:`Diversifier` directly.
     """
     # Separate filter kwargs from diversify() kwargs.
     filter_keys = {"min_score", "n_candidates"}
@@ -338,11 +351,7 @@ def diversify(
     cached_methods = _cache.get_methods(device, methods)
     mis_filter = _cache.get_mis_filter(device, **filter_kwargs) if similarity_filter else None
 
-    # Build a Diversifier from the cached components.  Passing pre-built
-    # method instances is essentially free (the registry passes them
-    # through without reloading), and prepare() is a no-op when models
-    # are already loaded.
-    div = Diversifier(device=device, methods=cached_methods)
-    div._mis_filter = mis_filter
+    # Build a Diversifier from the cached components.
+    div = Diversifier(device=device, _methods=cached_methods, _mis_filter=mis_filter)
 
     return div.diversify(texts, **kwargs)
