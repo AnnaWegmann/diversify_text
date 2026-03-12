@@ -78,8 +78,10 @@ def get_mis_filter(
         _cached_mis_key = key
     else:
         # Reset to defaults, then apply any overrides.
+        assert _cached_mis_filter is not None
         _cached_mis_filter.min_score = filter_kwargs.get("min_score", _DEFAULT_MIN_SCORE)
         _cached_mis_filter.n_candidates = filter_kwargs.get("n_candidates", _DEFAULT_N_CANDIDATES)
+    assert _cached_mis_filter is not None
     return _cached_mis_filter
 
 
