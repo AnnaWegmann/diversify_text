@@ -311,8 +311,10 @@ def diversify(
     The generation method(s) and the MIS filter are cached independently
     between calls.  Switching ``similarity_filter`` on or off reuses the
     cached generation models, and changing methods reuses the cached MIS
-    model.  A component is only recreated when its own configuration
-    (device, method names, filter thresholds) changes.
+    filter when possible.  Expensive components are only recreated when
+    their cache key changes (currently the ``device``); changing filter
+    thresholds (``min_score``, ``n_candidates``) updates the existing
+    MIS filter instance rather than reloading it.
 
     Parameters
     ----------
