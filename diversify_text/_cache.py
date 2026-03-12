@@ -14,10 +14,12 @@ from typing import Any
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
+_UNSET = object()  # sentinel that never equals a real cache key
+
 _cached_methods: list[DiversificationMethod] | None = None
-_cached_methods_key: tuple | None = None
+_cached_methods_key: object = _UNSET
 _cached_mis_filter: MISFilter | None = None
-_cached_mis_key: str | None = None
+_cached_mis_key: object = _UNSET
 
 
 def _methods_cache_key(
@@ -85,6 +87,6 @@ def clear_cache() -> None:
     global _cached_mis_filter, _cached_mis_key
 
     _cached_methods = None
-    _cached_methods_key = None
+    _cached_methods_key = _UNSET
     _cached_mis_filter = None
-    _cached_mis_key = None
+    _cached_mis_key = _UNSET
