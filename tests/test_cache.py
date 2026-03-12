@@ -2,7 +2,7 @@
 
 import unittest
 
-from diversify_text import _cache
+import diversify_text._cache as _cache
 
 
 class TestCache(unittest.TestCase):
