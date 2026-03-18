@@ -5,7 +5,13 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import torch
+
 from diversify_text.method.base import DiversificationMethod
+from diversify_text.method.tinystyler.diversity import (
+    DiverseEmbeddingSelector,
+    compute_style_stats,
+)
 from diversify_text.method.tinystyler.model import TinyStyler
 from diversify_text.method.tinystyler.styles import DEFAULT_STYLE_BANK, DEFAULT_STYLES
 
@@ -26,9 +32,14 @@ class TinyStylerMethod(DiversificationMethod):
     def __init__(self, device: str | None = None) -> None:
         self.device = device
         self._model: TinyStyler | None = None
+        self._diversity_selector: DiverseEmbeddingSelector | None = None
 
     def prepare(self) -> None:
         self._ensure_model()
+
+    def reset(self) -> None:
+        if self._diversity_selector is not None:
+            self._diversity_selector.reset()
 
     def _ensure_model(self) -> TinyStyler:
         if self._model is None:
@@ -133,6 +144,16 @@ class TinyStylerMethod(DiversificationMethod):
         )
         max_new_tokens = max_new_tokens if max_new_tokens is not None else dynamic_cap
 
+        if kwargs.get("maximize_CISR_diversity"):
+            return self._generate_diverse(
+                model,
+                texts,
+                n_styles=n_styles,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                top_p=top_p,
+            )
+
         styles_arg = kwargs.get("styles")
         if styles_arg is None and kwargs.get("style_bank") is None:
             styles_arg = DEFAULT_STYLES[:n_styles]
@@ -166,4 +187,47 @@ class TinyStylerMethod(DiversificationMethod):
             )
             for row_idx, generated in enumerate(batch):
                 paraphrases_per_text[row_idx].append(generated)
+        return paraphrases_per_text
+
+    # ------------------------------------------------------------------
+    # Diverse random embedding generation
+    # ------------------------------------------------------------------
+
+    def _generate_diverse(
+        self,
+        model: TinyStyler,
+        texts: list[str],
+        *,
+        n_styles: int,
+        max_new_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> list[list[str]]:
+        """Generate paraphrases using maximally diverse random embeddings."""
+        if self._diversity_selector is None:
+            mean, std = compute_style_stats(model, DEFAULT_STYLE_BANK)
+            self._diversity_selector = DiverseEmbeddingSelector(mean, std)
+
+        logger.info(
+            "Using maximize_CISR_diversity: selecting %d diverse "
+            "embeddings per text.",
+            n_styles,
+        )
+
+        paraphrases_per_text: list[list[str]] = [[] for _ in texts]
+        for text_idx, text in enumerate(texts):
+            embeddings = self._diversity_selector.select(
+                n_styles, device=model.device,
+            )
+            # Stack into (n_styles, dim) and batch-transfer.
+            style_batch = torch.cat(embeddings, dim=0)  # (n_styles, dim)
+            repeated_text = [text] * n_styles
+            results = model.transfer(
+                repeated_text,
+                style_batch,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                top_p=top_p,
+            )
+            paraphrases_per_text[text_idx] = results
         return paraphrases_per_text

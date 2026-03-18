@@ -18,6 +18,14 @@ class DiversificationMethod(ABC):
         appear before generation begins.  No-op by default.
         """
 
+    def reset(self) -> None:
+        """Reset any per-run state.
+
+        Called before each :meth:`~Diversifier.diversify` batch loop so
+        that methods can clear accumulated state (e.g. diversity
+        selectors).  No-op by default.
+        """
+
     @abstractmethod
     def generate(
         self,

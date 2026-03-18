@@ -165,6 +165,7 @@ class Diversifier:
         preprocess_kwargs = preprocess_kwargs or {}
         for method in self._methods:
             method.prepare()
+            method.reset()
         if self._mis_filter is not None:
             self._mis_filter.prepare()
 
