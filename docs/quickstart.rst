@@ -30,10 +30,10 @@ Basic usage
        ]
    }]
 
-Similarity filter
+Semantic filter
 -----------------
 
-Enable the similarity filter to score each paraphrase with the
+Enable the semantic filter to score each paraphrase with the
 `Mutual Implication Score <https://huggingface.co/s-nlp/Mutual_Implication_Score>`_
 model and automatically select the best candidate above a minimum score:
 
@@ -41,7 +41,7 @@ model and automatically select the best candidate above a minimum score:
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       similarity_filter=True,
+       semantic_filter=True,
    )
 
 .. code-block:: python
@@ -61,8 +61,8 @@ Caching
 -------
 
 The ``diversify()`` function automatically caches loaded models between calls.
-The generation model and the similarity filter are cached independently, so
-toggling ``similarity_filter`` does not reload the generation model and vice
+The generation model and the semantic filter are cached independently, so
+toggling ``semantic_filter`` does not reload the generation model and vice
 versa. Call ``clear_cache()`` to release cached model references when you are done.
 On CUDA devices, memory may remain reserved by the underlying framework's caching
 allocator and be reused in future calls rather than immediately returned to the OS/driver:
@@ -85,8 +85,8 @@ model lifecycle:
 
    div = Diversifier(device="cuda", methods=["tinystyler"])
 
-   batch_1 = div.diversify(texts_1, n_styles=5)
-   batch_2 = div.diversify(texts_2, n_styles=5)
+   batch_1 = div.diversify(texts_1, n=5)
+   batch_2 = div.diversify(texts_2, n=5)
 
 Citation
 --------
