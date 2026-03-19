@@ -100,22 +100,8 @@ If you use ``diversify`` in your research, please cite TinyStyler:
 
 .. code-block:: bibtex
 
-   @inproceedings{horvitz-etal-2024-tinystyler,
-       title = "{T}iny{S}tyler: Efficient Few-Shot Text Style Transfer with Authorship Embeddings",
-       author = "Horvitz, Zachary  and
-         Patel, Ajay  and
-         Singh, Kanishk  and
-         Callison-Burch, Chris  and
-         McKeown, Kathleen  and
-         Yu, Zhou",
-       editor = "Al-Onaizan, Yaser  and
-         Bansal, Mohit  and
-         Chen, Yun-Nung",
-       booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2024",
-       month = nov,
-       year = "2024",
-       address = "Miami, Florida, USA",
-       publisher = "Association for Computational Linguistics",
-       url = "https://aclanthology.org/2024.findings-emnlp.781",
-       pages = "13376--13390",
-   }
+    @inproceedings{wegmann2026diversify,
+        title = {diversify_text: An Amazing Library for Text Diversification},
+        author = {Wegmann, Anna and Others},
+        year = {2026},
+    }
