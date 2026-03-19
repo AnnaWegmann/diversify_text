@@ -96,12 +96,13 @@ Citation
    TinyStyler is currently the only built-in generation method.
    See :doc:`methods` for details.
 
-If you use ``diversify`` in your research, please cite TinyStyler:
+If you use ``diversify`` in your research, we are happy about a citation (placeholder currently).
 
 .. code-block:: bibtex
 
     @inproceedings{wegmann2026diversify,
         title = {diversify_text: An Amazing Library for Text Diversification},
         author = {Wegmann, Anna and Others},
+        url={https://github.com/AnnaWegmann/diversify_text},
         year = {2026},
     }
