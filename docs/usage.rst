@@ -135,7 +135,7 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
 .. code-block:: python
 
    from diversify_text import diversify
-   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text.styles import DEFAULT_STYLE_BANK
 
    custom_bank = {
        "academic": ["The results demonstrate a statistically significant effect."],
@@ -148,12 +148,12 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
        method_kwargs={"tinystyler": {"style_bank": custom_bank}},
    )
 
-``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.method.tinystyler`` so you
+``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.styles`` so you
 can build on it:
 
 .. code-block:: python
 
-   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text.styles import DEFAULT_STYLE_BANK
 
    extended_bank = {
        **DEFAULT_STYLE_BANK,
