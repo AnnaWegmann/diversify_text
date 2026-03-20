@@ -7,7 +7,7 @@ from typing import Any
 
 from diversify_text.method.base import DiversificationMethod
 from diversify_text.method.tinystyler.model import TinyStyler
-from diversify_text.method.tinystyler.styles import DEFAULT_STYLE_BANK, DEFAULT_STYLES
+from diversify_text.styles import DEFAULT_STYLES, resolve_style_sets
 
 logger = logging.getLogger(__name__)
 
@@ -42,48 +42,26 @@ class TinyStylerMethod(DiversificationMethod):
     ) -> list[list[str]]:
         """Resolve *style_bank* and optional *styles* key filter.
 
-        Parameters
-        ----------
-        style_bank : dict | list | None
-            A custom style bank.  ``None`` falls back to
-            :data:`DEFAULT_STYLE_BANK`.
-        styles : list[str] | None
-            When provided, select only these keys from the bank (which must
-            be dict-shaped).  Order is preserved.
+        Delegates dict-based resolution to the shared
+        :func:`~diversify_text.styles.resolve_style_sets`.
+        Also supports legacy list-format style banks.
 
         Returns
         -------
         list[list[str]]
             One list of example strings per selected style.
         """
-        # --- obtain a dict bank when possible ---
-        if style_bank is None:
-            bank_dict: dict[str, list[str]] | None = DEFAULT_STYLE_BANK
-        elif isinstance(style_bank, dict):
-            bank_dict = style_bank
-        else:
-            bank_dict = None  # list-format, can't filter by key
+        # Dict or default → use the shared resolver (returns keys + groups).
+        if style_bank is None or isinstance(style_bank, dict):
+            _keys, groups = resolve_style_sets(style_bank, styles)
+            return groups
 
-        # --- filter by key names ---
+        # Legacy list-format: can't filter by key.
         if styles is not None:
-            if bank_dict is None:
-                raise TypeError(
-                    "Cannot use 'styles' key selection with a list-format "
-                    "style bank. Pass a dict-format bank or use the default."
-                )
-            unknown = set(styles) - set(bank_dict.keys())
-            if unknown:
-                raise ValueError(
-                    f"Unknown style key(s): {sorted(unknown)}. "
-                    f"Available: {sorted(bank_dict.keys())}"
-                )
-            return [bank_dict[k] for k in styles]
-
-        # --- no key filter: return everything ---
-        if bank_dict is not None:
-            return list(bank_dict.values())
-
-        # legacy list-format normalisation
+            raise TypeError(
+                "Cannot use 'styles' key selection with a list-format "
+                "style bank. Pass a dict-format bank or use the default."
+            )
         if not isinstance(style_bank, list):
             raise TypeError("style_bank must be a list or dict of style example groups.")
         normalized: list[list[str]] = []
@@ -94,7 +72,7 @@ class TinyStylerMethod(DiversificationMethod):
                 normalized.append(group)
             else:
                 raise TypeError(
-                    "Each style group must be either a string or list[str]."
+                    "Each style set must be either a string or list[str]."
                 )
         if not normalized:
             raise ValueError("style_bank cannot be empty.")
