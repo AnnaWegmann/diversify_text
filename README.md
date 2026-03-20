@@ -52,7 +52,7 @@ results = diversify("The experiment was conducted in a controlled lab setting.")
 ### Control number of paraphrases
 
 ```python
-results = diversify("Some text.", n_styles=3)
+results = diversify("Some text.", n=3)
 ```
 
 ```
@@ -62,8 +62,8 @@ results = diversify("Some text.", n_styles=3)
 ### Caching
 
 The `diversify()` function automatically caches loaded models between calls.
-The generation model and the similarity filter are cached independently, so
-toggling `similarity_filter` does not reload the generation model and vice
+The generation model and the semantic filter are cached independently, so
+toggling `semantic_filter` does not reload the generation model and vice
 versa. Call `clear_cache()` to drop cached models and allow memory to be reclaimed when possible:
 
 ```python
@@ -82,8 +82,8 @@ from diversify_text import Diversifier
 
 div = Diversifier(device="cuda", methods=["tinystyler"])
 
-batch_1 = div.diversify(texts_1, n_styles=5)
-batch_2 = div.diversify(texts_2, n_styles=5)
+batch_1 = div.diversify(texts_1, n=5)
+batch_2 = div.diversify(texts_2, n=5)
 ```
 
 ### List of texts
@@ -157,11 +157,11 @@ from diversify_text.method import DiversificationMethod
 class MyMethod(DiversificationMethod):
     name = "my_method"
 
-    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
-        return [[f"{text} :: variant {i}" for i in range(n_styles)] for text in texts]
+    def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
+        return [[f"{text} :: variant {i}" for i in range(n)] for text in texts]
 
 
-results = Diversifier(methods=[MyMethod()]).diversify("Hello", n_styles=3)
+results = Diversifier(methods=[MyMethod()]).diversify("Hello", n=3)
 ```
 
 ```
