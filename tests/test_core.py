@@ -20,9 +20,9 @@ class TestDiversifier(unittest.TestCase):
         self.assertIn("paraphrases", results[0])
         self.assertEqual(results[0]["original"], "hello")
 
-    def test_n_styles_controls_paraphrase_count(self):
+    def test_n_controls_paraphrase_count(self):
         div = Diversifier(methods=["echo"])
-        results = div.diversify("hello", n_styles=3)
+        results = div.diversify("hello", n=3)
         self.assertEqual(len(results[0]["paraphrases"]), 3)
 
     def test_multiple_texts(self):
@@ -35,12 +35,12 @@ class TestDiversifier(unittest.TestCase):
 
     def test_custom_method_instance(self):
         div = Diversifier(methods=[PrefixMethod("x")])
-        results = div.diversify("hello", n_styles=3)
+        results = div.diversify("hello", n=3)
         self.assertEqual(results[0]["paraphrases"], ["x:hello:0", "x:hello:1", "x:hello:2"])
 
     def test_multiple_methods_distribute_styles(self):
         div = Diversifier(methods=[PrefixMethod("a"), PrefixMethod("b")])
-        paraphrases = div.diversify("hello", n_styles=5)[0]["paraphrases"]
+        paraphrases = div.diversify("hello", n=5)[0]["paraphrases"]
         self.assertEqual(len(paraphrases), 5)
         self.assertEqual(paraphrases[:3], ["a:hello:0", "a:hello:1", "a:hello:2"])
         self.assertEqual(paraphrases[3:], ["b:hello:0", "b:hello:1"])
@@ -48,7 +48,7 @@ class TestDiversifier(unittest.TestCase):
     def test_failing_method_raises(self):
         div = Diversifier(methods=[FailingMethod()])
         with self.assertRaises(RuntimeError):
-            div.diversify("hello", n_styles=2)
+            div.diversify("hello", n=2)
 
     def test_unknown_method_raises_before_generation(self):
         with self.assertRaises(KeyError):
@@ -57,7 +57,7 @@ class TestDiversifier(unittest.TestCase):
     def test_batching_splits_into_correct_number_of_calls(self):
         method = CountingMethod()
         div = Diversifier(methods=[method])
-        results = div.diversify(["a", "b", "c", "d", "e"], n_styles=2, batch_size=2)
+        results = div.diversify(["a", "b", "c", "d", "e"], n=2, batch_size=2)
         self.assertEqual(method.calls, 3)
         self.assertEqual(len(results), 5)
         self.assertEqual(results[0]["paraphrases"], ["a:0", "a:1"])
@@ -70,7 +70,7 @@ class TestDiversifier(unittest.TestCase):
         div = Diversifier(methods=["echo"])
         with tempfile.TemporaryDirectory() as tmpdir:
             result = div.diversify(
-                gen(), n_styles=2, output_dir=tmpdir, output_name="out"
+                gen(), n=2, output_dir=tmpdir, output_name="out"
             )
             self.assertIsInstance(result, Path)
             out = Path(tmpdir) / "out.jsonl"
@@ -88,7 +88,7 @@ class TestDiversifier(unittest.TestCase):
             import os
             os.chdir(tmpdir)
             try:
-                result = div.diversify(iter(["a", "b"]), n_styles=1)
+                result = div.diversify(iter(["a", "b"]), n=1)
                 self.assertIsInstance(result, Path)
                 expected = Path(tmpdir) / "diversified_output.jsonl"
                 self.assertTrue(expected.exists())
@@ -101,7 +101,7 @@ class TestDiversifier(unittest.TestCase):
             csv_path = Path(tmpdir) / "data.csv"
             csv_path.write_text("text\nhello\nworld\n", encoding="utf-8")
 
-            result = div.diversify(str(csv_path), text_column="text", n_styles=2)
+            result = div.diversify(str(csv_path), text_column="text", n=2)
             self.assertIsInstance(result, Path)
 
             jsonl_path = Path(tmpdir) / "data_diversified.jsonl"
@@ -115,7 +115,7 @@ class TestDiversifier(unittest.TestCase):
             txt_path = Path(tmpdir) / "texts.txt"
             txt_path.write_text("line one\nline two\n", encoding="utf-8")
 
-            result = div.diversify(str(txt_path), n_styles=2)
+            result = div.diversify(str(txt_path), n=2)
             self.assertIsInstance(result, Path)
 
             jsonl = Path(tmpdir) / "texts.jsonl"
@@ -132,7 +132,7 @@ class TestDiversifyFunction(unittest.TestCase):
         self.assertEqual(results[0]["original"], "test input")
 
     def test_list_input(self):
-        results = diversify(["a", "b"], n_styles=2, methods=["echo"])
+        results = diversify(["a", "b"], n=2, methods=["echo"])
         self.assertEqual(len(results), 2)
         for r in results:
             self.assertEqual(len(r["paraphrases"]), 2)
