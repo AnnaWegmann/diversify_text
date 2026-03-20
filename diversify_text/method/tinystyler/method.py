@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 _DEFAULT_TEMPERATURE = 0.7
 _DEFAULT_TOP_P = 0.9
 _MAX_NEW_TOKENS_FACTOR = 2.0
-_MAX_NEW_TOKENS_FLOOR = 50
+_MAX_NEW_TOKENS_FLOOR = 10
 _MAX_NEW_TOKENS_CAP = 256
 
 
@@ -104,7 +104,7 @@ class TinyStylerMethod(DiversificationMethod):
         self,
         texts: list[str],
         *,
-        n_styles: int,
+        n: int,
         max_new_tokens: int | None,
         temperature: float | None,
         top_p: float | None,
@@ -135,16 +135,16 @@ class TinyStylerMethod(DiversificationMethod):
 
         styles_arg = kwargs.get("styles")
         if styles_arg is None and kwargs.get("style_bank") is None:
-            styles_arg = DEFAULT_STYLES[:n_styles]
+            styles_arg = DEFAULT_STYLES[:n]
         style_bank = self._resolve_styles(
             kwargs.get("style_bank"),
             styles_arg,
         )
         # When explicit style keys are given, they determine the count.
-        effective_n = len(styles_arg) if styles_arg is not None else n_styles
+        effective_n = len(styles_arg) if styles_arg is not None else n
         if effective_n > len(style_bank):
             logger.warning(
-                "n_styles=%d exceeds the number of style bank entries (%d). "
+                "n=%d exceeds the number of style bank entries (%d). "
                 "Styles will wrap around, producing repeated style patterns. "
                 "Consider adding more entries to the style bank.",
                 effective_n, len(style_bank),
