@@ -15,7 +15,7 @@ from typing import Union
 import torch
 from huggingface_hub import hf_hub_download
 
-from diversify_text._utils import default_device, suppress_hf_load_noise
+from diversify_text._utils import default_device, spinner, suppress_hf_load_noise
 
 logger = logging.getLogger(__name__)
 
@@ -82,20 +82,20 @@ class TinyStyler:
         return self.get_style_embedding(style)
 
     def _load_model(self):
-        tinystyler_module = importlib.util.module_from_spec(
-            importlib.util.spec_from_file_location(
-                "tinystyler_hf",
-                hf_hub_download(
-                    repo_id="tinystyler/tinystyler", filename="tinystyler.py"
-                ),
+        with spinner("Downloading TinyStyler"):
+            tinystyler_module = importlib.util.module_from_spec(
+                importlib.util.spec_from_file_location(
+                    "tinystyler_hf",
+                    hf_hub_download(
+                        repo_id="tinystyler/tinystyler", filename="tinystyler.py"
+                    ),
+                )
             )
-        )
-        tinystyler_module.__spec__.loader.exec_module(tinystyler_module)
+            tinystyler_module.__spec__.loader.exec_module(tinystyler_module)
 
-        logger.info("Loading TinyStyler model on %s ...", self.device)
-        with suppress_hf_load_noise():
-            tokenizer, model = tinystyler_module.get_tinystyler_model(self.device)
-        logger.info("TinyStyler model loaded.")
+        with spinner(f"Loading TinyStyler ({self.device})"):
+            with suppress_hf_load_noise():
+                tokenizer, model = tinystyler_module.get_tinystyler_model(self.device)
         get_target_style_embeddings = tinystyler_module.get_target_style_embeddings
 
         return tokenizer, model, get_target_style_embeddings
