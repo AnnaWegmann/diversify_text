@@ -28,6 +28,18 @@ class PromptingModel:
         device: str | None = None,
         precision: str | None = "auto",
     ) -> None:
+        """Initialise the model wrapper.
+
+        Parameters
+        ----------
+        model_id : str
+            HuggingFace model identifier.
+        device : str or None
+            Torch device. Defaults to auto-detection.
+        precision : str or None
+            Weight precision: ``"auto"`` (bfloat16), ``"float16"``,
+            ``"bfloat16"``, or ``None`` (float32).
+        """
         self.model_id = model_id
         self.device = device or default_device()
         self.precision = precision
@@ -36,7 +48,14 @@ class PromptingModel:
         self._model = None
 
     def _resolve_dtype(self) -> torch.dtype | None:
-        """Map *precision* string to a ``torch.dtype``."""
+        """Map *precision* string to a ``torch.dtype``.
+
+        Returns
+        -------
+        torch.dtype or None
+            The dtype to pass to ``from_pretrained``, or ``None``
+            for full precision (float32).
+        """
         if self.precision == "auto":
             return torch.bfloat16
         if self.precision is None:
@@ -73,6 +92,7 @@ class PromptingModel:
         )
 
     def _load_transformers(self) -> None:
+        """Download weights (if needed) and load the model into memory."""
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         with spinner(f"Downloading {self.model_id}"):
@@ -99,6 +119,7 @@ class PromptingModel:
         temperature: float,
         top_p: float,
     ) -> list[str]:
+        """Run batched generation via the transformers ``generate()`` API."""
         formatted = self._apply_chat_template(prompts)
         inputs = self._tokenizer(
             formatted, padding=True, return_tensors="pt", truncation=True
