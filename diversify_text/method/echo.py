@@ -16,10 +16,10 @@ class EchoMethod(DiversificationMethod):
         self,
         texts: list[str],
         *,
-        n_styles: int,
+        n: int,
         max_new_tokens: int | None,
         temperature: float | None,
         top_p: float | None,
         **kwargs: Any,
     ) -> list[list[str]]:
-        return [[text for _ in range(n_styles)] for text in texts]
+        return [[text for _ in range(n)] for text in texts]
