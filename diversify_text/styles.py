@@ -1,6 +1,6 @@
 """Shared style bank used by multiple diversify methods.
 
-Each entry is a *style group* keyed by a descriptive label.  The value is a
+Each entry is a *style set* keyed by a descriptive label.  The value is a
 list of example sentences that together define a target writing style.
 
 Both TinyStyler (via authorship embeddings) and the prompting method (via
@@ -357,3 +357,43 @@ DEFAULT_STYLE_BANK: dict[str, list[str]] = {
         "I have found that it is quite often that people use their second name, which has caused me some problems in genealogical research.",
     ],
 }
+
+
+def resolve_style_sets(
+    style_bank: dict[str, list[str]] | None = None,
+    styles: list[str] | None = None,
+) -> tuple[list[str], list[list[str]]]:
+    """Resolve style bank and optional key filter into keys and style sets.
+
+    Used by both TinyStyler and the prompting method.
+
+    Parameters
+    ----------
+    style_bank : dict or None
+        Custom style bank. ``None`` falls back to
+        :data:`DEFAULT_STYLE_BANK`.
+    styles : list[str] or None
+        Select only these keys from the bank. Order is preserved.
+
+    Returns
+    -------
+    tuple[list[str], list[list[str]]]
+        ``(keys, style_sets)`` where *keys* are the style labels and
+        *style_sets* are the corresponding example lists.
+    """
+    bank = style_bank if style_bank is not None else DEFAULT_STYLE_BANK
+
+    if styles is not None:
+        unknown = set(styles) - set(bank.keys())
+        if unknown:
+            raise ValueError(
+                f"Unknown style key(s): {sorted(unknown)}. "
+                f"Available: {sorted(bank.keys())}"
+            )
+        return styles, [bank[k] for k in styles]
+
+    if style_bank is not None:
+        keys = list(style_bank.keys())
+        return keys, list(style_bank.values())
+
+    return DEFAULT_STYLES, [bank[k] for k in DEFAULT_STYLES]
