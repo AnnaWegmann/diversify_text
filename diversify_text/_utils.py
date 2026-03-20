@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import contextlib
+import itertools
 import logging
+import sys
+import threading
 import warnings
 
 
@@ -16,6 +19,30 @@ def default_device() -> str:
     if torch.backends.mps.is_available():
         return "mps"
     return "cpu"
+
+
+@contextlib.contextmanager
+def spinner(message: str = "Loading"):
+    """Display a CLI spinner while a blocking operation runs."""
+    frames = itertools.cycle(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
+    stop = threading.Event()
+
+    def _spin() -> None:
+        while not stop.is_set():
+            frame = next(frames)
+            sys.stderr.write(f"\r{frame} {message}")
+            sys.stderr.flush()
+            stop.wait(0.08)
+        sys.stderr.write(f"\r✓ {message}\n")
+        sys.stderr.flush()
+
+    thread = threading.Thread(target=_spin, daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        thread.join()
 
 
 @contextlib.contextmanager
