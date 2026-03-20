@@ -1,7 +1,7 @@
 """Per-model caching for the :func:`~diversify_text.core.diversify` convenience function.
 
 Keeps the generation method(s) and the MIS filter in independent
-module-level caches so that toggling ``similarity_filter`` does not
+module-level caches so that toggling ``semantic_filter`` does not
 reload the generation model, and switching methods does not reload the
 MIS model.
 
@@ -12,7 +12,7 @@ directly with your own instance management.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from diversify_text._utils import default_device
@@ -27,17 +27,37 @@ _cached_mis_filter: MISFilter | None = None
 _cached_mis_key: object = _UNSET
 
 
+# kwargs that affect model construction and should invalidate the cache.
+# Per-call kwargs (styles, prompts, n_style_examples, etc.) are excluded.
+_CONSTRUCTOR_KWARGS = {"model", "device", "precision"}
+
+
 def _methods_cache_key(
     device: str | None,
     methods: Sequence[str | DiversificationMethod] | None,
+    method_kwargs: Mapping[str, dict[str, Any]] | None = None,
 ) -> tuple:
-    """Build a hashable key for the generation method(s)."""
+    """Build a hashable key for the generation method(s).
+
+    Only includes constructor-level kwargs (e.g. ``model``) that affect
+    which model is loaded.  Per-call kwargs (``styles``, ``prompts``,
+    etc.) are excluded so changing them doesn't trigger a model reload.
+    """
     methods_key: tuple = ()
     if methods is not None:
         methods_key = tuple(
             m if isinstance(m, str) else id(m) for m in methods
         )
-    return (device, methods_key)
+    # Only include constructor kwargs in the cache key.
+    mk_key: tuple = ()
+    if method_kwargs:
+        mk_key = tuple(
+            (name, tuple(sorted(
+                (k, v) for k, v in kw.items() if k in _CONSTRUCTOR_KWARGS
+            )))
+            for name, kw in sorted(method_kwargs.items())
+        )
+    return (device, methods_key, mk_key)
 
 
 def _mis_cache_key(device: str | None) -> str | None:
@@ -48,8 +68,13 @@ def _mis_cache_key(device: str | None) -> str | None:
 def get_methods(
     device: str | None,
     methods: Sequence[str | DiversificationMethod] | None,
+    method_kwargs: Mapping[str, dict[str, Any]] | None = None,
 ) -> list[DiversificationMethod]:
     """Return cached generation methods, resolving only on config change.
+
+    Per-method constructor kwargs (e.g. ``{"prompting": {"model": "..."}}``)
+    are included in the cache key so that changing them triggers a fresh
+    resolve.
 
     The current implementation treats the entire method list as a single
     cache key: any change (addition, removal, reordering) invalidates
@@ -63,11 +88,16 @@ def get_methods(
     device = device or default_device()
     if methods is None:
         methods = ["tinystyler"]
-    key = _methods_cache_key(device, methods)
+    key = _methods_cache_key(device, methods, method_kwargs)
     if _cached_methods_key != key:
+        # Merge per-method constructor kwargs into the resolve call.
+        resolve_kwargs: dict[str, Any] = {"device": device}
+        if method_kwargs:
+            for mk in method_kwargs.values():
+                resolve_kwargs.update(mk)
         _cached_methods = DEFAULT_METHOD_REGISTRY.resolve(
             methods,
-            device=device,
+            **resolve_kwargs,
         )
         _cached_methods_key = key
     assert _cached_methods is not None
