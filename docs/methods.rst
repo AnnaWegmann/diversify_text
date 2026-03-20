@@ -22,6 +22,11 @@ Overview
      - TBD
      - TBD
      - Few-shot style transfer using authorship embeddings
+   * - ``prompting``
+     - ~1.7B params (default)
+     - TBD
+     - TBD
+     - Prompt-based paraphrasing using a causal LM
 
 TinyStyler
 ----------
@@ -72,6 +77,73 @@ full list of available styles.
        url = "https://aclanthology.org/2024.findings-emnlp.781",
        pages = "13376--13390",
    }
+
+Prompting
+---------
+
+The ``prompting`` method generates paraphrases by sending input texts to a
+local HuggingFace causal language model with a prompt template. The default
+model is `SmolLM2-1.7B-Instruct <https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct>`_.
+
+.. code-block:: python
+
+   results = diversify("The cat sat on the mat.", methods=["prompting"])
+
+**Choosing a model.** Any HuggingFace causal LM can be used. Pass the model
+identifier to the constructor:
+
+.. code-block:: python
+
+   from diversify_text import Diversifier
+   from diversify_text.method.prompting import PromptingMethod
+
+   method = PromptingMethod(model="mistralai/Mistral-7B-Instruct-v0.3")
+   results = Diversifier(methods=[method]).diversify("The cat sat on the mat.")
+
+Instruct-tuned models are recommended — base models tend to repeat the prompt
+instead of following the instruction. Chat templates are applied automatically
+when the tokenizer provides one.
+
+**Inference backend.** The method uses `vLLM <https://vllm.ai/>`_ when
+installed (faster, especially for large batches) and falls back to
+``transformers`` otherwise. To install vLLM support:
+
+.. code-block:: bash
+
+   pip install diversify-text[prompting]
+
+**Default prompt bank.** The built-in bank contains a single prompt
+(``wikipedia_paraphrase``) that asks the model to produce a diverse paraphrase
+in high-quality, Wikipedia-style English. Additional prompts can be added over
+time. See :data:`diversify_text.method.prompting.prompts.DEFAULT_PROMPT_BANK`
+for the current templates.
+
+**Customising the prompt bank.** Like TinyStyler's style bank, you can provide
+a custom prompt bank or select specific prompts via ``method_kwargs``. Each
+prompt template must contain the placeholder ``[DOCUMENT SEGMENT]``:
+
+.. code-block:: python
+
+   custom_bank = {
+       "simple": "Rewrite the following text in simpler words: [DOCUMENT SEGMENT]",
+       "formal": "Rewrite the following text in a formal academic tone: [DOCUMENT SEGMENT]",
+   }
+
+   results = diversify(
+       "The cat sat on the mat.",
+       methods=["prompting"],
+       method_kwargs={"prompting": {"prompt_bank": custom_bank}},
+   )
+
+You can also select specific prompts by key name:
+
+.. code-block:: python
+
+   results = diversify(
+       "The cat sat on the mat.",
+       methods=["prompting"],
+       method_kwargs={"prompting": {"prompts": ["wikipedia_paraphrase"]}},
+   )
 
 Adding a new method
 -------------------
