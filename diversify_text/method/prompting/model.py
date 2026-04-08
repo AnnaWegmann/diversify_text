@@ -139,50 +139,7 @@ class PromptingModel:
                 self._model.eval()
 
     # -- vLLM backend ---------------------------------------------------------
-
-    def _vllm_dtype(self) -> str:
-        """Map the resolved torch dtype to a vLLM dtype string."""
-        mapping: dict[torch.dtype | None, str] = {
-            torch.float16: "float16",
-            torch.bfloat16: "bfloat16",
-            None: "float32",
-        }
-        return mapping.get(self._torch_dtype, "auto")
-
-    def _load_vllm(self) -> None:
-        """Download weights (if needed) and load the model via vLLM."""
-        from transformers import AutoTokenizer
-        from vllm import LLM
-
-        with spinner(f"Loading {self.model_id} (vLLM, {self.device})"):
-            self._tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-            if self._tokenizer.pad_token is None:
-                self._tokenizer.pad_token = self._tokenizer.eos_token
-            self._model = LLM(
-                model=self.model_id,
-                dtype=self._vllm_dtype(),
-                device=self.device,
-            )
-
-    def _generate_vllm(
-        self,
-        prompts: list[str],
-        *,
-        max_new_tokens: int,
-        temperature: float,
-        top_p: float,
-    ) -> list[str]:
-        """Run batched generation via the vLLM engine."""
-        from vllm import SamplingParams
-
-        formatted = self._apply_chat_template(prompts)
-        sampling_params = SamplingParams(
-            max_tokens=max_new_tokens,
-            temperature=temperature,
-            top_p=top_p,
-        )
-        outputs = self._model.generate(formatted, sampling_params)
-        return [output.outputs[0].text for output in outputs]
+    # TBD
 
     # -- transformers backend -------------------------------------------------
 
