@@ -73,8 +73,9 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         call_kwargs = method._model.generate_text.call_args[1]
         self.assertEqual(call_kwargs["temperature"], 0.7)
         self.assertEqual(call_kwargs["top_p"], 0.9)
-        # Mock tokenizer returns 3 tokens → max(10, min(3*2, 2048)) = 10.
-        self.assertEqual(call_kwargs["max_new_tokens"], 10)
+        # Mock tokenizer returns 3 tokens → base max(10, min(3*2, 2048)) = 10,
+        # plus 50 bonus for finephrase prompts in defaults = 110.
+        self.assertEqual(call_kwargs["max_new_tokens"], 60)
 
 
 class TestPromptingModelLoad(unittest.TestCase):
