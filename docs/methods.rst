@@ -104,19 +104,13 @@ identifier to the constructor:
 Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
 
-**Inference backend.** The method uses `vLLM <https://vllm.ai/>`_ when
-installed (faster, especially for large batches) and falls back to
-``transformers`` otherwise. To install vLLM support:
-
-.. code-block:: bash
-
-   pip install diversify-text[prompting]
+**Inference backend.** The method currently uses the ``transformers`` library
+for inference.
 
 .. note::
 
-   Streaming from large files (lazy iteration over input texts) is planned for
-   a future release.  Currently, all input texts are materialised in memory
-   before generation.
+   `vLLM <https://vllm.ai/>`_ support and streaming from large files are
+   planned for a future release.
 
 **Default prompt bank.** The built-in bank contains multiple prompt templates
 covering different rewriting styles (paraphrasing, dialogue, tables, and more).
