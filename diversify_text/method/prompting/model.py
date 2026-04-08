@@ -127,8 +127,9 @@ class PromptingModel:
         with spinner(f"Loading {self.model_id} (transformers, {self.device})"):
             with suppress_hf_load_noise():
                 self._tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-                if self._tokenizer.pad_token is None: # no pad token for smolLM
+                if self._tokenizer.pad_token is None:
                     self._tokenizer.pad_token = self._tokenizer.eos_token
+                self._tokenizer.padding_side = "left"  # required for decoder-only models
                 load_kwargs: dict = {}
                 if self._torch_dtype is not None:
                     load_kwargs["torch_dtype"] = self._torch_dtype
