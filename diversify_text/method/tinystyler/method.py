@@ -51,10 +51,9 @@ class TinyStylerMethod(DiversificationMethod):
         list[list[str]]
             One list of example strings per selected style.
         """
-        # Dict or default → use the shared resolver (returns keys + groups).
+        # Dict or default → use the shared resolver.
         if style_bank is None or isinstance(style_bank, dict):
-            _keys, groups = resolve_style_sets(style_bank, styles)
-            return groups
+            return list(resolve_style_sets(style_bank, styles).values())
 
         # Legacy list-format: can't filter by key.
         if styles is not None:
