@@ -241,7 +241,9 @@ class PromptingMethod(DiversificationMethod):
         text : str
             The input text to insert at ``[DOCUMENT SEGMENT]``.
         style_idx : int
-            Index into *style_sets* (cycled with modulo).
+            Index into *style_sets* (cycled with modulo).  Each
+            paraphrase iteration uses a different style set.  When
+            there are fewer styles than paraphrases, styles are reused.
         style_example_keys, style_sets : list
             Style labels and example lists from :func:`resolve_style_sets`.
         n_style_examples : int
@@ -354,6 +356,8 @@ class PromptingMethod(DiversificationMethod):
         for i in range(n):
             for row_idx in range(num_texts):
                 generated = flat_results[i * num_texts + row_idx]
+                # Strip leading/trailing whitespace from model output.
+                # This is safe — space variation within the paraphrase is preserved.
                 paraphrases_per_text[row_idx].append(generated.strip())
 
         return paraphrases_per_text
