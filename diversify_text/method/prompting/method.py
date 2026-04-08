@@ -203,32 +203,24 @@ class PromptingMethod(DiversificationMethod):
         )
 
     @staticmethod
-    def _resolve_styles(
-        prompt_templates: list[str], **kwargs: Any
-    ) -> tuple[list[str], list[list[str]]]:
-        """Resolve style sets when the templates need them.
+    def _resolve_few_shot_examples(**kwargs: Any) -> dict[str, list[str]]:
+        """Resolve few-shot style examples from kwargs.
 
-        Returns
-        -------
-        tuple[list[str], list[list[str]]]
-            ``(style_example_keys, style_sets)``.  Both are empty when the
-            templates do not use style placeholders.
+        Returns a dict mapping style names to example sentences, or
+        an empty dict when no style kwargs are provided.
         """
-        if not any(PLACEHOLDER_STYLE_EXAMPLES in t for t in prompt_templates):
-            return [], []
-
-        return resolve_style_sets(
-            kwargs.get("custom_style_bank"),
-            kwargs.get("style_example_keys"),
-        )
+        style_keys = kwargs.get("style_example_keys")
+        custom_bank = kwargs.get("custom_style_bank")
+        if style_keys is not None or custom_bank is not None:
+            return resolve_style_sets(custom_bank, style_keys)
+        return {}
 
     def _fill_template(
         self,
         template: str,
         text: str,
         style_idx: int,
-        style_example_keys: list[str],
-        style_sets: list[list[str]],
+        fs_style_examples: dict[str, list[str]],
         n_style_examples: int,
     ) -> str:
         """Replace all placeholders in a template to produce a ready prompt.
@@ -241,13 +233,15 @@ class PromptingMethod(DiversificationMethod):
         text : str
             The input text to insert at ``[DOCUMENT SEGMENT]``.
         style_idx : int
-            Index into *style_sets* (cycled with modulo).  Each
+            Index into *fs_style_examples* (cycled with modulo).  Each
             paraphrase iteration uses a different style set.  When
             there are fewer styles than paraphrases, styles are reused.
-        style_example_keys, style_sets : list
-            Style labels and example lists from :func:`resolve_style_sets`.
+        fs_style_examples : dict[str, list[str]]
+            Mapping of style names to example sentences, as returned
+            by :meth:`_resolve_styles`.  Empty dict for zero-shot.
         n_style_examples : int
-            Number of examples to include from the style set.
+            Maximum number of example sentences to include from the
+            selected style sets.
 
         Returns
         -------
@@ -255,7 +249,9 @@ class PromptingMethod(DiversificationMethod):
             Fully filled prompt string, ready for generation.
         """
         # Style placeholders (few-shot only).
-        if PLACEHOLDER_STYLE_EXAMPLES in template and style_sets:
+        if PLACEHOLDER_STYLE_EXAMPLES in template and fs_style_examples:
+            style_names = list(fs_style_examples.keys())
+            style_sets = list(fs_style_examples.values())
             idx = style_idx % len(style_sets)
             style_block = self._format_style_examples(
                 style_sets[idx], n=n_style_examples
@@ -263,7 +259,7 @@ class PromptingMethod(DiversificationMethod):
             template = template.replace(PLACEHOLDER_STYLE_EXAMPLES, style_block)
             if PLACEHOLDER_STYLE_NAME in template:
                 name = (
-                    style_example_keys[idx]
+                    style_names[idx]
                     .replace("_tinystyler", "")
                     .replace("_stel", "")
                     .replace("_", " ")
@@ -313,16 +309,17 @@ class PromptingMethod(DiversificationMethod):
             style_example_keys=kwargs.get("style_example_keys"),
             custom_style_bank=kwargs.get("custom_style_bank"),
         )
-        style_example_keys, style_sets = self._resolve_styles(prompt_templates, **kwargs)
-        n_ex = kwargs.get("n_style_examples", _DEFAULT_N_STYLE_EXAMPLES)
-
         logger.info(
             "Using %d prompt template(s) for %d paraphrase(s).",
             len(prompt_templates),
             n,
         )
-        if style_example_keys:
-            logger.info("Style sets: %s", ", ".join(style_example_keys))
+
+        fs_style_examples = self._resolve_few_shot_examples(**kwargs)
+        if fs_style_examples:
+            logger.info("Style sets: %s", ", ".join(fs_style_examples.keys()))
+
+        n_ex = kwargs.get("n_style_examples", _DEFAULT_N_STYLE_EXAMPLES)
 
         # Build all n * len(texts) filled prompts as a flat list.
         # Order: all texts for iteration 0, then all texts for iteration 1, etc.
@@ -334,8 +331,7 @@ class PromptingMethod(DiversificationMethod):
                 template=prompt_templates[i % len(prompt_templates)],
                 text=t,
                 style_idx=i,
-                style_example_keys=style_example_keys,
-                style_sets=style_sets,
+                fs_style_examples=fs_style_examples,
                 n_style_examples=n_ex,
             )
             for i in range(n)
