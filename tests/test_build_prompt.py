@@ -108,5 +108,46 @@ class TestResolvePrompts(unittest.TestCase):
         self.assertIn("prompt b", templates[0])
 
 
+class TestFillTemplate(unittest.TestCase):
+
+    def test_replaces_document_placeholder(self):
+        method = PromptingMethod()
+        result = method._fill_template(
+            template="Rewrite: [DOCUMENT SEGMENT]",
+            text="my text",
+        )
+        self.assertNotIn(PLACEHOLDER_TEXT, result)
+        self.assertIn("my text", result)
+
+    def test_replaces_zero_shot(self):
+        method = PromptingMethod()
+        result = method._fill_template(
+            template="Custom prompt: [DOCUMENT SEGMENT]",
+            text="hello",
+        )
+        self.assertEqual(result, "Custom prompt: hello")
+
+    def test_replaces_few_shot(self):
+        method = PromptingMethod()
+        template = (
+            "Style: [STYLE NAME]\n"
+            "Examples: [STYLE EXAMPLES]\n"
+            "Text: [DOCUMENT SEGMENT]"
+        )
+        result = method._fill_template(
+            template=template,
+            text="hello",
+            style_idx=0,
+            fs_style_examples={"informal_custom": ["example one", "example two"]},
+            n_style_examples=2,
+        )
+        self.assertNotIn(PLACEHOLDER_TEXT, result)
+        self.assertNotIn(PLACEHOLDER_STYLE_EXAMPLES, result)
+        self.assertNotIn(PLACEHOLDER_STYLE_NAME, result)
+        self.assertIn("hello", result)
+        self.assertIn("example one", result)
+        self.assertIn("informal", result)
+
+
 if __name__ == "__main__":
     unittest.main()
