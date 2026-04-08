@@ -219,9 +219,9 @@ class PromptingMethod(DiversificationMethod):
         self,
         template: str,
         text: str,
-        style_idx: int,
-        fs_style_examples: dict[str, list[str]],
-        n_style_examples: int,
+        style_idx: int | None = None,
+        fs_style_examples: dict[str, list[str]] | None = None,
+        n_style_examples: int = _DEFAULT_N_STYLE_EXAMPLES,
     ) -> str:
         """Replace all placeholders in a template to produce a ready prompt.
 
@@ -232,13 +232,14 @@ class PromptingMethod(DiversificationMethod):
             optionally ``[STYLE EXAMPLES]`` / ``[STYLE NAME]``.
         text : str
             The input text to insert at ``[DOCUMENT SEGMENT]``.
-        style_idx : int
+        style_idx : int or None
             Index into *fs_style_examples* (cycled with modulo).  Each
             paraphrase iteration uses a different style set.  When
             there are fewer styles than paraphrases, styles are reused.
-        fs_style_examples : dict[str, list[str]]
-            Mapping of style names to example sentences, as returned
-            by :meth:`_resolve_styles`.  Empty dict for zero-shot.
+            Required when *fs_style_examples* has more than one entry.
+        fs_style_examples : dict[str, list[str]] or None
+            Mapping of style names to example sentences.  ``None`` for
+            zero-shot templates.
         n_style_examples : int
             Maximum number of example sentences to include from the
             selected style sets.
@@ -247,12 +248,23 @@ class PromptingMethod(DiversificationMethod):
         -------
         str
             Fully filled prompt string, ready for generation.
+
+        Raises
+        ------
+        ValueError
+            If *fs_style_examples* has more than one entry but
+            *style_idx* is not provided.
         """
         # Style placeholders (few-shot only).
         if PLACEHOLDER_STYLE_EXAMPLES in template and fs_style_examples:
+            if style_idx is None and len(fs_style_examples) > 1:
+                raise ValueError(
+                    "style_idx is required when fs_style_examples "
+                    "contains more than one style set."
+                )
             style_names = list(fs_style_examples.keys())
             style_sets = list(fs_style_examples.values())
-            idx = style_idx % len(style_sets)
+            idx = (style_idx or 0) % len(style_sets)
             style_block = self._format_style_examples(
                 style_sets[idx], n=n_style_examples
             )
