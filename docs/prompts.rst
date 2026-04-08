@@ -66,15 +66,17 @@ by HuggingFace.
 Default selection
 ^^^^^^^^^^^^^^^^^
 
-When no explicit prompt selection is made, the method cycles through three
+When no explicit prompt selection is made, the method cycles through five
 templates:
 
 1. ``humanize_llm-as-coauthor_original``
 2. ``wikipedia_paraphrase``
 3. ``finephrase_faq``
+4. ``finephrase_table``
+5. ``finephrase_narrative``
 
 These are chosen for diversity: a humanised rewrite, a straightforward
-paraphrase, and a structured FAQ output.
+paraphrase, a FAQ, a structured table, and a narrative output.
 
 .. code-block:: python
 

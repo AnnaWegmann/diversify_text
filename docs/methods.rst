@@ -114,8 +114,9 @@ for inference.
 
 **Default prompt bank.** The built-in bank contains multiple prompt templates
 covering different rewriting styles (paraphrasing, dialogue, tables, and more).
-By default, three prompts are used: ``humanize_llm-as-coauthor_original``,
-``wikipedia_paraphrase``, and ``finephrase_faq``. See
+By default, five prompts are used: ``humanize_llm-as-coauthor_original``,
+``wikipedia_paraphrase``, ``finephrase_faq``, ``finephrase_table``, and
+``finephrase_narrative``. See
 :doc:`prompts` for the full list of available templates.
 
 **Customising the prompt bank.** Like TinyStyler's style bank, you can provide
