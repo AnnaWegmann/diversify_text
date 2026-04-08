@@ -1,15 +1,15 @@
 """Model wrapper for prompt-based text generation.
 
-Uses the ``transformers`` library (``AutoModelForCausalLM``), which is
-already a project dependency.
+Uses the ``transformers`` library (``AutoModelForCausalLM``).
 
-.. note:: More efficient inference backends such as vLLM (or datatrove wrapper) are
-   planned to be considered for future releases.
+.. note:: vLLM support is planned for a future release.
 """
 
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
+from itertools import islice
 
 import torch
 from huggingface_hub import snapshot_download
@@ -73,23 +73,50 @@ class PromptingModel:
 
     def load(self) -> None:
         """Download and load the model."""
-        self._load_transformers()  # might use a different backend in the future
+        # TODO: add vLLM backend support in a future release.
+        self._load_transformers()
 
     def generate_text(
         self,
-        prompts: list[str],
+        prompts: Iterable[str],
         *,
         max_new_tokens: int,
         temperature: float,
         top_p: float,
+        batch_size: int = 32,
     ) -> list[str]:
-        """Generate completions for a batch of prompts."""
-        return self._generate_transformers(  # might use a different backend in the future
-            prompts,
+        """Generate completions for a batch of prompts.
+
+        Parameters
+        ----------
+        prompts : Iterable[str]
+            Prompts to generate completions for.  Can be a list or a
+            generator — prompts are consumed in chunks of *batch_size*
+            for the transformers backend.
+        max_new_tokens, temperature, top_p
+            Sampling parameters forwarded to the backend.
+        batch_size : int
+            Number of prompts per backend call (transformers only).
+            vLLM handles batching internally and receives all prompts
+            at once.
+        """
+        # TODO: add vLLM backend support in a future release.
+        # Chunk prompts to avoid OOM on large batches.
+        gen_kwargs = dict(
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_p=top_p,
         )
+        results: list[str] = []
+        prompt_iter = iter(prompts)
+        while True:
+            prompts_chunk = list(islice(prompt_iter, batch_size))
+            if not prompts_chunk:
+                break
+            results.extend(
+                self._generate_transformers(prompts_chunk, **gen_kwargs)
+            )
+        return results
 
     def _load_transformers(self) -> None:
         """Download weights (if needed) and load the model into memory."""
@@ -110,6 +137,54 @@ class PromptingModel:
                 )
                 self._model.to(self.device)
                 self._model.eval()
+
+    # -- vLLM backend ---------------------------------------------------------
+
+    def _vllm_dtype(self) -> str:
+        """Map the resolved torch dtype to a vLLM dtype string."""
+        mapping: dict[torch.dtype | None, str] = {
+            torch.float16: "float16",
+            torch.bfloat16: "bfloat16",
+            None: "float32",
+        }
+        return mapping.get(self._torch_dtype, "auto")
+
+    def _load_vllm(self) -> None:
+        """Download weights (if needed) and load the model via vLLM."""
+        from transformers import AutoTokenizer
+        from vllm import LLM
+
+        with spinner(f"Loading {self.model_id} (vLLM, {self.device})"):
+            self._tokenizer = AutoTokenizer.from_pretrained(self.model_id)
+            if self._tokenizer.pad_token is None:
+                self._tokenizer.pad_token = self._tokenizer.eos_token
+            self._model = LLM(
+                model=self.model_id,
+                dtype=self._vllm_dtype(),
+                device=self.device,
+            )
+
+    def _generate_vllm(
+        self,
+        prompts: list[str],
+        *,
+        max_new_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> list[str]:
+        """Run batched generation via the vLLM engine."""
+        from vllm import SamplingParams
+
+        formatted = self._apply_chat_template(prompts)
+        sampling_params = SamplingParams(
+            max_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+        outputs = self._model.generate(formatted, sampling_params)
+        return [output.outputs[0].text for output in outputs]
+
+    # -- transformers backend -------------------------------------------------
 
     def _generate_transformers(
         self,
