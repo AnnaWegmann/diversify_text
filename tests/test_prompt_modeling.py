@@ -77,51 +77,15 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         self.assertEqual(call_kwargs["max_new_tokens"], 10)
 
 
-class TestPromptingModelBackendDispatch(unittest.TestCase):
+class TestPromptingModelLoad(unittest.TestCase):
 
-    @patch("diversify_text.method.prompting.model._HAS_VLLM", False)
     @patch("diversify_text.method.prompting.model.PromptingModel._load_transformers")
-    def test_load_calls_transformers_when_vllm_unavailable(self, mock_load_tf):
+    def test_load_calls_transformers(self, mock_load_tf):
         from diversify_text.method.prompting.model import PromptingModel
 
         model = PromptingModel(model_id="test-model", device="cpu")
         model.load()
         mock_load_tf.assert_called_once()
-
-    @patch("diversify_text.method.prompting.model._HAS_VLLM", True)
-    @patch("diversify_text.method.prompting.model.PromptingModel._load_vllm")
-    def test_load_calls_vllm_when_available(self, mock_load_vllm):
-        from diversify_text.method.prompting.model import PromptingModel
-
-        model = PromptingModel(model_id="test-model", device="cpu")
-        model.load()
-        mock_load_vllm.assert_called_once()
-
-    @patch("diversify_text.method.prompting.model._HAS_VLLM", False)
-    @patch("diversify_text.method.prompting.model.PromptingModel._generate_transformers")
-    def test_generate_dispatches_to_transformers(self, mock_gen_tf):
-        from diversify_text.method.prompting.model import PromptingModel
-
-        model = PromptingModel(model_id="test-model", device="cpu")
-        mock_gen_tf.return_value = ["output"]
-        result = model.generate_text(
-            ["hello"], max_new_tokens=10, temperature=0.7, top_p=0.9
-        )
-        mock_gen_tf.assert_called_once()
-        self.assertEqual(result, ["output"])
-
-    @patch("diversify_text.method.prompting.model._HAS_VLLM", True)
-    @patch("diversify_text.method.prompting.model.PromptingModel._generate_vllm")
-    def test_generate_dispatches_to_vllm(self, mock_gen_vllm):
-        from diversify_text.method.prompting.model import PromptingModel
-
-        model = PromptingModel(model_id="test-model", device="cpu")
-        mock_gen_vllm.return_value = ["output"]
-        result = model.generate_text(
-            ["hello"], max_new_tokens=10, temperature=0.7, top_p=0.9
-        )
-        mock_gen_vllm.assert_called_once()
-        self.assertEqual(result, ["output"])
 
 
 if __name__ == "__main__":
