@@ -2,18 +2,34 @@
 
 from __future__ import annotations
 
+# -- Prompt key constants -----------------------------------------------------
+# Used in both the bank dict and DEFAULT_PROMPTS so renaming a key only
+# requires a single change.
+
+WIKIPEDIA_PARAPHRASE = "wikipedia_paraphrase"
+FINEPHRASE_ARTICLE = "finephrase_article"
+FINEPHRASE_COMMENTARY = "finephrase_commentary"
+FINEPHRASE_DISCUSSION = "finephrase_discussion"
+FINEPHRASE_EXPLANATION = "finephrase_explanation"
+FINEPHRASE_FAQ = "finephrase_faq"
+FINEPHRASE_MATH = "finephrase_math"
+FINEPHRASE_NARRATIVE = "finephrase_narrative"
+FINEPHRASE_TABLE = "finephrase_table"
+FINEPHRASE_TUTORIAL = "finephrase_tutorial"
+HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL = "humanize_llm-as-coauthor_original"
+
 # -- Zero-shot style transfer templates ---------------------------------------
 #   These are prompts taken from other work that aim to rewrite a text in a given style/structure.
 #   Uses only [DOCUMENT SEGMENT] placeholders.
 
-DEFAULT_PROMPT_BANK: dict[str, str] = {
-    "wikipedia_paraphrase": ( # taken from https://arxiv.org/abs/2401.16380
+ZS_PROMPT_BANK: dict[str, str] = {
+    WIKIPEDIA_PARAPHRASE: ( # taken from https://arxiv.org/abs/2401.16380
         "For the following paragraph give me a diverse paraphrase of the same "
         "in high quality English language as in sentences on Wikipedia. "
         "Output only the paraphrase, nothing else. "
         "Text: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_article": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_ARTICLE: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Transform the document into a magazine-style feature article. "
         "Open with an engaging lead, then blend narrative storytelling with "
         "factual explanation. Maintain an accessible yet polished tone suitable "
@@ -21,7 +37,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the feature article, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_commentary": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_COMMENTARY: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Summarize the document in a concise paragraph that captures its central "
         "arguments or findings. Then, write an expert commentary that critically "
         "reflects on its implications, limitations, or broader context. Maintain "
@@ -29,7 +45,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the summary and the commentary, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_discussion": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_DISCUSSION: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Reformulate the document as a dialogue between a teacher and a student. "
         "The teacher should guide the student toward understanding the key points "
         "while clarifying complex concepts. Keep the exchange natural, informative, "
@@ -37,7 +53,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the dialogue, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_explanation": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_EXPLANATION: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Rewrite the document to provide clear scientific or logical explanations "
         "for concepts, phenomena, or processes mentioned in the text. Make implicit "
         "reasoning explicit by explaining why things work the way they do, what "
@@ -47,7 +63,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the explanatory text, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_faq": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_FAQ: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Rewrite the document as a comprehensive FAQ (Frequently Asked Questions). "
         "Extract or infer the key questions a reader would have about this topic, "
         "then provide clear, direct answers. Order questions logically—from "
@@ -57,7 +73,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the FAQ, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_math": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_MATH: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Rewrite the document to create a mathematical word problem based on the "
         "numerical data or relationships in the text. Provide a step-by-step "
         "solution that shows the calculation process clearly. Create a problem "
@@ -67,7 +83,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the problem and solution, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_narrative": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_NARRATIVE: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Rewrite the document as a clear narrative that emphasizes the temporal "
         "sequence and causal relationships between events or steps. Reorganize "
         "the content to show how actions, events, or situations naturally flow "
@@ -77,7 +93,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the narrative, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_table": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_TABLE: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Rewrite the document as a structured table that organizes the key "
         "information, then generate one question-answer pair based on the table. "
         "First extract the main data points and organize them into a clear table "
@@ -88,7 +104,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
         "Output only the table followed by the question-answer pair, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    "finephrase_tutorial": ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    FINEPHRASE_TUTORIAL: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Rewrite the document as a clear, step-by-step tutorial or instructional "
         "guide. Use numbered steps or bullet points where appropriate to enhance "
         "clarity. Preserve all essential information while ensuring the style "
@@ -98,7 +114,7 @@ DEFAULT_PROMPT_BANK: dict[str, str] = {
     ),
     # From: https://arxiv.org/abs/2401.05952 (Zhang et al., 2024)
     # Original 5-modification prompt from the paper (no emojis).
-    "humanize_llm-as-coauthor_original": (
+    HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL: (
         "I need to modify a machine-generated text to make it appear more like it was "
         "written by a human. The objective is to introduce elements commonly found in "
         "human-written texts. Here are some optional modifications you can choose to "
@@ -157,7 +173,9 @@ FEW_SHOT_PROMPT_BANK: dict[str, str] = {
 
 # Placeholder tokens used inside prompt templates.
 PLACEHOLDER_TEXT = "[DOCUMENT SEGMENT]"
-PLACEHOLDER_STYLE = "[STYLE EXAMPLES]"
+PLACEHOLDER_STYLE_EXAMPLES = "[STYLE EXAMPLES]"
 PLACEHOLDER_STYLE_NAME = "[STYLE NAME]"
 
-DEFAULT_PROMPTS: list[str] = ["wikipedia_paraphrase", "finephrase_discussion", "finephrase_table"]
+PROMPT_BANK: dict[str, str] = {**ZS_PROMPT_BANK, **FEW_SHOT_PROMPT_BANK}
+
+DEFAULT_PROMPTS: list[str] = [WIKIPEDIA_PARAPHRASE, FINEPHRASE_DISCUSSION, FINEPHRASE_TABLE]
