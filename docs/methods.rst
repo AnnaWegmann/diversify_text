@@ -83,7 +83,8 @@ Prompting
 
 The ``prompting`` method generates paraphrases by sending input texts to a
 local HuggingFace causal language model with a prompt template. The default
-model is `SmolLM2-1.7B-Instruct <https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct>`_.
+model is `SmolLM2-1.7B-Instruct <https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct>`_
+using insights from `The Synthetic Data Playbook <https://huggingface.co/spaces/HuggingFaceFW/finephrase>`_.
 
 .. code-block:: python
 
@@ -100,8 +101,7 @@ identifier to the constructor:
    method = PromptingMethod(model="mistralai/Mistral-7B-Instruct-v0.3")
    results = Diversifier(methods=[method]).diversify("The cat sat on the mat.")
 
-Instruct-tuned models are recommended — base models tend to repeat the prompt
-instead of following the instruction. Chat templates are applied automatically
+Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
 
 **Inference backend.** The method uses `vLLM <https://vllm.ai/>`_ when
@@ -112,11 +112,17 @@ installed (faster, especially for large batches) and falls back to
 
    pip install diversify-text[prompting]
 
-**Default prompt bank.** The built-in bank contains a single prompt
-(``wikipedia_paraphrase``) that asks the model to produce a diverse paraphrase
-in high-quality, Wikipedia-style English. Additional prompts can be added over
-time. See :data:`diversify_text.method.prompting.prompts.DEFAULT_PROMPT_BANK`
-for the current templates.
+.. note::
+
+   Streaming from large files (lazy iteration over input texts) is planned for
+   a future release.  Currently, all input texts are materialised in memory
+   before generation.
+
+**Default prompt bank.** The built-in bank contains multiple prompt templates
+covering different rewriting styles (paraphrasing, dialogue, tables, and more).
+By default, three prompts are used: ``wikipedia_paraphrase``,
+``finephrase_discussion``, and ``finephrase_table``. See
+:doc:`prompts` for the full list of available templates.
 
 **Customising the prompt bank.** Like TinyStyler's style bank, you can provide
 a custom prompt bank or select specific prompts via ``method_kwargs``. Each
@@ -142,7 +148,65 @@ You can also select specific prompts by key name:
    results = diversify(
        "The cat sat on the mat.",
        methods=["prompting"],
-       method_kwargs={"prompting": {"prompts": ["wikipedia_paraphrase"]}},
+       method_kwargs={"prompting": {"prompt_keys": ["wikipedia_paraphrase"]}},
+   )
+
+Zero-shot humanize rewriting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The prompt bank includes humanize prompts based on
+`Zhang et al. (2024) <https://arxiv.org/abs/2401.05952>`_ that rewrite
+machine-generated text to appear more human-written. These prompts instruct the
+model to introduce informal elements such as typos, slang, hashtags, and
+varied casing:
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       methods=["prompting"],
+       method_kwargs={"prompting": {"prompt_keys": ["humanize_llm-as-coauthor"]}},
+   )
+
+A stricter variant, ``humanize_llm-as-coauthor_original``, uses the original
+five modifications from the paper and explicitly forbids emojis.
+
+Few-shot style transfer with prompting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The prompting method can also perform few-shot style transfer by combining
+style examples from the shared style bank with a few-shot prompt template.
+When ``style_example_keys`` is provided without explicit ``prompt_keys``, the method
+automatically uses the ``style_transfer`` template from
+:data:`~diversify_text.method.prompting.prompts.FEW_SHOT_PROMPT_BANK`:
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       methods=["prompting"],
+       method_kwargs={
+           "prompting": {
+               "style_example_keys": ["informal_tinystyler"],
+           }
+       },
+   )
+
+You can select a different few-shot template via ``prompt_keys``. For
+example, ``humanize_transfer`` combines humanization instructions with the
+style examples:
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       methods=["prompting"],
+       method_kwargs={
+           "prompting": {
+               "style_example_keys": ["informal_tinystyler"],
+               "prompt_keys": ["humanize_transfer"],
+           }
+       },
    )
 
 Adding a new method
