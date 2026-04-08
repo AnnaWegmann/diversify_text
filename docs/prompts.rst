@@ -69,12 +69,12 @@ Default selection
 When no explicit prompt selection is made, the method cycles through three
 templates:
 
-1. ``wikipedia_paraphrase``
-2. ``finephrase_discussion``
-3. ``finephrase_table``
+1. ``humanize_llm-as-coauthor_original``
+2. ``wikipedia_paraphrase``
+3. ``finephrase_faq``
 
-These are chosen for diversity: a straightforward paraphrase, a dialogue-based
-reformulation, and a structured table output.
+These are chosen for diversity: a humanised rewrite, a straightforward
+paraphrase, and a structured FAQ output.
 
 .. code-block:: python
 

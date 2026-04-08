@@ -109,13 +109,13 @@ for inference.
 
 .. note::
 
-   `vLLM <https://vllm.ai/>`_ support and streaming from large files are
-   planned for a future release.
+   `vLLM <https://vllm.ai/>`_ support, batched inference, and streaming from
+   large files are planned for a future release.
 
 **Default prompt bank.** The built-in bank contains multiple prompt templates
 covering different rewriting styles (paraphrasing, dialogue, tables, and more).
-By default, three prompts are used: ``wikipedia_paraphrase``,
-``finephrase_discussion``, and ``finephrase_table``. See
+By default, three prompts are used: ``humanize_llm-as-coauthor_original``,
+``wikipedia_paraphrase``, and ``finephrase_faq``. See
 :doc:`prompts` for the full list of available templates.
 
 **Customising the prompt bank.** Like TinyStyler's style bank, you can provide
@@ -202,6 +202,16 @@ style examples:
            }
        },
    )
+
+Development
+^^^^^^^^^^^
+
+To see the exact prompts sent to the model, enable debug logging:
+
+.. code-block:: python
+
+   import logging
+   logging.basicConfig(level=logging.DEBUG)
 
 Adding a new method
 -------------------
