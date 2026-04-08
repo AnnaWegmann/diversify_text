@@ -51,12 +51,14 @@ def _methods_cache_key(
     # Only include constructor kwargs in the cache key.
     mk_key: tuple = ()
     if method_kwargs:
-        mk_key = tuple(
-            (name, tuple(sorted(
+        filtered = []
+        for name, kw in sorted(method_kwargs.items()):
+            ctor_kw = tuple(sorted(
                 (k, v) for k, v in kw.items() if k in _CONSTRUCTOR_KWARGS
-            )))
-            for name, kw in sorted(method_kwargs.items())
-        )
+            ))
+            if ctor_kw:  # skip entries with no constructor kwargs
+                filtered.append((name, ctor_kw))
+        mk_key = tuple(filtered)
     return (device, methods_key, mk_key)
 
 
