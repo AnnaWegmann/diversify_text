@@ -358,7 +358,7 @@ def diversify(
     # Retrieve cached (or freshly resolved) components.
     method_kwargs = kwargs.get("method_kwargs")
     cached_methods = _cache.get_methods(device, methods, method_kwargs)
-    mis_filter = _cache.get_mis_filter(device, **filter_kwargs) if semantic_filter else None
+    mis_filter = _cache.get_cached_mis_filter(device, **filter_kwargs) if semantic_filter else None
 
     # Build a Diversifier from the cached components.
     div = Diversifier(device=device, _methods=cached_methods, _mis_filter=mis_filter)
