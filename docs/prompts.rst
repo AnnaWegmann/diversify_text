@@ -66,23 +66,15 @@ by HuggingFace.
 Default selection
 ^^^^^^^^^^^^^^^^^
 
-When no explicit prompt selection is made, the method cycles through five
-templates:
-
-1. ``humanize_llm-as-coauthor_original``
-2. ``wikipedia_paraphrase``
-3. ``finephrase_faq``
-4. ``finephrase_table``
-5. ``finephrase_narrative``
-
-These are chosen for diversity: a humanised rewrite, a straightforward
-paraphrase, a FAQ, a structured table, and a narrative output.
+When no explicit prompt selection is made, the method cycles through the
+templates listed in
+:data:`~diversify_text.method.prompting.prompts.DEFAULT_PROMPTS`.
 
 .. code-block:: python
 
    from diversify_text import diversify
 
-   # Zero-shot: uses the three default templates, no style examples needed.
+   # Zero-shot: uses the default templates, no style examples needed.
    results = diversify("The cat sat on the mat.", methods=["prompting"])
 
 
