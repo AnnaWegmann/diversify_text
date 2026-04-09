@@ -17,6 +17,9 @@ FINEPHRASE_NARRATIVE = "finephrase_narrative"
 FINEPHRASE_TABLE = "finephrase_table"
 FINEPHRASE_TUTORIAL = "finephrase_tutorial"
 HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL = "humanize_llm-as-coauthor_original"
+FORMAL_REIF = "formal_reif"
+SIMPLE_REIF = "simple_reif"
+SIMPLE_KEW = "simple_kew"
 
 # -- Zero-shot style transfer templates ---------------------------------------
 #   These are prompts taken from other work that aim to rewrite a text in a given style/structure.
@@ -27,6 +30,23 @@ ZS_PROMPT_BANK: dict[str, str] = {
         "For the following paragraph give me a diverse paraphrase of the same "
         "in high quality English language as in sentences on Wikipedia. "
         "Output only the paraphrase, nothing else. "
+        "Text: [DOCUMENT SEGMENT]"
+    ),
+    FORMAL_REIF: ( # taken from https://arxiv.org/abs/2109.03910
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the paraphrase, nothing else. Here is a rewrite of the text, which is more formal:"
+    ),
+    SIMPLE_REIF: ( # taken from https://arxiv.org/abs/2109.03910
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the paraphrase, nothing else. Here is a rewrite of the text, which is more simple:"
+    ),
+    SIMPLE_KEW: ( # taken from https://aclanthology.org/2023.emnlp-main.821.pdf
+        "Please rewrite the following complex sentence in order to "
+        "make it easier to understand by non-native speakers of English. "
+        "You can do so by replacing complex words with simpler "
+        "synonyms (i.e.paraphrasing), deleting unimportant information "
+        "(i.e.compression), and/or splitting a long complex sentence into "
+        "several simpler ones. The final simplified sentence needs to be "
+        "grammatical, fluent, and retain the main ideas of its original "
+        "counterpart without altering its meaning. Output only the paraphrase, nothing else. "
         "Text: [DOCUMENT SEGMENT]"
     ),
     # From: https://arxiv.org/abs/2401.05952 (Zhang et al., 2024)
@@ -151,7 +171,7 @@ ZS_PROMPT_BANK: dict[str, str] = {
 #   These use [STYLE EXAMPLES], [STYLE NAME] and [DOCUMENT SEGMENT] placeholders.
 
 EXAMPLE_BASED_PROMPT_BANK: dict[str, str] = {
-    "style_transfer": (
+    "style_transfer": (  # ours
         "Here are examples of the [STYLE NAME] writing style:\n"
         "[STYLE EXAMPLES]\n\n"
         "For the following document give me a diverse paraphrase of the same "
@@ -179,7 +199,9 @@ EXAMPLE_BASED_PROMPT_BANK: dict[str, str] = {
 # -- Name-based style transfer templates ------------------------------------------------------
 
 NAME_BASED_PROMPT_BANK: dict[str, str] = {
-
+    "reif": (
+        "Here is some text: [DOCUMENT SEGMENT]. Here is a rewrite of the text, which is more [STYLE NAME]:"
+    ),
 }
 
 
@@ -188,11 +210,14 @@ PLACEHOLDER_TEXT = "[DOCUMENT SEGMENT]"
 PLACEHOLDER_STYLE_EXAMPLES = "[STYLE EXAMPLES]"
 PLACEHOLDER_STYLE_NAME = "[STYLE NAME]"
 
-PROMPT_BANK: dict[str, str] = {**ZS_PROMPT_BANK, **EXAMPLE_BASED_PROMPT_BANK}
+PROMPT_BANK: dict[str, str] = {**ZS_PROMPT_BANK, **EXAMPLE_BASED_PROMPT_BANK, **NAME_BASED_PROMPT_BANK}
 
 DEFAULT_PROMPTS: list[str] = [
     # HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL,
     WIKIPEDIA_PARAPHRASE,
+    FORMAL_REIF,
+    SIMPLE_REIF,
+    SIMPLE_KEW
     # FINEPHRASE_FAQ,
     # FINEPHRASE_TABLE,
     # FINEPHRASE_NARRATIVE,

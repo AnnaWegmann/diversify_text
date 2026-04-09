@@ -145,14 +145,19 @@ class PromptingMethod(DiversificationMethod):
             templates = [(k, bank[k]) for k in DEFAULT_PROMPTS]
 
         # --- Validate style compatibility ---
-        # If styles were provided, the templates must support them.
-        if has_styles and not any(PLACEHOLDER_STYLE_EXAMPLES in t for _k, t in templates):
+        # If styles were provided, the templates must support them
+        # via [STYLE EXAMPLES] (example-based) or [STYLE NAME] (name-based).
+        if has_styles and not any(
+            PLACEHOLDER_STYLE_EXAMPLES in t or PLACEHOLDER_STYLE_NAME in t
+            for _k, t in templates
+        ):
             raise ValueError(
                 "style_example_keys or custom_style_bank were provided, but the "
                 "selected prompt template(s) do not contain the "
-                f"{PLACEHOLDER_STYLE_EXAMPLES} placeholder. Use a few-shot "
-                f"template (e.g. prompt_keys=['style_transfer']) or remove "
-                f"style_example_keys. See "
+                f"{PLACEHOLDER_STYLE_EXAMPLES} or {PLACEHOLDER_STYLE_NAME} "
+                f"placeholder. Use a style-aware template "
+                f"(e.g. prompt_keys=['style_transfer'] or prompt_keys=['reif']) "
+                f"or remove style_example_keys. See "
                 f"https://annawegmann.github.io/diversify_text/prompts.html"
             )
 
@@ -279,7 +284,7 @@ class PromptingMethod(DiversificationMethod):
             If *fs_style_examples* has more than one entry but
             *style_idx* is not provided.
         """
-        # Style placeholders (few-shot only).
+        # Style example placeholders (example-based templates).
         if PLACEHOLDER_STYLE_EXAMPLES in template and fs_style_examples:
             if style_idx is None and len(fs_style_examples) > 1:
                 raise ValueError(
@@ -293,14 +298,18 @@ class PromptingMethod(DiversificationMethod):
                 style_sets[idx], n=n_style_examples
             )
             template = template.replace(PLACEHOLDER_STYLE_EXAMPLES, style_block)
-            if PLACEHOLDER_STYLE_NAME in template:
-                name = (
-                    style_names[idx]
-                    .replace("_tinystyler", "")
-                    .replace("_stel", "")
-                    .replace("_", " ")
-                )
-                template = template.replace(PLACEHOLDER_STYLE_NAME, name)
+
+        # Style name placeholder (example-based and name-based templates).
+        if PLACEHOLDER_STYLE_NAME in template and fs_style_examples:
+            style_names = list(fs_style_examples.keys())
+            idx = (style_idx or 0) % len(style_names)
+            name = (
+                style_names[idx]
+                .replace("_tinystyler", "")
+                .replace("_stel", "")
+                .replace("_", " ")
+            )
+            template = template.replace(PLACEHOLDER_STYLE_NAME, name)
 
         # Document placeholder (all templates).
         template = template.replace(PLACEHOLDER_TEXT, text)
