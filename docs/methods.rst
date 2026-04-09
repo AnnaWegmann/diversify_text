@@ -173,7 +173,7 @@ The prompting method can also perform few-shot style transfer by combining
 style examples from the shared style bank with a few-shot prompt template.
 When ``style_example_keys`` is provided without explicit ``prompt_keys``, the method
 automatically uses the ``style_transfer`` template from
-:data:`~diversify_text.method.prompting.prompts.FEW_SHOT_PROMPT_BANK`:
+:data:`~diversify_text.method.prompting.prompts.EXAMPLE_BASED_PROMPT_BANK`:
 
 .. code-block:: python
 

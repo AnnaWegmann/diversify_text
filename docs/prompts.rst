@@ -112,8 +112,8 @@ placeholders:
 - ``[STYLE EXAMPLES]`` — a formatted list of example sentences from the style bank
 - ``[STYLE NAME]`` — the human-readable name of the style
 
-All few-shot templates are stored in
-:data:`~diversify_text.method.prompting.prompts.FEW_SHOT_PROMPT_BANK`.
+All example-based templates are stored in
+:data:`~diversify_text.method.prompting.prompts.EXAMPLE_BASED_PROMPT_BANK`.
 
 .. list-table::
    :header-rows: 1
