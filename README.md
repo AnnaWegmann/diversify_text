@@ -13,6 +13,7 @@ pip install diversify-text
 - [Usage](#usage)
   - [Single text](#single-text)
   - [Control number of paraphrases](#control-number-of-paraphrases)
+  - [Prompting method](#prompting-method)
   - [Caching](#caching)
   - [Using the class directly](#using-the-class-directly)
   - [List of texts](#list-of-texts)
@@ -58,6 +59,30 @@ results = diversify("Some text.", n=3)
 ```
 [{"original": "Some text.", "paraphrases": ["...", "...", "..."]}]
 ```
+
+### Prompting method
+
+Use the prompting method to generate paraphrases via a causal language model (default: [SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B)):
+
+```python
+results = diversify("The experiment was conducted in a controlled lab setting.", methods=["prompting"])
+```
+
+Select specific prompt styles:
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    methods=["prompting"],
+    method_kwargs={
+        "prompting": {
+            "prompt_keys": ["simple_kew", "complex_kew", "caps_reif"]
+        }
+    },
+)
+```
+
+Available prompt keys: `wikipedia_paraphrase`, `simple_kew`, `complex_kew`, `formal_reif`, `simple_reif`, `passive_reif`, `caps_reif`, `lowcaps_reif`, `text_emojis_reif`, `less_common_verbs_reif`, `humanize_llm-as-coauthor_original`, and all `finephrase_*` templates. See the [full prompt reference](https://annawegmann.github.io/diversify_text/prompts.html) for details.
 
 ### Caching
 

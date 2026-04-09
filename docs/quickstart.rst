@@ -88,13 +88,38 @@ model lifecycle:
    batch_1 = div.diversify(texts_1, n=5)
    batch_2 = div.diversify(texts_2, n=5)
 
+Prompting method
+----------------
+
+Besides the default TinyStyler method, you can use the prompting method which
+generates paraphrases via a causal language model (default:
+`SmolLM3-3B <https://huggingface.co/HuggingFaceTB/SmolLM3-3B>`_):
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       methods=["prompting"],
+   )
+
+Select specific prompt styles via ``prompt_keys``:
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       methods=["prompting"],
+       method_kwargs={
+           "prompting": {
+               "prompt_keys": ["simple_kew", "complex_kew", "caps_reif"]
+           }
+       },
+   )
+
+See :doc:`prompts` for the full list of available prompt templates.
+
 Citation
 --------
-
-.. note::
-
-   TinyStyler is currently the only built-in generation method.
-   See :doc:`methods` for details.
 
 If you use ``diversify`` in your research, we are happy about a citation (placeholder currently).
 

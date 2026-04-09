@@ -57,6 +57,29 @@ All zero-shot templates are stored in
      - Humanise machine-generated text by introducing typos, slang, hashtags,
        and varied casing (no emojis).
        From `Zhang et al. (2024) <https://arxiv.org/abs/2401.05952>`_.
+   * - ``formal_reif``
+     - Rewrite the text in a more formal tone.
+       From `Reif et al. (2022) <https://arxiv.org/abs/2109.03910>`_.
+   * - ``simple_reif``
+     - Rewrite the text in simpler language.
+       From `Reif et al. (2022) <https://arxiv.org/abs/2109.03910>`_.
+   * - ``simple_kew``
+     - Simplify a complex sentence for non-native English speakers.
+       From `Kew et al. (2023) <https://aclanthology.org/2023.emnlp-main.821.pdf>`_.
+   * - ``complex_kew``
+     - Rewrite a simple sentence in a more complex and sophisticated style.
+   * - ``passive_reif``
+     - Rewrite the text switching between active and passive voice.
+       Few-shot prompt with examples.
+       From `Reif et al. (2022) <https://arxiv.org/abs/2109.03910>`_.
+   * - ``caps_reif``
+     - Rewrite the text in ALL CAPS.
+   * - ``lowcaps_reif``
+     - Rewrite the text in all lower case.
+   * - ``text_emojis_reif``
+     - Rewrite the text including text emojis like :-) or ;-D.
+   * - ``less_common_verbs_reif``
+     - Rewrite the text using less common verbs.
 
 The ``finephrase_*`` templates are taken from the
 `FinePhrasing tool <https://huggingface.co/spaces/HuggingFaceFW/finephrase>`_
