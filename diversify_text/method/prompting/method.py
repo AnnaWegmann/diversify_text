@@ -24,6 +24,7 @@ _DEFAULT_TOP_P = 0.9
 _MAX_NEW_TOKENS_FACTOR = 2.0
 _MAX_NEW_TOKENS_FLOOR = 10
 _MAX_NEW_TOKENS_CAP = 2048
+_FINEPHRASE_BONUS_TOKENS = 50
 _DEFAULT_N_STYLE_EXAMPLES = 16
 
 
@@ -75,8 +76,8 @@ class PromptingMethod(DiversificationMethod):
         prompt_keys: list[str] | None = None,
         style_example_keys: list[str] | None = None,
         custom_style_bank: dict[str, list[str]] | None = None,
-    ) -> list[str]:
-        """Resolve prompt configuration into an ordered list of templates.
+    ) -> list[tuple[str, str]]:
+        """Resolve prompt configuration into an ordered list of (key, template) pairs.
 
         Selects from a unified bank that contains both zero-shot and
         few-shot templates.  The distinction is implicit: few-shot
@@ -103,8 +104,10 @@ class PromptingMethod(DiversificationMethod):
 
         Returns
         -------
-        list[str]
-            Prompt template strings to cycle through during generation.
+        list[tuple[str, str]]
+            ``(key, template)`` pairs to cycle through during generation.
+            The key identifies the prompt (e.g. ``"finephrase_faq"``);
+            the template is the actual prompt string.
 
         Raises
         ------
@@ -127,23 +130,23 @@ class PromptingMethod(DiversificationMethod):
                     f"Unknown prompt key(s): {sorted(unknown)}. "
                     f"Available: {sorted(bank.keys())}"
                 )
-            templates = [bank[k] for k in prompt_keys]
+            templates = [(k, bank[k]) for k in prompt_keys]
 
         # Case 2: Custom bank without keys → use all its templates.
         elif prompt_bank is not None:
-            templates = list(prompt_bank.values())
+            templates = list(prompt_bank.items())
 
         # Case 3: Style info without prompt selection → few-shot default.
         elif has_styles:
-            templates = [bank["style_transfer"]]
+            templates = [("style_transfer", bank["style_transfer"])]
 
         # Case 4: No configuration at all → built-in defaults.
         else:
-            templates = [bank[k] for k in DEFAULT_PROMPTS]
+            templates = [(k, bank[k]) for k in DEFAULT_PROMPTS]
 
         # --- Validate style compatibility ---
         # If styles were provided, the templates must support them.
-        if has_styles and not any(PLACEHOLDER_STYLE_EXAMPLES in t for t in templates):
+        if has_styles and not any(PLACEHOLDER_STYLE_EXAMPLES in t for _k, t in templates):
             raise ValueError(
                 "style_example_keys or custom_style_bank were provided, but the "
                 "selected prompt template(s) do not contain the "
@@ -178,29 +181,50 @@ class PromptingMethod(DiversificationMethod):
         return "\n".join(f'- "{ex}"' for ex in selected)
 
     def _compute_max_new_tokens(
-        self, texts: list[str], max_new_tokens: int | None
-    ) -> int:
-        """Determine the generation length cap.
+        self,
+        texts: list[str],
+        n: int,
+        prompt_templates: list[tuple[str, str]],
+        max_new_tokens: int | None,
+    ) -> list[int]:
+        """Compute per-prompt max_new_tokens for the full n × texts grid.
 
-        When *max_new_tokens* is ``None``, scales with the longest input
-        (factor ``_MAX_NEW_TOKENS_FACTOR``), clamped between
-        ``_MAX_NEW_TOKENS_FLOOR`` and ``_MAX_NEW_TOKENS_CAP``.
-        An explicit value is returned as-is.
+        When *max_new_tokens* is explicit, every prompt gets that value.
+        Otherwise each text gets a budget scaled from its own token count
+        (factor ``_MAX_NEW_TOKENS_FACTOR``, clamped between
+        ``_MAX_NEW_TOKENS_FLOOR`` and ``_MAX_NEW_TOKENS_CAP``).
+        Finephrase templates (keys starting with ``"finephrase_"``) get
+        an additional ``_FINEPHRASE_BONUS_TOKENS``.
+
+        Returns a flat list of length ``n * len(texts)`` in the same
+        order as the prompt loop: for each style index *i*, for each
+        text *j*.
         """
+        total = n * len(texts)
         if max_new_tokens is not None:
-            return max_new_tokens
+            return [max_new_tokens] * total
+
+        # Tokenize once to get per-text token counts.
         model = self._ensure_model()
-        input_token_counts = [
+        token_counts = [
             len(ids)
             for ids in model._tokenizer(texts, truncation=True)["input_ids"]
         ]
-        return max(
-            _MAX_NEW_TOKENS_FLOOR,
-            min(
-                int(max(input_token_counts) * _MAX_NEW_TOKENS_FACTOR),
-                _MAX_NEW_TOKENS_CAP,
-            ),
-        )
+
+        # Build flat list matching the prompt loop order.
+        result: list[int] = []
+        for i in range(n):
+            key, _template = prompt_templates[i % len(prompt_templates)]
+            is_finephrase = key.startswith("finephrase_")
+            for count in token_counts:
+                budget = max(
+                    _MAX_NEW_TOKENS_FLOOR,
+                    min(int(count * _MAX_NEW_TOKENS_FACTOR), _MAX_NEW_TOKENS_CAP),
+                )
+                if is_finephrase:
+                    budget = min(budget + _FINEPHRASE_BONUS_TOKENS, _MAX_NEW_TOKENS_CAP)
+                result.append(budget)
+        return result
 
     @staticmethod
     def _resolve_few_shot_examples(**kwargs: Any) -> dict[str, list[str]]:
@@ -313,13 +337,15 @@ class PromptingMethod(DiversificationMethod):
         model = self._ensure_model()
         temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
         top_p = top_p if top_p is not None else _DEFAULT_TOP_P
-        max_new_tokens = self._compute_max_new_tokens(texts, max_new_tokens)
 
         prompt_templates = self._resolve_prompts(
             prompt_bank=kwargs.get("prompt_bank"),
             prompt_keys=kwargs.get("prompt_keys"),
             style_example_keys=kwargs.get("style_example_keys"),
             custom_style_bank=kwargs.get("custom_style_bank"),
+        )
+        all_max_new_tokens = self._compute_max_new_tokens(
+            texts, n, prompt_templates, max_new_tokens,
         )
         logger.info(
             "Using %d prompt template(s) for %d paraphrase(s).",
@@ -333,27 +359,28 @@ class PromptingMethod(DiversificationMethod):
 
         n_ex = kwargs.get("n_style_examples", _DEFAULT_N_STYLE_EXAMPLES)
 
-        # Build all n * len(texts) filled prompts as a flat list.
-        # Order: all texts for iteration 0, then all texts for iteration 1, etc.
+        # Build prompts in the same order as all_max_new_tokens.
         # TODO: accept texts as an Iterable (not just list) to support
         #       streaming from large files without materialising everything
         #       in memory.
-        all_prompts = [
-            self._fill_template(
-                template=prompt_templates[i % len(prompt_templates)],
-                text=t,
-                style_idx=i,
-                fs_style_examples=fs_style_examples,
-                n_style_examples=n_ex,
-            )
-            for i in range(n)
-            for t in texts
-        ]
+        all_prompts: list[str] = []
+        for i in range(n):
+            _key, template = prompt_templates[i % len(prompt_templates)]
+            for t in texts:
+                all_prompts.append(
+                    self._fill_template(
+                        template=template,
+                        text=t,
+                        style_idx=i,
+                        fs_style_examples=fs_style_examples,
+                        n_style_examples=n_ex,
+                    )
+                )
 
-        # Single model call — the model chunks internally.
+        # Generate one prompt at a time (each with its own max_new_tokens).
         flat_results = model.generate_text(
             all_prompts,
-            max_new_tokens=max_new_tokens,
+            max_new_tokens_per_prompt=all_max_new_tokens,
             temperature=temperature,
             top_p=top_p,
         )

@@ -27,9 +27,12 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         method = PromptingMethod()
         mock_model = MagicMock()
         mock_model.generate_text.return_value = responses
-        # Mock tokenizer: returns fake token IDs so max_new_tokens can be computed.
+        # Mock tokenizer: returns fake token IDs (3 tokens per text)
+        # so max_new_tokens can be computed.
         mock_tokenizer = MagicMock()
-        mock_tokenizer.return_value = {"input_ids": [[1, 2, 3]]}
+        mock_tokenizer.side_effect = lambda texts, **kw: {
+            "input_ids": [[1, 2, 3]] * len(texts)
+        }
         mock_model._tokenizer = mock_tokenizer
         method._model = mock_model
         return method

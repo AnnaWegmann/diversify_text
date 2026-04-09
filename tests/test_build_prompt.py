@@ -53,8 +53,8 @@ class TestResolvePrompts(unittest.TestCase):
     def test_default_returns_default_prompts(self):
         templates = PromptingMethod._resolve_prompts()
         self.assertEqual(len(templates), len(DEFAULT_PROMPTS))
-        for t in templates:
-            self.assertIn(PLACEHOLDER_TEXT, t)
+        for key, template in templates:
+            self.assertIn(PLACEHOLDER_TEXT, template)
 
     # --- TEST SELECTING PROMPT BY KEY ---
     def test_select_specific_prompt_keys(self):
@@ -62,7 +62,9 @@ class TestResolvePrompts(unittest.TestCase):
             prompt_keys=["wikipedia_paraphrase"]
         )
         self.assertEqual(len(templates), 1)
-        self.assertEqual(templates[0], PROMPT_BANK["wikipedia_paraphrase"])
+        key, template = templates[0]
+        self.assertEqual(key, "wikipedia_paraphrase")
+        self.assertEqual(template, PROMPT_BANK["wikipedia_paraphrase"])
 
     def test_unknown_key_raises(self):
         with self.assertRaises(ValueError) as context_manager:
@@ -76,7 +78,9 @@ class TestResolvePrompts(unittest.TestCase):
             style_example_keys=["informal_tinystyler"]
         )
         self.assertEqual(len(templates), 1)
-        self.assertEqual(templates[0], FEW_SHOT_PROMPT_BANK["style_transfer"])
+        key, template = templates[0]
+        self.assertEqual(key, "style_transfer")
+        self.assertEqual(template, FEW_SHOT_PROMPT_BANK["style_transfer"])
 
     def test_style_example_keys_with_few_shot_prompt_keys(self):
         templates = PromptingMethod._resolve_prompts(
@@ -84,7 +88,8 @@ class TestResolvePrompts(unittest.TestCase):
             prompt_keys=["humanize_transfer"],
         )
         self.assertEqual(len(templates), 1)
-        self.assertIn(PLACEHOLDER_STYLE_EXAMPLES, templates[0])
+        _key, template = templates[0]
+        self.assertIn(PLACEHOLDER_STYLE_EXAMPLES, template)
 
     def test_style_example_keys_with_zero_shot_prompt_keys_raises(self):
         with self.assertRaises(ValueError) as context_manager:
@@ -99,13 +104,18 @@ class TestResolvePrompts(unittest.TestCase):
     def test_custom_bank(self):
         bank = {"custom": "Rewrite: [DOCUMENT SEGMENT]"}
         templates = PromptingMethod._resolve_prompts(prompt_bank=bank)
-        self.assertEqual(templates, ["Rewrite: [DOCUMENT SEGMENT]"])
+        self.assertEqual(len(templates), 1)
+        key, template = templates[0]
+        self.assertEqual(key, "custom")
+        self.assertEqual(template, "Rewrite: [DOCUMENT SEGMENT]")
 
     def test_custom_bank_with_selection(self):
         bank = {"a": "prompt a [DOCUMENT SEGMENT]", "b": "prompt b [DOCUMENT SEGMENT]"}
         templates = PromptingMethod._resolve_prompts(prompt_bank=bank, prompt_keys=["b"])
         self.assertEqual(len(templates), 1)
-        self.assertIn("prompt b", templates[0])
+        key, template = templates[0]
+        self.assertEqual(key, "b")
+        self.assertIn("prompt b", template)
 
 
 class TestFillTemplate(unittest.TestCase):
