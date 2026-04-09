@@ -274,9 +274,9 @@ class Diversifier:
         *,
         batch_texts: list[str],
         n: int,
-        max_new_tokens: int,
-        temperature: float,
-        top_p: float,
+        max_new_tokens: int | None,
+        temperature: float | None,
+        top_p: float | None,
         method_kwargs: Mapping[str, dict[str, Any]],
     ) -> list[list[str]]:
         allocations = self._compute_allocations(n, len(self._methods))
