@@ -91,7 +91,11 @@ def _resolve_cache_kwargs(
     for param_name, param in signature.parameters.items():
         # inspect.Parameter.empty is a sentinel meaning "no default value."
         # We skip those — only fill in defaults that actually exist.
-        if param_name in _CACHE_KWARGS and param.default is not inspect.Parameter.empty:
+        if (
+            param_name in _CACHE_KWARGS
+            and param_name not in resolved
+            and param.default is not inspect.Parameter.empty
+        ):
             resolved[param_name] = param.default
 
     # Override defaults with caller-provided kwargs.
