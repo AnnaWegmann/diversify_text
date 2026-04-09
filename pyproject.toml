@@ -11,6 +11,8 @@ requires-python = ">=3.10"
 license = "MIT"
 authors = [
     { name = "Anna Wegmann" },
+    { name = "Eduardo Calò" },
+    { name = "Menan Velayuthan" },
 ]
 keywords = ["paraphrase", "nlp", "text-generation", "style-transfer", "augmentation"]
 classifiers = [
