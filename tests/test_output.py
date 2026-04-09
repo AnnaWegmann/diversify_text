@@ -95,7 +95,7 @@ class TestOutputWriterInMemory(unittest.TestCase):
 
     def test_accumulates_list_of_dicts(self):
         input_context = InputContext(kind=InputKind.LIST, total=2)
-        writer = OutputWriter(input_context, n_styles=2, output_path=None)
+        writer = OutputWriter(input_context, n=2, output_path=None)
         writer.open()
         writer.write_batch(["a", "b"], [["a1", "a2"], ["b1", "b2"]])
         result = writer.finish()
@@ -106,7 +106,7 @@ class TestOutputWriterInMemory(unittest.TestCase):
 
     def test_multiple_batches_accumulate(self):
         input_context = InputContext(kind=InputKind.LIST, total=3)
-        writer = OutputWriter(input_context, n_styles=1, output_path=None)
+        writer = OutputWriter(input_context, n=1, output_path=None)
         writer.open()
         writer.write_batch(["a"], [["a1"]])
         writer.write_batch(["b", "c"], [["b1"], ["c1"]])
@@ -120,7 +120,7 @@ class TestOutputWriterJSONL(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             out = Path(tmpdir) / "out.jsonl"
             input_context = InputContext(kind=InputKind.FILE_CSV, input_path=Path("x.csv"))
-            writer = OutputWriter(input_context, n_styles=2, output_path=out)
+            writer = OutputWriter(input_context, n=2, output_path=out)
             writer.open()
             writer.write_batch(["hello", "world"], [["h1", "h2"], ["w1", "w2"]])
             result = writer.finish()
@@ -136,7 +136,7 @@ class TestOutputWriterJSONL(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             out = Path(tmpdir) / "out.jsonl"
             input_context = InputContext(kind=InputKind.ITERABLE)
-            writer = OutputWriter(input_context, n_styles=1, output_path=out)
+            writer = OutputWriter(input_context, n=1, output_path=out)
             writer.open()
             writer.write_batch(["a"], [["a1"]])
             result = writer.finish()
@@ -150,7 +150,7 @@ class TestOutputWriterJSONL(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             out = Path(tmpdir) / "texts.jsonl"
             input_context = InputContext(kind=InputKind.FILE_TXT, input_path=Path("texts.txt"))
-            writer = OutputWriter(input_context, n_styles=2, output_path=out)
+            writer = OutputWriter(input_context, n=2, output_path=out)
             writer.open()
             writer.write_batch(
                 ["one", "two"],

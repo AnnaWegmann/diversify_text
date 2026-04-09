@@ -166,7 +166,7 @@ class MISFilter:
         Returns
         -------
         list[list[float]]
-            Scores shaped ``[n_texts][n_styles]``.
+            Scores shaped ``[n_texts][n]``.
         """
         flat_originals: list[str] = []
         flat_paraphrases: list[str] = []
@@ -223,18 +223,18 @@ class MISFilter:
         batch_texts : list[str]
             Original input texts.
         all_candidates : list[list[list[str]]]
-            Shape ``[n_candidates][n_texts][n_styles]``.  Each candidate set
+            Shape ``[n_candidates][n_texts][n]``.  Each candidate set
             contains the same styles in the same order, produced by separate
             calls to the generation method with temperature sampling.
 
         Returns
         -------
         list[list[str]]
-            Shape ``[n_texts][n_styles]`` — one paraphrase per style.
+            Shape ``[n_texts][n]`` — one paraphrase per style.
         """
         n_candidates = len(all_candidates)
         n_texts = len(batch_texts)
-        n_styles = len(all_candidates[0][0]) if n_texts > 0 else 0
+        n = len(all_candidates[0][0]) if n_texts > 0 else 0
 
         # Score the first candidate set.
         first_scores = self.score_batch(batch_texts, all_candidates[0])
@@ -253,7 +253,7 @@ class MISFilter:
         logger.info(
             "MIS filter: %d/%d paraphrase(s) below %.2f. "
             "Selecting from %d candidates.",
-            total_failures, n_texts * n_styles, self.min_score, n_candidates,
+            total_failures, n_texts * n, self.min_score, n_candidates,
         )
 
         # Score remaining candidate sets.
@@ -284,7 +284,7 @@ class MISFilter:
             logger.warning(
                 "MIS filter: %d/%d paraphrases remain below %.2f. "
                 "Keeping best-scoring attempts.",
-                below, n_texts * n_styles, self.min_score,
+                below, n_texts * n, self.min_score,
             )
 
         return result

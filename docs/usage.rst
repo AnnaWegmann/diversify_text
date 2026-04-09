@@ -6,7 +6,7 @@ Control number of paraphrases
 
 .. code-block:: python
 
-   results = diversify("Some text.", n_styles=3)
+   results = diversify("Some text.", n=3)
 
 .. code-block:: python
 
@@ -111,10 +111,12 @@ For tips on handling longer texts (punctuation splitting, increasing
 Multiple methods
 ----------------
 
-.. note::
+You can combine methods to get diverse paraphrases from different approaches.
+The requested ``n`` are distributed across the methods:
 
-   Support for combining multiple generation methods is planned for a future
-   release. Currently, TinyStyler is the only built-in generation method.
+.. code-block:: python
+
+   results = diversify("The cat sat on the mat.", methods=["tinystyler", "prompting"], n=4)
 
 Customising the TinyStyler style bank
 --------------------------------------
@@ -133,7 +135,7 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
 .. code-block:: python
 
    from diversify_text import diversify
-   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text.styles import DEFAULT_STYLE_BANK
 
    custom_bank = {
        "academic": ["The results demonstrate a statistically significant effect."],
@@ -146,12 +148,12 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
        method_kwargs={"tinystyler": {"style_bank": custom_bank}},
    )
 
-``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.method.tinystyler`` so you
+``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.styles`` so you
 can build on it:
 
 .. code-block:: python
 
-   from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
+   from diversify_text.styles import DEFAULT_STYLE_BANK
 
    extended_bank = {
        **DEFAULT_STYLE_BANK,
@@ -183,11 +185,11 @@ Creating a custom method
    class MyMethod(DiversificationMethod):
        name = "my_method"
 
-       def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
-           return [[f"{text} :: variant {i}" for i in range(n_styles)] for text in texts]
+       def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
+           return [[f"{text} :: variant {i}" for i in range(n)] for text in texts]
 
 
-   results = Diversifier(methods=[MyMethod()]).diversify("Hello", n_styles=3)
+   results = Diversifier(methods=[MyMethod()]).diversify("Hello", n=3)
 
 .. code-block:: python
 

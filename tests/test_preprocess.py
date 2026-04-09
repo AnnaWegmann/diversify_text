@@ -57,7 +57,7 @@ class TestSentenceSplitting(unittest.TestCase):
         div = Diversifier(methods=["echo"])
         results = div.diversify(
             ["One. Two!", "Single sentence"],
-            n_styles=1,
+            n=1,
             preprocess_kwargs={"split_on_punctuation": True},
         )
         self.assertEqual(len(results), 2)
@@ -67,7 +67,7 @@ class TestSentenceSplitting(unittest.TestCase):
     def test_segments_are_reassembled_in_paraphrase(self):
         div = Diversifier(methods=[PrefixMethod("p")])
         results = div.diversify(
-            "One. Two!", n_styles=1,
+            "One. Two!", n=1,
             preprocess_kwargs={"split_on_punctuation": True},
         )
         self.assertEqual(results[0]["paraphrases"], ["p:One.:0 p:Two!:0"])
@@ -82,7 +82,7 @@ class TestSentenceSplitting(unittest.TestCase):
             )
 
             result = div.diversify(
-                str(input_path), text_column="bio", n_styles=1,
+                str(input_path), text_column="bio", n=1,
                 preprocess_kwargs={"split_on_punctuation": True},
             )
             self.assertIsInstance(result, Path)

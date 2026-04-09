@@ -1,14 +1,14 @@
-"""Default style bank for TinyStyler.
+"""Shared style bank used by multiple diversify methods.
 
-Each entry is a *style group* keyed by a descriptive label.  The value is a
+Each entry is a *style set* keyed by a descriptive label.  The value is a
 list of example sentences that together define a target writing style.
-TinyStyler cycles through the groups when producing multiple paraphrases, so
-having more groups than ``n_styles`` is fine -- only the first ``n_styles``
-groups (modulo the bank length) are used.
 
-Import and pass to the method via ``method_kwargs`` to override or extend:
+Both TinyStyler (via authorship embeddings) and the prompting method (via
+few-shot in-context examples) draw from this bank.
 
-    from diversify_text.method.tinystyler import DEFAULT_STYLE_BANK
+Import and pass to a method via ``method_kwargs`` to override or extend:
+
+    from diversify_text.styles import DEFAULT_STYLE_BANK
 
     custom_bank = {
         **DEFAULT_STYLE_BANK,
@@ -21,7 +21,7 @@ Import and pass to the method via ``method_kwargs`` to override or extend:
         method_kwargs={"tinystyler": {"style_bank": custom_bank}},
     )
 
-Examples are drawn from the CORE corpus (https://doi.org/10.1007/s10579-013-9256-1).
+Several examples are drawn from the CORE corpus (https://doi.org/10.1007/s10579-013-9256-1).
 """
 
 DEFAULT_STYLES: list[str] = [
@@ -357,3 +357,41 @@ DEFAULT_STYLE_BANK: dict[str, list[str]] = {
         "I have found that it is quite often that people use their second name, which has caused me some problems in genealogical research.",
     ],
 }
+
+
+def resolve_style_sets(
+    style_bank: dict[str, list[str]] | None = None,
+    styles: list[str] | None = None,
+) -> dict[str, list[str]]:
+    """Resolve style bank and optional key filter into a style dict.
+
+    Used by both TinyStyler and the prompting method.
+
+    Parameters
+    ----------
+    style_bank : dict or None
+        Custom style bank. ``None`` falls back to
+        :data:`DEFAULT_STYLE_BANK`.
+    styles : list[str] or None
+        Select only these keys from the bank. Order is preserved.
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Mapping of style names to example sentence lists.
+    """
+    bank = style_bank if style_bank is not None else DEFAULT_STYLE_BANK
+
+    if styles is not None:
+        unknown = set(styles) - set(bank.keys())
+        if unknown:
+            raise ValueError(
+                f"Unknown style key(s): {sorted(unknown)}. "
+                f"Available: {sorted(bank.keys())}"
+            )
+        return {k: bank[k] for k in styles}
+
+    if style_bank is not None:
+        return dict(style_bank)
+
+    return {k: bank[k] for k in DEFAULT_STYLES}

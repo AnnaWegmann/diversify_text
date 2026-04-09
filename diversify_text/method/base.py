@@ -23,7 +23,7 @@ class DiversificationMethod(ABC):
         self,
         texts: list[str],
         *,
-        n_styles: int,
+        n: int,
         max_new_tokens: int | None,
         temperature: float | None,
         top_p: float | None,
@@ -31,5 +31,5 @@ class DiversificationMethod(ABC):
     ) -> list[list[str]]:
         """Return paraphrases per input text.
 
-        Output shape must be ``len(texts)`` x ``n_styles``.
+        Output shape must be ``len(texts)`` x ``n``.
         """

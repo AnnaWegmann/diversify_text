@@ -18,19 +18,19 @@ def reassemble_segments(
         :func:`~diversify_text._preprocess.split_sentences`).
     paraphrases_by_segment : list[list[str]]
         Flat list of paraphrases for every segment, shape
-        ``[total_segments][n_styles]``.
+        ``[total_segments][n]``.
 
     Returns
     -------
     list[list[str]]
-        Shape ``[n_texts][n_styles]`` — reassembled paraphrases.
+        Shape ``[n_texts][n]`` — reassembled paraphrases.
     """
     result = []
     seg_idx = 0
     for segs in segments_per_text:
         seg_paras = paraphrases_by_segment[seg_idx : seg_idx + len(segs)]
-        n_styles = len(seg_paras[0])
-        result.append([" ".join(sp[i] for sp in seg_paras) for i in range(n_styles)])
+        n = len(seg_paras[0])
+        result.append([" ".join(sp[i] for sp in seg_paras) for i in range(n)])
         seg_idx += len(segs)
     return result
 
@@ -48,14 +48,14 @@ def postprocess(
     Parameters
     ----------
     candidate : list[list[str]]
-        Raw generation output, shape ``[n_generation_texts][n_styles]``.
+        Raw generation output, shape ``[n_generation_texts][n]``.
     context : PreprocessContext
         Context returned by :func:`~diversify_text._preprocess.preprocess`.
 
     Returns
     -------
     list[list[str]]
-        Shape ``[n_texts][n_styles]`` — one paraphrase per original text
+        Shape ``[n_texts][n]`` — one paraphrase per original text
         per style.
     """
     if context.segments_per_text is not None:

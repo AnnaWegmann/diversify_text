@@ -10,6 +10,7 @@ from typing import Any, TypeAlias
 
 from diversify_text.method.base import DiversificationMethod
 from diversify_text.method.echo import EchoMethod
+from diversify_text.method.prompting import PromptingMethod
 from diversify_text.method.tinystyler import TinyStylerMethod
 
 
@@ -106,4 +107,5 @@ def _build_init_kwargs(
 
 DEFAULT_METHOD_REGISTRY = MethodRegistry()
 DEFAULT_METHOD_REGISTRY.register("echo", EchoMethod)
+DEFAULT_METHOD_REGISTRY.register("prompting", PromptingMethod)
 DEFAULT_METHOD_REGISTRY.register("tinystyler", TinyStylerMethod)

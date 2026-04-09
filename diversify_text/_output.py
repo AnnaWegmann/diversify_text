@@ -128,7 +128,7 @@ class OutputWriter:
     def __init__(
         self,
         input_context: InputContext,
-        n_styles: int,
+        n: int,
         output_path: Path | None,
     ) -> None:
         """Initialize the writer.
@@ -137,14 +137,14 @@ class OutputWriter:
         ----------
         input_context : InputContext
             Metadata about the input source (kind, path, etc.).
-        n_styles : int
+        n : int
             Number of paraphrase styles requested per text.
         output_path : Path or None
             Where to write results on disk.  ``None`` means results
             are kept in memory and returned as ``list[dict]``.
         """
         self._input_context = input_context
-        self._n_styles = n_styles
+        self._n = n
         self._output_path = output_path
         # Open file handle — set by open() when writing to disk.
         self._handle: IO[str] | None = None
@@ -181,7 +181,7 @@ class OutputWriter:
         originals : list[str]
             The original texts in this batch.
         paraphrases_by_text : list[list[str]]
-            One inner list per original text, each containing *n_styles*
+            One inner list per original text, each containing *n*
             paraphrased variants.  For example, with 2 styles and 2
             texts: ``[["a_style1", "a_style2"], ["b_style1", "b_style2"]]``.
         Raises
@@ -197,10 +197,10 @@ class OutputWriter:
             )
 
         for i, (orig, paras) in enumerate(zip(originals, paraphrases_by_text)):
-            if len(paras) != self._n_styles:
-                _log.warning(
+            if len(paras) != self._n:
+                _log.debug(
                     "Expected %d paraphrases for text %d, got %d.",
-                    self._n_styles, i, len(paras),
+                    self._n, i, len(paras),
                 )
             record = {"original": orig, "paraphrases": paras}
             if self._output_path is None:

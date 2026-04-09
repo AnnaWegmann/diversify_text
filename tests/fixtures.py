@@ -11,9 +11,9 @@ class PrefixMethod(DiversificationMethod):
     def __init__(self, prefix: str) -> None:
         self.prefix = prefix
 
-    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
+    def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
         return [
-            [f"{self.prefix}:{text}:{i}" for i in range(n_styles)]
+            [f"{self.prefix}:{text}:{i}" for i in range(n)]
             for text in texts
         ]
 
@@ -23,7 +23,7 @@ class FailingMethod(DiversificationMethod):
 
     name = "failing"
 
-    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
+    def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
         raise RuntimeError("boom")
 
 
@@ -35,9 +35,9 @@ class CountingMethod(DiversificationMethod):
     def __init__(self) -> None:
         self.calls = 0
 
-    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
+    def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
         self.calls += 1
-        return [[f"{text}:{i}" for i in range(n_styles)] for text in texts]
+        return [[f"{text}:{i}" for i in range(n)] for text in texts]
 
 
 class IndexedMethod(DiversificationMethod):
@@ -52,9 +52,9 @@ class IndexedMethod(DiversificationMethod):
     def __init__(self) -> None:
         self.call_count = 0
 
-    def generate(self, texts, *, n_styles, max_new_tokens, temperature, top_p, **kwargs):
+    def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
         result = [
-            [f"{text}:s{i}:c{self.call_count}" for i in range(n_styles)]
+            [f"{text}:s{i}:c{self.call_count}" for i in range(n)]
             for text in texts
         ]
         self.call_count += 1
