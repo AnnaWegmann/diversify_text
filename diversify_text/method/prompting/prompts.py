@@ -20,6 +20,12 @@ HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL = "humanize_llm-as-coauthor_original"
 FORMAL_REIF = "formal_reif"
 SIMPLE_REIF = "simple_reif"
 SIMPLE_KEW = "simple_kew"
+COMPLEX_KEW = "complex_kew"
+PASSIVE_REIF = "passive_reif"
+CAPS_REIF = "caps_reif"
+LOWCAPS_REIF = "lowcaps_reif"
+TEXT_EMOJIS_REIF = "text_emojis_reif"
+LESS_COMMON_VERBS_REIF = "less_common_verbs_reif"
 
 # -- Zero-shot style transfer templates ---------------------------------------
 #   These are prompts taken from other work that aim to rewrite a text in a given style/structure.
@@ -33,10 +39,29 @@ ZS_PROMPT_BANK: dict[str, str] = {
         "Text: [DOCUMENT SEGMENT]"
     ),
     FORMAL_REIF: ( # taken from https://arxiv.org/abs/2109.03910
-        "Here is some text: [DOCUMENT SEGMENT]. Output only the paraphrase, nothing else. Here is a rewrite of the text, which is more formal:"
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the rewrite, nothing else. Here is a rewrite of the text, which is more formal:"
     ),
     SIMPLE_REIF: ( # taken from https://arxiv.org/abs/2109.03910
-        "Here is some text: [DOCUMENT SEGMENT]. Output only the paraphrase, nothing else. Here is a rewrite of the text, which is more simple:"
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the rewrite, nothing else. Here is a rewrite of the text, which is more simple:"
+    ),
+    CAPS_REIF: (
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the rewrite, "
+        "nothing else. Here is a rewrite of the text, which is in ALL CAPS:"
+    ),
+    LOWCAPS_REIF: (
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the rewrite, "
+        "nothing else. Here is a rewrite of the text, which is in all "
+        "lower case:"
+    ),
+    TEXT_EMOJIS_REIF: (
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the rewrite, "
+        "nothing else. Here is a rewrite of the text, which includes "
+        "text emojis like :-) or ;-D:"
+    ),
+    LESS_COMMON_VERBS_REIF: (
+        "Here is some text: [DOCUMENT SEGMENT]. Output only the rewrite, "
+        "nothing else. Here is a rewrite of the text, which uses less "
+        "common verbs:"
     ),
     SIMPLE_KEW: ( # taken from https://aclanthology.org/2023.emnlp-main.821.pdf
         "Please rewrite the following complex sentence in order to "
@@ -47,6 +72,18 @@ ZS_PROMPT_BANK: dict[str, str] = {
         "several simpler ones. The final simplified sentence needs to be "
         "grammatical, fluent, and retain the main ideas of its original "
         "counterpart without altering its meaning. Output only the paraphrase, nothing else. "
+        "Text: [DOCUMENT SEGMENT]"
+    ),
+    COMPLEX_KEW: (
+        "Please rewrite the following simple sentence in order to "
+        "make it more complex and sophisticated. "
+        "You can do so by replacing simple words with more elaborate "
+        "synonyms (i.e. paraphrasing), adding relevant detail and nuance "
+        "(i.e. expansion), and/or combining several short sentences into "
+        "longer, more intricate ones. The final complex sentence needs to be "
+        "grammatical, fluent, and retain the main ideas of its original "
+        "counterpart without altering its meaning. Output only the rewrite, "
+        "nothing else. "
         "Text: [DOCUMENT SEGMENT]"
     ),
     # From: https://arxiv.org/abs/2401.05952 (Zhang et al., 2024)
@@ -213,12 +250,9 @@ PLACEHOLDER_STYLE_NAME = "[STYLE NAME]"
 PROMPT_BANK: dict[str, str] = {**ZS_PROMPT_BANK, **EXAMPLE_BASED_PROMPT_BANK, **NAME_BASED_PROMPT_BANK}
 
 DEFAULT_PROMPTS: list[str] = [
-    # HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL,
     WIKIPEDIA_PARAPHRASE,
-    FORMAL_REIF,
-    SIMPLE_REIF,
-    SIMPLE_KEW
-    # FINEPHRASE_FAQ,
-    # FINEPHRASE_TABLE,
-    # FINEPHRASE_NARRATIVE,
+    COMPLEX_KEW,
+    SIMPLE_KEW,
+    HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL,
+    CAPS_REIF,
 ]
