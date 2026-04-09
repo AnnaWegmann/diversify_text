@@ -72,16 +72,18 @@ class TestPromptingMethodGenerate(unittest.TestCase):
             max_new_tokens=None,
             temperature=None,
             top_p=None,
+            # Use a non-finephrase prompt so there's no bonus.
+            prompt_keys=["wikipedia_paraphrase"],
         )
         call_kwargs = method._model.generate_text.call_args[1]
         self.assertEqual(call_kwargs["temperature"], 0.7)
         self.assertEqual(call_kwargs["top_p"], 0.9)
-        # n=1 uses the first default prompt (humanize, not finephrase) →
-        # no bonus. Mock tokenizer returns 3 tokens → max(10, min(3*2, 2048)) = 10.
+        # Non-finephrase prompt, no bonus.
+        # Mock tokenizer returns 3 tokens → max(10, min(3*2, 2048)) = 10.
         self.assertEqual(call_kwargs["max_new_tokens_per_prompt"], [10])
 
     def test_finephrase_bonus_only_applies_to_finephrase_prompts(self):
-        # n=5 with 1 text → uses all 5 default prompts in order:
+        # n=5 with 1 text, explicitly cycling 5 prompts:
         # 0: humanize (no bonus), 1: wikipedia (no bonus),
         # 2: finephrase_faq (bonus), 3: finephrase_table (bonus),
         # 4: finephrase_narrative (bonus).
@@ -95,6 +97,13 @@ class TestPromptingMethodGenerate(unittest.TestCase):
             max_new_tokens=None,
             temperature=None,
             top_p=None,
+            prompt_keys=[
+                "humanize_llm-as-coauthor_original",
+                "wikipedia_paraphrase",
+                "finephrase_faq",
+                "finephrase_table",
+                "finephrase_narrative",
+            ],
         )
         call_kwargs = method._model.generate_text.call_args[1]
         self.assertEqual(

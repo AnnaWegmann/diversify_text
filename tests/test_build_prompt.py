@@ -6,7 +6,7 @@ import unittest
 from diversify_text.method.prompting.method import PromptingMethod
 from diversify_text.method.prompting.prompts import (
     DEFAULT_PROMPTS,
-    FEW_SHOT_PROMPT_BANK,
+    EXAMPLE_BASED_PROMPT_BANK,
     PLACEHOLDER_STYLE_EXAMPLES,
     PLACEHOLDER_STYLE_NAME,
     PLACEHOLDER_TEXT,
@@ -26,7 +26,7 @@ class TestPromptBankValidity(unittest.TestCase):
             )
 
     def test_few_shot_prompt_bank_templates_contain_placeholders(self):
-        for key, template in FEW_SHOT_PROMPT_BANK.items():
+        for key, template in EXAMPLE_BASED_PROMPT_BANK.items():
             self.assertIn(
                 PLACEHOLDER_TEXT,
                 template,
@@ -80,7 +80,7 @@ class TestResolvePrompts(unittest.TestCase):
         self.assertEqual(len(templates), 1)
         key, template = templates[0]
         self.assertEqual(key, "style_transfer")
-        self.assertEqual(template, FEW_SHOT_PROMPT_BANK["style_transfer"])
+        self.assertEqual(template, EXAMPLE_BASED_PROMPT_BANK["style_transfer"])
 
     def test_style_example_keys_with_few_shot_prompt_keys(self):
         templates = PromptingMethod._resolve_prompts(

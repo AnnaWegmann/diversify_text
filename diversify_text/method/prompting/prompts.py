@@ -29,6 +29,37 @@ ZS_PROMPT_BANK: dict[str, str] = {
         "Output only the paraphrase, nothing else. "
         "Text: [DOCUMENT SEGMENT]"
     ),
+    # From: https://arxiv.org/abs/2401.05952 (Zhang et al., 2024)
+    # Original 5-modification prompt from the paper (no emojis).
+    HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL: (
+        "I need to modify a machine-generated text to make it appear more like it was "
+        "written by a human. The objective is to introduce elements commonly found in "
+        "human-written texts. Here are some optional modifications you can choose to "
+        "apply:\n"
+        "1. Introduce spelling errors or typos (optional).\n"
+        "2. Create grammatical errors, such as randomly adding or deleting words "
+        "(optional).\n"
+        "3. Include relevant but internet links, like blog posts or image links pertaining "
+        "to the topic, you don't have to use the real links, so you can freely write one "
+        "(optional).\n"
+        "4. Add relevant hashtags, for instance, #TopicKeyword #Location #Activity "
+        "(optional).\n"
+        "5. Use internet slang and abbreviations, e.g., 'OMG', 'How r u', 'LOL' "
+        "(optional).\n"
+        "Please select any combination of these modifications to enhance the text's "
+        "human-like quality. The aim is to simulate the imperfections and stylistic "
+        "choices typical in casual human writing.\n"
+        "The word count of the new text should not exceed 1.1 times that of the original "
+        "text.\n"
+        "You should just give me the revised version without any other words.\n"
+        "Emojis are strictly prohibitive, so please ensure that it contains no emojis.\n"
+        "Here is the machine-generated text: [DOCUMENT SEGMENT]"
+    ),
+    # -----------------------------------------------
+    # The following prompts are taken from the finephrase space: https://huggingface.co/spaces/HuggingFaceFW/finephrase
+    #       --> acutally they are not so great templates for REPHRASING,
+    #       they will often hallucinate new information to match the target register
+    # ------------------------------------------------
     FINEPHRASE_ARTICLE: ( # taken from https://huggingface.co/spaces/HuggingFaceFW/finephrase
         "Transform the document into a magazine-style feature article. "
         "Open with an engaging lead, then blend narrative storytelling with "
@@ -112,40 +143,14 @@ ZS_PROMPT_BANK: dict[str, str] = {
         "Output only the tutorial, nothing else. "
         "Document: [DOCUMENT SEGMENT]"
     ),
-    # From: https://arxiv.org/abs/2401.05952 (Zhang et al., 2024)
-    # Original 5-modification prompt from the paper (no emojis).
-    HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL: (
-        "I need to modify a machine-generated text to make it appear more like it was "
-        "written by a human. The objective is to introduce elements commonly found in "
-        "human-written texts. Here are some optional modifications you can choose to "
-        "apply:\n"
-        "1. Introduce spelling errors or typos (optional).\n"
-        "2. Create grammatical errors, such as randomly adding or deleting words "
-        "(optional).\n"
-        "3. Include relevant but internet links, like blog posts or image links pertaining "
-        "to the topic, you don't have to use the real links, so you can freely write one "
-        "(optional).\n"
-        "4. Add relevant hashtags, for instance, #TopicKeyword #Location #Activity "
-        "(optional).\n"
-        "5. Use internet slang and abbreviations, e.g., 'OMG', 'How r u', 'LOL' "
-        "(optional).\n"
-        "Please select any combination of these modifications to enhance the text's "
-        "human-like quality. The aim is to simulate the imperfections and stylistic "
-        "choices typical in casual human writing.\n"
-        "The word count of the new text should not exceed 1.1 times that of the original "
-        "text.\n"
-        "You should just give me the revised version without any other words.\n"
-        "Emojis are strictly prohibitive, so please ensure that it contains no emojis.\n"
-        "Here is the machine-generated text: [DOCUMENT SEGMENT]"
-    ),
 }
 
-# -- Few-shot style transfer templates ---------------------------------------
-#   These are prompts created by us or inspired by other work that rewrite a text with few shot examples.
+# -- Example-basd style transfer templates ---------------------------------------
+#   These are prompts created by us or inspired by other work that rewrite a text with examples in the target style.
 #   The style/structure itself is not described in the prompt as for the zero-shot templates.
-#   These use *both* [STYLE EXAMPLES] and [DOCUMENT SEGMENT] placeholders.
+#   These use [STYLE EXAMPLES], [STYLE NAME] and [DOCUMENT SEGMENT] placeholders.
 
-FEW_SHOT_PROMPT_BANK: dict[str, str] = {
+EXAMPLE_BASED_PROMPT_BANK: dict[str, str] = {
     "style_transfer": (
         "Here are examples of the [STYLE NAME] writing style:\n"
         "[STYLE EXAMPLES]\n\n"
@@ -171,17 +176,24 @@ FEW_SHOT_PROMPT_BANK: dict[str, str] = {
     ),
 }
 
+# -- Name-based style transfer templates ------------------------------------------------------
+
+NAME_BASED_PROMPT_BANK: dict[str, str] = {
+
+}
+
+
 # Placeholder tokens used inside prompt templates.
 PLACEHOLDER_TEXT = "[DOCUMENT SEGMENT]"
 PLACEHOLDER_STYLE_EXAMPLES = "[STYLE EXAMPLES]"
 PLACEHOLDER_STYLE_NAME = "[STYLE NAME]"
 
-PROMPT_BANK: dict[str, str] = {**ZS_PROMPT_BANK, **FEW_SHOT_PROMPT_BANK}
+PROMPT_BANK: dict[str, str] = {**ZS_PROMPT_BANK, **EXAMPLE_BASED_PROMPT_BANK}
 
 DEFAULT_PROMPTS: list[str] = [
-    HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL,
+    # HUMANIZE_LLM_AS_COAUTHOR_ORIGINAL,
     WIKIPEDIA_PARAPHRASE,
-    FINEPHRASE_FAQ,
-    FINEPHRASE_TABLE,
-    FINEPHRASE_NARRATIVE,
+    # FINEPHRASE_FAQ,
+    # FINEPHRASE_TABLE,
+    # FINEPHRASE_NARRATIVE,
 ]
