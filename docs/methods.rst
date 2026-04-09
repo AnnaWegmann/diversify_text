@@ -83,7 +83,7 @@ Prompting
 
 The ``prompting`` method generates paraphrases by sending input texts to a
 local HuggingFace causal language model with a prompt template. The default
-model is `SmolLM2-1.7B-Instruct <https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct>`_
+model is `SmolLM3-3B <https://huggingface.co/HuggingFaceTB/SmolLM3-3B>`_
 using insights from `The Synthetic Data Playbook <https://huggingface.co/spaces/HuggingFaceFW/finephrase>`_.
 
 .. code-block:: python
@@ -103,6 +103,13 @@ identifier to the constructor:
 
 Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
+
+.. note::
+
+   Thinking/reasoning models (e.g. SmolLM3-3B) are detected automatically and
+   have their thinking mode turned off (``enable_thinking=False``) during
+   generation. Thinking tokens add overhead without improving paraphrase
+   quality in this setting.
 
 **Inference backend.** The method currently uses the ``transformers`` library
 for inference.

@@ -51,7 +51,7 @@ def _resolve_cache_kwargs(
     omits it.  Only kwargs in :data:`_CACHE_KWARGS` are included.
 
     For example, ``PromptingMethod.__init__`` has
-    ``model="HuggingFaceTB/SmolLM2-1.7B-Instruct"`` as a default.
+    ``model="HuggingFaceTB/SmolLM3-3B"`` as a default.
     These two calls should hit the same cache entry::
 
         # Omit model — default is filled in from the signature.
@@ -59,7 +59,7 @@ def _resolve_cache_kwargs(
 
         # Explicitly pass the same default value.
         get_methods(device=None, methods=["prompting"],
-            method_kwargs={"prompting": {"model": "HuggingFaceTB/SmolLM2-1.7B-Instruct"}})
+            method_kwargs={"prompting": {"model": "HuggingFaceTB/SmolLM3-3B"}})
 
     Without this function the first call would produce the key
     ``("prompting", (("device", "cpu"),))`` (no model) and the second
@@ -80,7 +80,7 @@ def _resolve_cache_kwargs(
     -------
     dict[str, Any]
         The full set of cache-relevant kwargs, e.g.
-        ``{"device": "cpu", "model": "HuggingFaceTB/SmolLM2-1.7B-Instruct", "precision": "auto"}``.
+        ``{"device": "cpu", "model": "HuggingFaceTB/SmolLM3-3B", "precision": "auto"}``.
     """
     # Start with device (always present).
     resolved: dict[str, Any] = {"device": device}

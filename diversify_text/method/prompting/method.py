@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+# import re  # TODO: decide what to do with thinking models
 from typing import Any
 
 from diversify_text.method.base import DiversificationMethod
@@ -18,7 +19,7 @@ from diversify_text.styles import resolve_style_sets
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_MODEL = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+_DEFAULT_MODEL = "HuggingFaceTB/SmolLM3-3B"
 _DEFAULT_TEMPERATURE = 0.7
 _DEFAULT_TOP_P = 0.9
 _MAX_NEW_TOKENS_FACTOR = 2.0
@@ -215,19 +216,24 @@ class PromptingMethod(DiversificationMethod):
             len(ids)
             for ids in model._tokenizer(texts, truncation=True)["input_ids"]
         ]
+        # TODO: decide what to do with thinking models
+        # is_thinking = getattr(model, "_is_thinking_model", False) is True
 
         # Build flat list matching the prompt loop order.
         result: list[int] = []
         for i in range(n):
             key, _template = prompt_templates[i % len(prompt_templates)]
-            is_finephrase = key.startswith("finephrase_")
+            needs_bonus = key.startswith("finephrase_") or "complex" in key
             for count in token_counts:
                 budget = max(
                     _MAX_NEW_TOKENS_FLOOR,
                     min(int(count * _MAX_NEW_TOKENS_FACTOR), _MAX_NEW_TOKENS_CAP),
                 )
-                if is_finephrase:
+                if needs_bonus:
                     budget = min(budget + _FINEPHRASE_BONUS_TOKENS, _MAX_NEW_TOKENS_CAP)
+                # TODO: decide what to do with thinking models
+                # if is_thinking:
+                #     budget = _MAX_NEW_TOKENS_CAP
                 result.append(budget)
         return result
 
@@ -400,8 +406,8 @@ class PromptingMethod(DiversificationMethod):
         for i in range(n):
             for row_idx in range(num_texts):
                 generated = flat_results[i * num_texts + row_idx]
-                # Strip leading/trailing whitespace from model output.
-                # This is safe — space variation within the paraphrase is preserved.
+                # TODO: decide what to do with thinking models
+                # generated = re.sub(r"<think>.*?</think>\s*", "", generated, flags=re.DOTALL)
                 paraphrases_per_text[row_idx].append(generated.strip())
 
         return paraphrases_per_text

@@ -130,6 +130,12 @@ class PromptingModel:
                 )
                 self._model.to(self.device)
                 self._model.eval()
+        # TODO: decide what to do with thinking models
+        self._is_thinking_model = (
+            hasattr(self._tokenizer, "chat_template")
+            and self._tokenizer.chat_template is not None
+            and "<think>" in self._tokenizer.chat_template
+        )
 
     # -- vLLM backend ---------------------------------------------------------
     # TBD
@@ -186,9 +192,14 @@ class PromptingModel:
             and self._tokenizer.chat_template is not None
         ):
             conversations = [[{"role": "user", "content": p}] for p in prompts]
+            # TODO: decide what to do with thinking models
+            kwargs = {}
+            if self._is_thinking_model:
+                kwargs["enable_thinking"] = False
             return self._tokenizer.apply_chat_template(
                 conversations,
                 tokenize=False,
                 add_generation_prompt=True,
+                **kwargs,
             )
         return prompts
