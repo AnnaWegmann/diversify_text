@@ -83,7 +83,7 @@ class Diversifier:
         self,
         texts: TextInput,
         *,
-        n: int = 5,
+        n: int | None = None,
         text_column: str = "text",
         batch_size: int = 32,
         max_new_tokens: int | None = None,
@@ -102,9 +102,11 @@ class Diversifier:
         texts : str | list[str] | Iterable[str]
             A single text, a list of texts, a generator/iterable of texts,
             or a path to a ``.csv``, ``.tsv``, or ``.txt`` file.
-        n : int
+        n : int or None
             Number of stylistically diverse paraphrases to generate per
-            input text.
+            input text.  ``None`` (default) uses ``len(prompt_keys)``
+            when prompt keys are provided via *method_kwargs*, or ``5``
+            otherwise.
         text_column : str
             Column name to extract when *texts* points to a CSV/TSV file.
         batch_size : int
@@ -151,6 +153,11 @@ class Diversifier:
 
             Otherwise, returns the ``Path`` to the output file(s).
         """
+        # Resolve n: when a single method is used and the user provided
+        # per-method keys (prompt_keys for prompting, styles for tinystyler),
+        # default n to the number of keys so each is used exactly once.
+        if n is None:
+            n = self._infer_n_from_method_kwargs(method_kwargs)
         if n < 1:
             raise ValueError("n must be >= 1.")
         if batch_size < 1:
@@ -234,6 +241,28 @@ class Diversifier:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    _DEFAULT_N = 5
+
+    def _infer_n_from_method_kwargs(
+        self,
+        method_kwargs: Mapping[str, dict[str, Any]] | None,
+    ) -> int:
+        """Infer *n* from per-method kwargs when only one method is used.
+
+        When a single method is active and the caller provided method-
+        specific keys (``prompt_keys`` for prompting, ``styles`` for
+        tinystyler), returns the length of those keys so each is used
+        exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
+        """
+        if len(self._methods) == 1 and method_kwargs:
+            method = self._methods[0]
+            kw = method_kwargs.get(method.name, {})
+            if method.name == "prompting" and "prompt_keys" in kw:
+                return len(kw["prompt_keys"])
+            if method.name == "tinystyler" and "styles" in kw:
+                return len(kw["styles"])
+        return self._DEFAULT_N
 
     @staticmethod
     def _compute_allocations(total_styles: int, n_methods: int) -> list[int]:
