@@ -26,6 +26,10 @@ from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_SEED = 51173
+_SENTINEL = object()
+_default_seed_applied: bool = False
+
 
 class Diversifier:
     """Generate stylistic paraphrases using one or more pluggable methods.
@@ -89,7 +93,7 @@ class Diversifier:
         max_new_tokens: int | None = None,
         temperature: float | None = None,
         top_p: float | None = None,
-        seed: int | None = 51173,
+        seed: int | None | object = _SENTINEL,
         method_kwargs: Mapping[str, dict[str, Any]] | None = None,
         preprocess_kwargs: dict[str, Any] | None = None,
         output_dir: str | Path | None = None,
@@ -120,13 +124,13 @@ class Diversifier:
         top_p : float, optional
             Nucleus-sampling probability mass.  ``None`` lets each
             method choose its own default.
-        seed : int
-            Random seed for more reproducible output.  Seeds Python's
+        seed : int or None, optional
+            Random seed for reproducible output.  Seeds Python's
             ``random``, PyTorch (CPU + CUDA), and NumPy if available.
-            Defaults to ``51173``.  Exact determinism is not guaranteed
-            across different hardware or library versions.  Pass a
-            different integer to get a new set of outputs, or ``None``
-            to disable seeding.
+            When omitted, the default seed (``51173``) is applied on the
+            first call only and skipped on subsequent calls.  Pass an
+            explicit integer to always (re-)seed.  Pass ``None`` to
+            disable seeding entirely.
         method_kwargs : mapping[str, dict], optional
             Per-method keyword arguments. Example:
             ``{"tinystyler": {"style_bank": [...]}}``.
@@ -175,19 +179,13 @@ class Diversifier:
         if self._mis_filter is not None:
             self._mis_filter.prepare()
 
-        if seed is not None:
-            import random
-            import torch
-            random.seed(seed)
-            torch.manual_seed(seed)
-            if torch.cuda.is_available():
-                torch.cuda.manual_seed_all(seed)
-            try:
-                import numpy as np
-                np.random.seed(seed)
-            except ImportError:
-                pass
-            logger.info("Using random seed: %d", seed)
+        global _default_seed_applied
+        if seed is _SENTINEL:
+            if not _default_seed_applied:
+                self._apply_seed(_DEFAULT_SEED)
+                _default_seed_applied = True
+        elif seed is not None:
+            self._apply_seed(seed)
 
         # --- process batches lazily ---
         n_candidates = (
@@ -263,6 +261,21 @@ class Diversifier:
             if method.name == "tinystyler" and "styles" in kw:
                 return len(kw["styles"])
         return self._DEFAULT_N
+
+    @staticmethod
+    def _apply_seed(seed: int) -> None:
+        import random
+        import torch
+        random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        try:
+            import numpy as np
+            np.random.seed(seed)
+        except ImportError:
+            pass
+        logger.info("Using random seed: %d", seed)
 
     @staticmethod
     def _compute_allocations(total_styles: int, n_methods: int) -> list[int]:
