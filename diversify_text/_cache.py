@@ -221,10 +221,10 @@ def get_methods(
 
 @lru_cache(maxsize=1)
 def _load_mis_filter(device: str) -> MISFilter:
-    """Load the MIS filter model (expensive).  Cached by device.
+    """Load the MIS filter model (expensive).
 
     This is the expensive part — loading the model weights.  The
-    ``lru_cache`` decorator ensures this only runs once per device
+    ``lru_cache`` decorator ensures this only runs once per last used device
     string.  Cheap per-call settings (``min_score``, ``n_candidates``)
     are applied separately in :func:`get_cached_mis_filter`.
     """
