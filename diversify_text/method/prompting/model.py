@@ -8,8 +8,6 @@ Uses the ``transformers`` library (``AutoModelForCausalLM``).
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
-from itertools import islice
 
 import torch
 from huggingface_hub import snapshot_download
@@ -78,43 +76,37 @@ class PromptingModel:
 
     def generate_text(
         self,
-        prompts: Iterable[str],
+        prompts: list[str],
         *,
-        max_new_tokens: int,
+        max_new_tokens_per_prompt: list[int],
         temperature: float,
         top_p: float,
-        batch_size: int = 32,
     ) -> list[str]:
-        """Generate completions for a batch of prompts.
+        """Generate completions for a list of prompts.
+
+        Each prompt is processed individually with its own
+        ``max_new_tokens`` value.
 
         Parameters
         ----------
-        prompts : Iterable[str]
-            Prompts to generate completions for.  Can be a list or a
-            generator — prompts are consumed in chunks of *batch_size*
-            for the transformers backend.
-        max_new_tokens, temperature, top_p
+        prompts : list[str]
+            Prompts to generate completions for.
+        max_new_tokens_per_prompt : list[int]
+            Maximum tokens to generate for each prompt (same length
+            as *prompts*).
+        temperature, top_p
             Sampling parameters forwarded to the backend.
-        batch_size : int
-            Number of prompts per backend call (transformers only).
-            vLLM handles batching internally and receives all prompts
-            at once.
         """
-        # TODO: add vLLM backend support in a future release.
-        # Chunk prompts to avoid OOM on large batches.
-        gen_kwargs = dict(
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            top_p=top_p,
-        )
+        # TODO: add batching and vLLM backend support in a future release.
         results: list[str] = []
-        prompt_iter = iter(prompts)
-        while True:
-            prompts_chunk = list(islice(prompt_iter, batch_size))
-            if not prompts_chunk:
-                break
+        for prompt, max_new_tokens in zip(prompts, max_new_tokens_per_prompt):
             results.extend(
-                self._generate_transformers(prompts_chunk, **gen_kwargs)
+                self._generate_transformers(
+                    [prompt],
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                )
             )
         return results
 
