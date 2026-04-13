@@ -118,7 +118,7 @@ class TinyStylerMethod(DiversificationMethod):
             styles_arg,
         )
         # When explicit style keys are given, they determine the count.
-        effective_n = len(styles_arg) if styles_arg is not None else n
+        effective_n = n
         if effective_n > len(style_bank):
             logger.warning(
                 "n=%d exceeds the number of style bank entries (%d). "
