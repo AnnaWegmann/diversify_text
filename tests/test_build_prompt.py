@@ -73,28 +73,28 @@ class TestResolvePrompts(unittest.TestCase):
 
     # --- TEST SELECTING FEW-SHOT STYLE EXAMPLES BY KEYS ---
 
-    def test_style_example_keys_without_prompt_keys_returns_few_shot(self):
+    def test_styles_without_prompt_keys_returns_few_shot(self):
         templates = PromptingMethod._resolve_prompts(
-            style_example_keys=["informal_tinystyler"]
+            styles=["informal_tinystyler"]
         )
         self.assertEqual(len(templates), 1)
         key, template = templates[0]
         self.assertEqual(key, "style_transfer")
         self.assertEqual(template, EXAMPLE_BASED_PROMPT_BANK["style_transfer"])
 
-    def test_style_example_keys_with_few_shot_prompt_keys(self):
+    def test_styles_with_few_shot_prompt_keys(self):
         templates = PromptingMethod._resolve_prompts(
-            style_example_keys=["informal_tinystyler"],
+            styles=["informal_tinystyler"],
             prompt_keys=["humanize_transfer"],
         )
         self.assertEqual(len(templates), 1)
         _key, template = templates[0]
         self.assertIn(PLACEHOLDER_STYLE_EXAMPLES, template)
 
-    def test_style_example_keys_with_zero_shot_prompt_keys_raises(self):
+    def test_styles_with_zero_shot_prompt_keys_raises(self):
         with self.assertRaises(ValueError) as context_manager:
             PromptingMethod._resolve_prompts(
-                style_example_keys=["informal_tinystyler"],
+                styles=["informal_tinystyler"],
                 prompt_keys=["wikipedia_paraphrase"],
             )
         self.assertIn(PLACEHOLDER_STYLE_EXAMPLES, str(context_manager.exception))

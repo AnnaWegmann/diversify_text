@@ -177,7 +177,7 @@ Few-shot style transfer with prompting
 
 The prompting method can also perform few-shot style transfer by combining
 style examples from the shared style bank with a few-shot prompt template.
-When ``style_example_keys`` is provided without explicit ``prompt_keys``, the method
+When ``styles`` is provided without explicit ``prompt_keys``, the method
 automatically uses the ``style_transfer`` template from
 :data:`~diversify_text.method.prompting.prompts.EXAMPLE_BASED_PROMPT_BANK`:
 
@@ -188,7 +188,7 @@ automatically uses the ``style_transfer`` template from
        methods=["prompting"],
        method_kwargs={
            "prompting": {
-               "style_example_keys": ["informal_tinystyler"],
+               "styles": ["informal_tinystyler"],
            }
        },
    )
@@ -204,7 +204,7 @@ style examples:
        methods=["prompting"],
        method_kwargs={
            "prompting": {
-               "style_example_keys": ["informal_tinystyler"],
+               "styles": ["informal_tinystyler"],
                "prompt_keys": ["humanize_transfer"],
            }
        },

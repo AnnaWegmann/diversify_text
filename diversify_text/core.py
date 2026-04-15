@@ -248,16 +248,40 @@ class Diversifier:
     ) -> int:
         """Infer *n* from per-method kwargs when only one method is used.
 
-        When a single method is active and the caller provided method-
-        specific keys (``prompt_keys`` for prompting, ``styles`` for
-        tinystyler), returns the length of those keys so each is used
-        exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
+        When a single method is active (currently outof tinystyler and prompting)
+        and the caller provided method-specific keys, infers the number of
+        paraphrases from number of keys.  Otherwise returns :attr:`_DEFAULT_N`.
+
+        For the prompting method, the inference depends on what is provided:
+            * ``prompt_keys`` only → ``len(prompt_keys)`` (one per template).
+            * ``styles`` only → ``len(styles)`` (style transfer, one per style).
+            * Both → each style-dependent template (in
+            :data:`EXAMPLE_BASED_PROMPT_BANK` or :data:`NAME_BASED_PROMPT_BANK`)
+            contributes ``len(styles)``, each zero-shot template contributes 1.
         """
         if len(self._methods) == 1 and method_kwargs:
             method = self._methods[0]
             kw = method_kwargs.get(method.name, {})
-            if method.name == "prompting" and "prompt_keys" in kw:
-                return len(kw["prompt_keys"])
+            if method.name == "prompting":
+                from diversify_text.method.prompting.prompts import STYLE_DEP_PROMPTS
+                from diversify_text.styles import DEFAULT_STYLES
+
+                prompt_keys = kw.get("prompt_keys")
+                styles = kw.get("styles")
+                # When styles are not provided but style-dependent prompts
+                # are selected, default to DEFAULT_STYLES.
+                if not styles and prompt_keys and any(k in STYLE_DEP_PROMPTS for k in prompt_keys):
+                    styles = DEFAULT_STYLES
+                if prompt_keys:
+                    n = 0
+                    for key in prompt_keys:
+                        if key in STYLE_DEP_PROMPTS and styles:
+                            n += len(styles)
+                        else:
+                            n += 1
+                    return n
+                if styles:
+                    return len(styles)
             if method.name == "tinystyler" and "styles" in kw:
                 return len(kw["styles"])
         return self._DEFAULT_N

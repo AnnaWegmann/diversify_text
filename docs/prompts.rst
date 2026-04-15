@@ -148,7 +148,7 @@ All example-based templates are stored in
 Automatic few-shot selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When ``style_example_keys`` is provided without explicit ``prompt_keys``, the
+When ``styles`` is provided without explicit ``prompt_keys``, the
 method automatically uses the ``style_transfer`` template:
 
 .. code-block:: python
@@ -158,7 +158,7 @@ method automatically uses the ``style_transfer`` template:
        methods=["prompting"],
        method_kwargs={
            "prompting": {
-               "style_example_keys": ["informal_tinystyler"],
+               "styles": ["informal_tinystyler"],
            }
        },
    )
@@ -172,7 +172,7 @@ To use a different few-shot template, pass it via ``prompt_keys``:
        methods=["prompting"],
        method_kwargs={
            "prompting": {
-               "style_example_keys": ["informal_tinystyler"],
+               "styles": ["informal_tinystyler"],
                "prompt_keys": ["humanize_transfer"],
            }
        },

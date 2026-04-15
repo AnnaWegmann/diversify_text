@@ -14,6 +14,7 @@ from diversify_text.method.prompting.prompts import (
     PLACEHOLDER_STYLE_NAME,
     PLACEHOLDER_TEXT,
     PROMPT_BANK,
+    STYLE_DEP_PROMPTS,
 )
 from diversify_text.styles import resolve_style_sets
 
@@ -75,7 +76,7 @@ class PromptingMethod(DiversificationMethod):
     def _resolve_prompts(
         prompt_bank: dict[str, str] | None = None,
         prompt_keys: list[str] | None = None,
-        style_example_keys: list[str] | None = None,
+        styles: list[str] | None = None,
         custom_style_bank: dict[str, list[str]] | None = None,
     ) -> list[tuple[str, str]]:
         """Resolve prompt configuration into an ordered list of (key, template) pairs.
@@ -93,7 +94,7 @@ class PromptingMethod(DiversificationMethod):
             zero-shot + few-shot bank).
         prompt_keys : list[str] or None
             Select only these keys from the bank.  Order is preserved.
-        style_example_keys : list[str] or None
+        styles : list[str] or None
             Names of style sets for few-shot examples.  If provided
             without *prompt_keys*, the method automatically selects
             the ``"style_transfer"`` prompt template.  When combined
@@ -101,7 +102,7 @@ class PromptingMethod(DiversificationMethod):
             the ``[STYLE EXAMPLES]`` placeholder.
         custom_style_bank : dict or None
             Custom style bank — same trigger behavior as
-            *style_example_keys*.
+            *styles*.
 
         Returns
         -------
@@ -113,13 +114,13 @@ class PromptingMethod(DiversificationMethod):
         Raises
         ------
         ValueError
-            If *prompt_keys* contains unknown keys, or if *style_example_keys*
+            If *prompt_keys* contains unknown keys, or if *styles*
             / *custom_style_bank* are provided but the selected
             templates do not contain a ``[STYLE EXAMPLES]``
             placeholder.
         """
         bank = prompt_bank if prompt_bank is not None else PROMPT_BANK
-        has_styles = style_example_keys is not None or custom_style_bank is not None
+        has_styles = styles is not None or custom_style_bank is not None
 
         # --- Select templates (four mutually exclusive cases) ---
 
@@ -153,12 +154,12 @@ class PromptingMethod(DiversificationMethod):
             for _k, t in templates
         ):
             raise ValueError(
-                "style_example_keys or custom_style_bank were provided, but the "
+                "styles or custom_style_bank were provided, but the "
                 "selected prompt template(s) do not contain the "
                 f"{PLACEHOLDER_STYLE_EXAMPLES} or {PLACEHOLDER_STYLE_NAME} "
                 f"placeholder. Use a style-aware template "
                 f"(e.g. prompt_keys=['style_transfer'] or prompt_keys=['reif']) "
-                f"or remove style_example_keys. See "
+                f"or remove styles. See "
                 f"https://annawegmann.github.io/diversify_text/prompts.html"
             )
 
@@ -244,11 +245,40 @@ class PromptingMethod(DiversificationMethod):
         Returns a dict mapping style names to example sentences, or
         an empty dict when no style kwargs are provided.
         """
-        style_keys = kwargs.get("style_example_keys")
+        style_keys = kwargs.get("styles")
         custom_bank = kwargs.get("custom_style_bank")
         if style_keys is not None or custom_bank is not None:
             return resolve_style_sets(custom_bank, style_keys)
         return {}
+
+    @staticmethod
+    def _build_schedule(
+        prompt_templates: list[tuple[str, str]],
+        fs_style_examples: dict[str, list[str]],
+    ) -> list[tuple[str, str, int | None]]:
+        """Build a generation schedule from templates and style examples.
+
+        Style-dependent templates (in :data:`EXAMPLE_BASED_PROMPT_BANK` or
+        :data:`NAME_BASED_PROMPT_BANK`) expand to one entry per style;
+        zero-shot templates get a single entry.
+
+        The caller iterates the schedule with modulo to fill ``n`` slots,
+        so the schedule represents one full "natural" cycle.
+
+        Each entry is ``(key, template, style_idx)`` where *style_idx* is
+        ``None`` for zero-shot templates.
+        """
+        n_styles = len(fs_style_examples) if fs_style_examples else 0
+
+
+        schedule: list[tuple[str, str, int | None]] = []
+        for key, tmpl in prompt_templates:
+            if n_styles and key in STYLE_DEP_PROMPTS:
+                for style_idx in range(n_styles):
+                    schedule.append((key, tmpl, style_idx))
+            else:
+                schedule.append((key, tmpl, None))
+        return schedule
 
     def _fill_template(
         self,
@@ -346,7 +376,7 @@ class PromptingMethod(DiversificationMethod):
             Sampling parameters. ``None`` uses defaults.
         **kwargs
             Extra options forwarded from ``Diversifier``, including
-            ``prompt_keys``, ``prompt_bank``, ``style_example_keys``,
+            ``prompt_keys``, ``prompt_bank``, ``styles``,
             ``custom_style_bank``, and ``n_style_examples``.
         """
         model = self._ensure_model()
@@ -356,7 +386,7 @@ class PromptingMethod(DiversificationMethod):
         prompt_templates = self._resolve_prompts(
             prompt_bank=kwargs.get("prompt_bank"),
             prompt_keys=kwargs.get("prompt_keys"),
-            style_example_keys=kwargs.get("style_example_keys"),
+            styles=kwargs.get("styles"),
             custom_style_bank=kwargs.get("custom_style_bank"),
         )
         all_max_new_tokens = self._compute_max_new_tokens(
@@ -369,24 +399,32 @@ class PromptingMethod(DiversificationMethod):
         )
 
         fs_style_examples = self._resolve_few_shot_examples(**kwargs)
+        # Default to DEFAULT_STYLES when style-dependent prompts are
+        # selected but no explicit styles were provided.
+        if not fs_style_examples:
+    
+            if any(k in STYLE_DEP_PROMPTS for k, _ in prompt_templates):
+                from diversify_text.styles import DEFAULT_STYLES
+                fs_style_examples = resolve_style_sets(None, DEFAULT_STYLES)
         if fs_style_examples:
             logger.info("Style sets: %s", ", ".join(fs_style_examples.keys()))
 
         n_ex = kwargs.get("n_style_examples", _DEFAULT_N_STYLE_EXAMPLES)
 
-        # Build prompts in the same order as all_max_new_tokens.
+        schedule = self._build_schedule(prompt_templates, fs_style_examples)
+
         # TODO: accept texts as an Iterable (not just list) to support
         #       streaming from large files without materialising everything
         #       in memory.
         all_prompts: list[str] = []
         for i in range(n):
-            _key, template = prompt_templates[i % len(prompt_templates)]
+            _key, template, style_idx = schedule[i % len(schedule)]
             for t in texts:
                 all_prompts.append(
                     self._fill_template(
                         template=template,
                         text=t,
-                        style_idx=i,
+                        style_idx=style_idx,
                         fs_style_examples=fs_style_examples,
                         n_style_examples=n_ex,
                     )
