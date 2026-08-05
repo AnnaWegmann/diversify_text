@@ -108,9 +108,8 @@ class Diversifier:
             or a path to a ``.csv``, ``.tsv``, or ``.txt`` file.
         n : int or None
             Number of stylistically diverse paraphrases to generate per
-            input text.  ``None`` (default) uses ``len(prompt_keys)``
-            when prompt keys are provided via *method_kwargs*, or ``5``
-            otherwise.
+            input text.  ``None`` (default) uses ``len(styles)`` when
+            styles are provided via *method_kwargs*, or ``5`` otherwise.
         text_column : str
             Column name to extract when *texts* points to a CSV/TSV file.
         batch_size : int
@@ -158,8 +157,8 @@ class Diversifier:
             Otherwise, returns the ``Path`` to the output file(s).
         """
         # Resolve n: when a single method is used and the user provided
-        # per-method keys (prompt_keys for prompting, styles for tinystyler),
-        # default n to the number of keys so each is used exactly once.
+        # explicit styles, default n to the number of styles so each is
+        # used exactly once.
         if n is None:
             n = self._infer_n_from_method_kwargs(method_kwargs)
         if n < 1:
@@ -248,42 +247,23 @@ class Diversifier:
     ) -> int:
         """Infer *n* from per-method kwargs when only one method is used.
 
-        When a single method is active (currently outof tinystyler and prompting)
-        and the caller provided method-specific keys, infers the number of
-        paraphrases from number of keys.  Otherwise returns :attr:`_DEFAULT_N`.
-
-        For the prompting method, the inference depends on what is provided:
-            * ``prompt_keys`` only → ``len(prompt_keys)`` (one per template).
-            * ``styles`` only → ``len(styles)`` (style transfer, one per style).
-            * Both → each style-dependent template (in
-            :data:`EXAMPLE_BASED_PROMPT_BANK` or :data:`NAME_BASED_PROMPT_BANK`)
-            contributes ``len(styles)``, each zero-shot template contributes 1.
+        When a single method is active (currently out of tinystyler and
+        prompting) and the caller provided explicit ``styles`` — or a
+        custom style bank without a ``styles`` selection — infers the
+        number of paraphrases as the number of provided styles so each
+        style is used exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
         """
         if len(self._methods) == 1 and method_kwargs:
             method = self._methods[0]
             kw = method_kwargs.get(method.name, {})
             if method.name == "prompting":
-                from diversify_text.method.prompting.prompts import STYLE_DEP_PROMPTS
-                from diversify_text.styles import DEFAULT_STYLES
-
-                prompt_keys = kw.get("prompt_keys")
-                styles = kw.get("styles")
-                # When styles are not provided but style-dependent prompts
-                # are selected, default to DEFAULT_STYLES.
-                if not styles and prompt_keys and any(k in STYLE_DEP_PROMPTS for k in prompt_keys):
-                    styles = DEFAULT_STYLES
-                if prompt_keys:
-                    n = 0
-                    for key in prompt_keys:
-                        if key in STYLE_DEP_PROMPTS and styles:
-                            n += len(styles)
-                        else:
-                            n += 1
-                    return n
-                if styles:
-                    return len(styles)
-            if method.name == "tinystyler" and "styles" in kw:
-                return len(kw["styles"])
+                style_source = kw.get("styles") or kw.get("custom_style_bank")
+                if style_source:
+                    return len(style_source)
+            if method.name == "tinystyler":
+                style_source = kw.get("styles") or kw.get("style_bank")
+                if style_source:
+                    return len(style_source)
         return self._DEFAULT_N
 
     @staticmethod

@@ -3,11 +3,6 @@
 import unittest
 
 from diversify_text import Diversifier, diversify
-from diversify_text.method.prompting.prompts import (
-    EXAMPLE_BASED_PROMPT_BANK,
-    NAME_BASED_PROMPT_BANK,
-)
-from diversify_text.styles import DEFAULT_STYLES
 
 from tests.fixtures import PrefixMethod
 
@@ -64,45 +59,38 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         results = diversify("hello", methods=[_FakeTinyStyler()])
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
-    # -- prompting: prompt_keys only -----------------------------------------
+    def test_tinystyler_n_inferred_from_style_bank(self):
+        """n=None + a 2-style custom bank (no styles selection) → 2 paraphrases."""
+        results = diversify(
+            "hello",
+            methods=[_FakeTinyStyler()],
+            method_kwargs={"tinystyler": {"style_bank": {
+                "a": ["example a"], "b": ["example b"],
+            }}},
+        )
+        self.assertEqual(len(results[0]["paraphrases"]), 2)
 
-    def test_prompting_style_dep_key_without_styles_defaults_to_default_styles(self):
-        """n=None + 1 style-dependent prompt_key + no styles → len(DEFAULT_STYLES)."""
+    # -- prompting: prompt selection ------------------------------------------
+
+    def test_prompting_prompt_selection_does_not_affect_n(self):
+        """n=None + a prompt selection (no styles) → _DEFAULT_N."""
         results = diversify(
             "hello",
             methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["style_transfer"]}},
+            method_kwargs={"prompting": {"prompt": "humanize_transfer"}},
         )
-        self.assertEqual(len(results[0]["paraphrases"]), len(DEFAULT_STYLES))
+        self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
-    def test_prompting_style_dep_n_overrides(self):
-        """n=10 + 2 prompt_keys → 10 paraphrases (n wins)."""
-        results = diversify(
-            "hello",
-            n=10,
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["style_transfer"]}},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
-
-    def test_prompting_zero_shot_key_infers_n_1(self):
-        """n=None + 1 zero-shot prompt_key → 1 paraphrase."""
+    def test_prompting_n_inferred_from_custom_style_bank(self):
+        """n=None + a 2-style custom bank (no styles selection) → 2 paraphrases."""
         results = diversify(
             "hello",
             methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["wikipedia_paraphrase"]}},
+            method_kwargs={"prompting": {"custom_style_bank": {
+                "a": ["example a"], "b": ["example b"],
+            }}},
         )
-        self.assertEqual(len(results[0]["paraphrases"]), 1)
-
-    def test_prompting_explicit_n_overrides_prompt_keys(self):
-        """n=10 + 2 prompt_keys → 10 paraphrases (n wins)."""
-        results = diversify(
-            "hello",
-            n=10,
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["wikipedia_paraphrase"]}},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
+        self.assertEqual(len(results[0]["paraphrases"]), 2)
 
     def test_prompting_no_kwargs_defaults_to_default_n(self):
         """n=None + no method_kwargs → _DEFAULT_N."""
@@ -130,34 +118,19 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         )
         self.assertEqual(len(results[0]["paraphrases"]), 10)
 
-    # -- prompting: mixed prompt_keys + styles -------------------------------
+    # -- prompting: prompt selection + styles --------------------------------
 
-    def test_prompting_mixed_style_and_zero_shot(self):
-        """One style-based + one zero-shot + 3 styles → 3+1 = 4."""
+    def test_prompting_prompt_with_styles_infers_from_styles(self):
+        """A prompt selection + 3 styles → 3 paraphrases (one per style)."""
         results = diversify(
             "hello",
             methods=[_FakePrompting()],
             method_kwargs={"prompting": {
-                "prompt_keys": ["style_transfer", "wikipedia_paraphrase"],
+                "prompt": "style_transfer",
                 "styles": ["a", "b", "c"],
             }},
         )
-        # style_transfer is in EXAMPLE_BASED_PROMPT_BANK → 3
-        # wikipedia_paraphrase is zero-shot → 1
-        self.assertEqual(len(results[0]["paraphrases"]), 4)
-
-    def test_prompting_mixed_explicit_n_overrides(self):
-        """Explicit n=10 overrides mixed inference."""
-        results = diversify(
-            "hello",
-            n=10,
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {
-                "prompt_keys": ["style_transfer", "wikipedia_paraphrase"],
-                "styles": ["a", "b"],
-            }},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
+        self.assertEqual(len(results[0]["paraphrases"]), 3)
 
     # -- edge cases ----------------------------------------------------------
 
