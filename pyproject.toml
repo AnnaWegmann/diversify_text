@@ -53,6 +53,7 @@ docs = [
     "sphinx>=7.0",
     "sphinx-rtd-theme",
     "sphinx-copybutton",
+    "myst-parser>=4.0.1",
 ]
 
 [tool.hatch.build.targets.sdist]
