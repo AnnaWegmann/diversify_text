@@ -10,14 +10,16 @@ pip install diversify-text
 
 ## Table of contents
 
-- [Usage](#usage)
-  - [Single text](#single-text)
-  - [Control number of paraphrases](#control-number-of-paraphrases)
-  - [Prompting method](#prompting-method)
-  - [Caching](#caching)
-  - [Using the class directly](#using-the-class-directly)
-  - [List of texts](#list-of-texts)
-  - [Customising the TinyStyler style bank](#customising-the-tinystyler-style-bank)
+- [How it works](#how-it-works)
+- [Basic usage](#basic-usage)
+- [Picking styles from the bank](#picking-styles-from-the-bank)
+- [Bring your own style examples](#bring-your-own-style-examples)
+- [Repeats](#repeats)
+- [Choosing the style transfer method](#choosing-the-style-transfer-method)
+- [Semantic filter](#semantic-filter)
+- [Caching](#caching)
+- [Using the class directly](#using-the-class-directly)
+- [Citation](#citation)
 - [Install](#install)
 - [Contributing](#contributing)
   - [Development setup](#development-setup)
@@ -25,11 +27,18 @@ pip install diversify-text
   - [Working with uv](#working-with-uv)
   - [Building docs locally](#building-docs-locally)
 
-## Usage
+<!-- quickstart-start -->
 
-For file inputs (CSV, TSV, TXT), output options, punctuation splitting, and creating custom methods, see the [full usage guide](https://annawegmann.github.io/diversify_text/usage.html).
+## How it works
 
-### Single text
+`diversify_text` is built around a single idea: **a style is defined by a set of example texts**. Every call takes your input text plus one or more style example sets, and rewrites the input in the style that the examples demonstrate. Which style transfer method does the rewriting (TinyStyler by default) is a background detail — the input/output contract is always the same:
+
+- **Input:** your text(s) and, per target style, a set of example texts.
+- **Output:** per input text, one paraphrase per target style, each labeled with the style that produced it.
+
+If you don't provide your own styles, the built-in style bank supplies default ones, so a plain call already produces stylistically diverse paraphrases.
+
+## Basic usage
 
 ```python
 from diversify_text import diversify
@@ -37,59 +46,148 @@ from diversify_text import diversify
 results = diversify("The experiment was conducted in a controlled lab setting.")
 ```
 
-```
+```python
 [{
     "original": "The experiment was conducted in a controlled lab setting.",
     "paraphrases": [
-        "They ran the experiment in a controlled lab setting.",
-        "The experiment took place in a controlled lab.",
-        "A controlled lab was where the experiment was conducted.",
-        "In a controlled lab, the experiment was carried out.",
-        "The study was performed in a controlled lab environment.",
+        {"style": "informal", "text": "the experiment was in a controlled lab setting so it didnt suck..."},
+        {"style": "obama", "text": "Well it was a controlled lab setting that the experiment was conducted in."},
+        {"style": "question", "text": "Did you know that the experiment was conducted in a controlled lab setting? It was a re-test."},
+        {"style": "formal", "text": "I heard the experiment was conducted in a controlled lab setting."},
+        {"style": "song_lyrics", "text": "I mean, this experiment was conducted in a controlled lab setting, so that was a good thing."},
     ]
 }]
 ```
 
-### Control number of paraphrases
+Each paraphrase corresponds to one style from the built-in style bank — by default the first five. Ask for more distinct styles with `n`:
 
 ```python
-results = diversify("Some text.", n=3)
+results = diversify("The experiment was conducted in a controlled lab setting.", n=10)
 ```
 
-```
-[{"original": "Some text.", "paraphrases": ["...", "...", "..."]}]
-```
+`n` always means *number of distinct styles*, drawn from the bank in order. Requesting more styles than the bank contains raises an error — you never silently get the same style twice.
 
-### Prompting method
+For file inputs (CSV, TSV, TXT), output options, and punctuation splitting, see the [full usage guide](https://annawegmann.github.io/diversify_text/usage.html).
 
-Use the prompting method to generate paraphrases via a causal language model (default: [SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B)):
+## Picking styles from the bank
+
+Select specific built-in styles with `styles`, by name and/or by (0-based) bank index:
 
 ```python
-results = diversify("The experiment was conducted in a controlled lab setting.", methods=["prompting"])
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    styles=["recipe", "personal_blog"],
+)
+
+# indices work too — handy for trying things without knowing the names
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    styles=[0, 7, "recipe"],
+)
 ```
 
-Select specific prompt styles:
+Unknown names and out-of-range indices raise an error listing what is available. Note that indices follow bank order, which may change between releases as the bank is curated — names are the stable way to pin a style.
+
+## Bring your own style examples
+
+Pass `style_examples` to define target styles with your own texts. A flat list is one style; a list of lists is several styles; a dict maps style names to example sets:
+
+```python
+# one style, defined by its example texts
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    style_examples=[
+        "We found something really interesting — check this out!",
+        "You won't believe how well this worked!",
+    ],
+)
+
+# several styles, named
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    style_examples={
+        "academic": [
+            "The results demonstrate a statistically significant effect.",
+            "Participants were randomly assigned to one of two conditions.",
+        ],
+        "enthusiastic": [
+            "We found something really interesting — check this out!",
+            "You won't believe how well this worked!",
+        ],
+    },
+)
+```
+
+```python
+[{
+    "original": "The experiment was conducted in a controlled lab setting.",
+    "paraphrases": [
+        {"style": "academic", "text": "The experiment was carried out under controlled laboratory conditions."},
+        {"style": "enthusiastic", "text": "Guess what — we ran the whole experiment in a controlled lab, how cool is that!"},
+    ]
+}]
+```
+
+`styles` and `style_examples` can be combined in one call (bank styles come first in the output). `n` cannot be combined with either — the number of styles is already determined, so passing `n` raises an error.
+
+## Repeats
+
+`repeats` controls how many paraphrases are generated *per style* (default 1). With more than one repeat, the output interleaves the styles:
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    styles=["recipe", "personal_blog"],
+    repeats=2,
+)
+```
+
+```python
+# styles interleave: recipe, personal_blog, recipe, personal_blog
+[{
+    "original": "The experiment was conducted in a controlled lab setting.",
+    "paraphrases": [
+        {"style": "recipe", "text": "..."},
+        {"style": "personal_blog", "text": "..."},
+        {"style": "recipe", "text": "..."},
+        {"style": "personal_blog", "text": "..."},
+    ]
+}]
+```
+
+## Choosing the style transfer method
+
+The style examples stay the same regardless of which method rewrites your text. The default method is [TinyStyler](https://huggingface.co/tinystyler/tinystyler), which conditions on the example texts via authorship embeddings. Alternatively, the `prompting` method inserts the example texts into a few-shot style transfer prompt for a causal language model (default: [SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B)):
 
 ```python
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
     methods=["prompting"],
-    method_kwargs={
-        "prompting": {
-            "prompt_keys": ["simple_kew", "complex_kew", "caps_reif"]
-        }
+    style_examples={
+        "academic": [
+            "The results demonstrate a statistically significant effect.",
+            "Participants were randomly assigned to one of two conditions.",
+        ],
     },
 )
 ```
 
-Available prompt keys: `wikipedia_paraphrase`, `simple_kew`, `complex_kew`, `formal_reif`, `simple_reif`, `passive_reif`, `caps_reif`, `lowcaps_reif`, `text_emojis_reif`, `less_common_verbs_reif`, `humanize_llm-as-coauthor_original`, and all `finephrase_*` templates. See the [full prompt reference](https://annawegmann.github.io/diversify_text/prompts.html) for details.
+Only prompts that take style example texts are supported — every method receives the same input (your text plus style example sets) and produces the same output.
 
-### Caching
+## Semantic filter
 
-The `diversify()` function automatically caches loaded models between calls.
-The generation model and the semantic filter are cached independently, so
-toggling `semantic_filter` does not reload the generation model and vice
-versa. Call `clear_cache()` to drop cached models and allow memory to be reclaimed when possible:
+Enable the semantic filter to score each paraphrase with the [Mutual Implication Score](https://huggingface.co/s-nlp/Mutual_Implication_Score) model and automatically select the best candidate above a minimum score. Candidates are compared per style, so the filter improves semantic fidelity without reducing stylistic diversity:
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    semantic_filter=True,
+)
+```
+
+## Caching
+
+The `diversify()` function automatically caches loaded models between calls. The generation model and the semantic filter are cached independently, so toggling `semantic_filter` does not reload the generation model and vice versa. Call `clear_cache()` to release cached model references when you are done. On CUDA devices, memory may remain reserved by the underlying framework's caching allocator and be reused in future calls rather than immediately returned to the OS/driver:
 
 ```python
 from diversify_text import clear_cache
@@ -97,101 +195,33 @@ from diversify_text import clear_cache
 clear_cache()
 ```
 
-### Using the class directly
+## Using the class directly
 
-You can also instantiate a `Diversifier` yourself for full control over the
-model lifecycle:
+You can also instantiate a `Diversifier` yourself for full control over the model lifecycle:
 
 ```python
 from diversify_text import Diversifier
 
 div = Diversifier(device="cuda", methods=["tinystyler"])
 
-batch_1 = div.diversify(texts_1, n=5)
-batch_2 = div.diversify(texts_2, n=5)
+batch_1 = div.diversify(texts_1, styles=["recipe", "personal_blog"])
+batch_2 = div.diversify(texts_2, style_examples=my_examples)
 ```
 
-### List of texts
+## Citation
 
-```python
-results = diversify([
-    "The experiment was conducted in a controlled lab setting.",
-    "She graduated from MIT in 2019.",
-])
-```
+If you use `diversify` in your research, we are happy about a citation (placeholder currently).
 
-```
-[
-    {"original": "The experiment ...", "paraphrases": ["...", "...", ...]},
-    {"original": "She graduated ...", "paraphrases": ["...", "...", ...]},
-]
-```
-
-### Customising the TinyStyler style bank
-
-TinyStyler generates each paraphrase by conditioning on a *style example* — a short sentence that demonstrates the target writing style. The style bank is the list of such examples that get cycled through when producing multiple paraphrases.
-
-The default bank is a dictionary mapping style labels to lists of example sentences (drawn from the CORE corpus). You can replace or extend it by passing a custom bank via `method_kwargs`.
-
-A style bank can be a `dict[str, list[str]]` or a `list[list[str]]`:
-
-```python
-from diversify_text import diversify
-from diversify_text.styles import DEFAULT_STYLE_BANK
-
-custom_bank = {
-    "academic": ["The results demonstrate a statistically significant effect."],
-    "enthusiastic": ["We found something really interesting — check this out!"],
-    "telegraphic": ["Key finding: effect confirmed. Details follow."],
-}
-
-results = diversify(
-    "The experiment was conducted in a controlled lab setting.",
-    method_kwargs={"tinystyler": {"style_bank": custom_bank}},
-)
-```
-
-`DEFAULT_STYLE_BANK` is exported from `diversify_text.styles` so you can build on it:
-
-```python
-from diversify_text.styles import DEFAULT_STYLE_BANK
-
-extended_bank = {
-    **DEFAULT_STYLE_BANK,
-    "scientific": ["The data clearly indicate a statistically significant result."],
+```bibtex
+@inproceedings{wegmann2026diversify,
+    title = {diversify_text: An Amazing Library for Text Diversification},
+    author = {Wegmann, Anna and Others},
+    url={https://github.com/AnnaWegmann/diversify_text},
+    year = {2026},
 }
 ```
 
-You can also select specific styles by key name with `styles`, instead of cycling through the entire bank.
-The number of paraphrases is determined by the number of selected styles:
-
-```python
-results = diversify(
-    "The experiment was conducted in a controlled lab setting.",
-    method_kwargs={"tinystyler": {"styles": ["research_article", "personal_blog", "recipe"]}},
-)
-```
-
-### Creating a custom method
-
-```python
-from diversify_text import Diversifier
-from diversify_text.method import DiversificationMethod
-
-
-class MyMethod(DiversificationMethod):
-    name = "my_method"
-
-    def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
-        return [[f"{text} :: variant {i}" for i in range(n)] for text in texts]
-
-
-results = Diversifier(methods=[MyMethod()]).diversify("Hello", n=3)
-```
-
-```
-[{"original": "Hello", "paraphrases": ["Hello :: variant 0", "Hello :: variant 1", "Hello :: variant 2"]}]
-```
+<!-- quickstart-end -->
 
 ## Install
 
