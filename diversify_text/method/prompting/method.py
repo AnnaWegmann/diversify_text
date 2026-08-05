@@ -75,12 +75,16 @@ class PromptingMethod(DiversificationMethod):
     def _resolve_prompt(prompt: str | None = None) -> tuple[str, str]:
         """Resolve the *prompt* option into a single ``(key, template)`` pair.
 
-        Exactly one template is active per call.  *prompt* can be:
+        Exactly one template is active per call, and *prompt* selects
+        which one:
 
-        * ``None`` — use the default template (:data:`DEFAULT_PROMPT`).
-        * a key from :data:`PROMPT_BANK` (e.g. ``"humanize_transfer"``).
-        * a custom template string, recognised by containing placeholder
-          tokens.  It must contain **all** required placeholders
+        * ``None`` — use the default built-in template
+          (:data:`DEFAULT_PROMPT`).
+        * the name of a built-in template from :data:`PROMPT_BANK`
+          (e.g. ``"humanize_transfer"``).
+        * the full text of your own template (any string that is not a
+          built-in name, recognised by containing placeholder tokens).
+          It must contain **all** required placeholders
           (``[DOCUMENT SEGMENT]`` and ``[STYLE EXAMPLES]``);
           ``[STYLE NAME]`` is optional.  Unknown bracket tokens are left
           as literal text.

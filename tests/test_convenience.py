@@ -59,6 +59,17 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         results = diversify("hello", methods=[_FakeTinyStyler()])
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
+    def test_tinystyler_n_inferred_from_style_bank(self):
+        """n=None + a 2-style custom bank (no styles selection) → 2 paraphrases."""
+        results = diversify(
+            "hello",
+            methods=[_FakeTinyStyler()],
+            method_kwargs={"tinystyler": {"style_bank": {
+                "a": ["example a"], "b": ["example b"],
+            }}},
+        )
+        self.assertEqual(len(results[0]["paraphrases"]), 2)
+
     # -- prompting: prompt selection ------------------------------------------
 
     def test_prompting_prompt_selection_does_not_affect_n(self):
@@ -69,6 +80,17 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
             method_kwargs={"prompting": {"prompt": "humanize_transfer"}},
         )
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
+
+    def test_prompting_n_inferred_from_custom_style_bank(self):
+        """n=None + a 2-style custom bank (no styles selection) → 2 paraphrases."""
+        results = diversify(
+            "hello",
+            methods=[_FakePrompting()],
+            method_kwargs={"prompting": {"custom_style_bank": {
+                "a": ["example a"], "b": ["example b"],
+            }}},
+        )
+        self.assertEqual(len(results[0]["paraphrases"]), 2)
 
     def test_prompting_no_kwargs_defaults_to_default_n(self):
         """n=None + no method_kwargs → _DEFAULT_N."""

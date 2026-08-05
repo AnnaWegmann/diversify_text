@@ -248,15 +248,22 @@ class Diversifier:
         """Infer *n* from per-method kwargs when only one method is used.
 
         When a single method is active (currently out of tinystyler and
-        prompting) and the caller provided explicit ``styles``, infers the
-        number of paraphrases as ``len(styles)`` so each style is used
-        exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
+        prompting) and the caller provided explicit ``styles`` — or a
+        custom style bank without a ``styles`` selection — infers the
+        number of paraphrases as the number of provided styles so each
+        style is used exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
         """
         if len(self._methods) == 1 and method_kwargs:
             method = self._methods[0]
             kw = method_kwargs.get(method.name, {})
-            if method.name in ("prompting", "tinystyler") and kw.get("styles"):
-                return len(kw["styles"])
+            if method.name == "prompting":
+                style_source = kw.get("styles") or kw.get("custom_style_bank")
+                if style_source:
+                    return len(style_source)
+            if method.name == "tinystyler":
+                style_source = kw.get("styles") or kw.get("style_bank")
+                if style_source:
+                    return len(style_source)
         return self._DEFAULT_N
 
     @staticmethod

@@ -122,7 +122,7 @@ for inference.
 **Prompt templates.** All templates are example-based style transfer prompts:
 the target style is demonstrated through example texts inserted into the
 prompt; prompts without style examples are intentionally not supported. The
-default template is
+default template is ``style_transfer``; ``humanize_transfer`` (inspired by
 `Zhang et al. (2024) <https://arxiv.org/abs/2401.05952>`_) additionally
 instructs the model to imitate human imperfections found in the style
 examples. Select a template — or pass your own — via the ``prompt`` option:

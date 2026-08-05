@@ -73,7 +73,8 @@ class TestPromptingMethodGenerate(unittest.TestCase):
             temperature=None,
             top_p=None,
         )
-        call_kwargs = method._model.generate_text.call_args[1]
+        # .kwargs holds the keyword arguments of the generate_text call.
+        call_kwargs = method._model.generate_text.call_args.kwargs
         self.assertEqual(call_kwargs["temperature"], 0.7)
         self.assertEqual(call_kwargs["top_p"], 0.9)
         # Mock tokenizer returns 3 tokens → max(10, min(3*2, 2048)) = 10.
@@ -89,21 +90,29 @@ class TestPromptingMethodGenerate(unittest.TestCase):
             top_p=None,
             prompt="humanize_transfer",
         )
-        sent_prompts = method._model.generate_text.call_args[0][0]
+        # .args[0] is the first positional argument of the generate_text
+        # call: the list of fully-filled prompt strings sent to the model.
+        sent_prompts = method._model.generate_text.call_args.args[0]
         self.assertIn("machine-generated text", sent_prompts[0])
 
     def test_generate_uses_custom_prompt_template(self):
         method = self._make_method_with_mock_model(["out"])
+        custom_prompt = (
+            "Here are examples of the target style:\n[STYLE EXAMPLES]\n"
+            "Rewrite the following text in that style: [DOCUMENT SEGMENT]"
+        )
         method.generate(
             ["my input"],
             n=1,
             max_new_tokens=None,
             temperature=None,
             top_p=None,
-            prompt="Copy [STYLE EXAMPLES] and rewrite [DOCUMENT SEGMENT] now.",
+            prompt=custom_prompt,
             custom_style_bank={"my_style": ["style example a"]},
         )
-        sent_prompts = method._model.generate_text.call_args[0][0]
+        # .args[0] is the first positional argument of the generate_text
+        # call: the list of fully-filled prompt strings sent to the model.
+        sent_prompts = method._model.generate_text.call_args.args[0]
         self.assertIn("my input", sent_prompts[0])
         self.assertIn("style example a", sent_prompts[0])
 
