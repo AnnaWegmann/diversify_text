@@ -1,9 +1,9 @@
 """Prompt bank for the method prompting (L)LMs to diversify text.
 
-All templates are example-based style transfer prompts: the target style is
-demonstrated through example texts inserted at ``[STYLE EXAMPLES]``, never
-described in the prompt itself.  Zero-shot templates (prompts without style
-examples) are intentionally not supported.
+All templates are example-based style transfer prompts: style examples are
+inserted at ``[STYLE EXAMPLES]`` (and optionally a style name at
+``[STYLE NAME]``). Zero-shot templates (prompts without style examples) are
+intentionally not supported.
 """
 
 from __future__ import annotations
