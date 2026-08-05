@@ -10,35 +10,32 @@ pip install diversify-text
 
 ## Table of contents
 
-- [How it works](#how-it-works)
-- [Basic usage](#basic-usage)
-- [Picking styles from the bank](#picking-styles-from-the-bank)
-- [Bring your own style examples](#bring-your-own-style-examples)
-- [Repeats](#repeats)
-- [Choosing the style transfer method](#choosing-the-style-transfer-method)
-- [Semantic filter](#semantic-filter)
-- [Caching](#caching)
-- [Using the class directly](#using-the-class-directly)
-- [Citation](#citation)
+- [Usage](#usage)
+  - [Single text](#single-text)
+  - [Control number of styles](#control-number-of-styles)
+  - [Pick styles from the bank](#pick-styles-from-the-bank)
+  - [Bring your own style examples](#bring-your-own-style-examples)
+  - [Repeats](#repeats)
+  - [Prompting method](#prompting-method)
+  - [Caching](#caching)
+  - [Using the class directly](#using-the-class-directly)
+  - [List of texts](#list-of-texts)
+  - [Creating a custom method](#creating-a-custom-method)
 - [Install](#install)
 - [Contributing](#contributing)
   - [Development setup](#development-setup)
   - [Running tests](#running-tests)
   - [Working with uv](#working-with-uv)
   - [Building docs locally](#building-docs-locally)
+- [Citation](#citation)
+
+## Usage
 
 <!-- quickstart-start -->
 
-## How it works
+For file inputs (CSV, TSV, TXT), output options, and punctuation splitting, see the [full usage guide](https://annawegmann.github.io/diversify_text/usage.html).
 
-`diversify_text` is built around a single idea: **a style is defined by a set of example texts**. Every call takes your input text plus one or more style example sets, and rewrites the input in the style that the examples demonstrate. Which style transfer method does the rewriting (TinyStyler by default) is a background detail — the input/output contract is always the same:
-
-- **Input:** your text(s) and, per target style, a set of example texts.
-- **Output:** per input text, one paraphrase per target style, each labeled with the style that produced it.
-
-If you don't provide your own styles, the built-in style bank supplies default ones, so a plain call already produces stylistically diverse paraphrases.
-
-## Basic usage
+### Single text
 
 ```python
 from diversify_text import diversify
@@ -59,17 +56,23 @@ results = diversify("The experiment was conducted in a controlled lab setting.")
 }]
 ```
 
-Each paraphrase corresponds to one style from the built-in style bank — by default the first five. Ask for more distinct styles with `n`:
+### Control number of styles
 
 ```python
-results = diversify("The experiment was conducted in a controlled lab setting.", n=10)
+results = diversify("Some text.", n=3)
 ```
 
-`n` always means *number of distinct styles*, drawn from the bank in order. Requesting more styles than the bank contains raises an error — you never silently get the same style twice.
+```python
+[{"original": "Some text.", "paraphrases": [
+    {"style": "informal", "text": "..."},
+    {"style": "obama", "text": "..."},
+    {"style": "question", "text": "..."},
+]}]
+```
 
-For file inputs (CSV, TSV, TXT), output options, and punctuation splitting, see the [full usage guide](https://annawegmann.github.io/diversify_text/usage.html).
+`n` is the number of distinct styles (default 5), drawn from the built-in style bank in order — one paraphrase per style. Requesting more styles than the bank contains raises an error; you never silently get the same style twice.
 
-## Picking styles from the bank
+### Pick styles from the bank
 
 Select specific built-in styles with `styles`, by name and/or by (0-based) bank index:
 
@@ -88,7 +91,7 @@ results = diversify(
 
 Unknown names and out-of-range indices raise an error listing what is available. Note that indices follow bank order, which may change between releases as the bank is curated — names are the stable way to pin a style.
 
-## Bring your own style examples
+### Bring your own style examples
 
 Pass `style_examples` to define target styles with your own texts. A flat list is one style; a list of lists is several styles; a dict maps style names to example sets:
 
@@ -130,7 +133,7 @@ results = diversify(
 
 `styles` and `style_examples` can be combined in one call (bank styles come first in the output). `n` cannot be combined with either — the number of styles is already determined, so passing `n` raises an error.
 
-## Repeats
+### Repeats
 
 `repeats` controls how many paraphrases are generated *per style* (default 1). With more than one repeat, the output interleaves the styles:
 
@@ -155,9 +158,9 @@ results = diversify(
 }]
 ```
 
-## Choosing the style transfer method
+### Prompting method
 
-The style examples stay the same regardless of which method rewrites your text. The default method is [TinyStyler](https://huggingface.co/tinystyler/tinystyler), which conditions on the example texts via authorship embeddings. Alternatively, the `prompting` method inserts the example texts into a few-shot style transfer prompt for a causal language model (default: [SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B)):
+The default style transfer method is [TinyStyler](https://huggingface.co/tinystyler/tinystyler). Alternatively, use the prompting method, which generates paraphrases via a causal language model (default: [SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B)) with the style examples inserted into a few-shot style transfer prompt:
 
 ```python
 results = diversify(
@@ -172,22 +175,11 @@ results = diversify(
 )
 ```
 
-Only prompts that take style example texts are supported — every method receives the same input (your text plus style example sets) and produces the same output.
+Only prompts that take style example texts are supported — every method receives the same input and produces the same output.
 
-## Semantic filter
+### Caching
 
-Enable the semantic filter to score each paraphrase with the [Mutual Implication Score](https://huggingface.co/s-nlp/Mutual_Implication_Score) model and automatically select the best candidate above a minimum score. Candidates are compared per style, so the filter improves semantic fidelity without reducing stylistic diversity:
-
-```python
-results = diversify(
-    "The experiment was conducted in a controlled lab setting.",
-    semantic_filter=True,
-)
-```
-
-## Caching
-
-The `diversify()` function automatically caches loaded models between calls. The generation model and the semantic filter are cached independently, so toggling `semantic_filter` does not reload the generation model and vice versa. Call `clear_cache()` to release cached model references when you are done. On CUDA devices, memory may remain reserved by the underlying framework's caching allocator and be reused in future calls rather than immediately returned to the OS/driver:
+The `diversify()` function automatically caches loaded models between calls. The generation model and the semantic filter are cached independently, so toggling `semantic_filter` does not reload the generation model and vice versa. Call `clear_cache()` to drop cached models and allow memory to be reclaimed when possible:
 
 ```python
 from diversify_text import clear_cache
@@ -195,7 +187,7 @@ from diversify_text import clear_cache
 clear_cache()
 ```
 
-## Using the class directly
+### Using the class directly
 
 You can also instantiate a `Diversifier` yourself for full control over the model lifecycle:
 
@@ -208,18 +200,50 @@ batch_1 = div.diversify(texts_1, styles=["recipe", "personal_blog"])
 batch_2 = div.diversify(texts_2, style_examples=my_examples)
 ```
 
-## Citation
+### List of texts
 
-If you use `diversify` in your research, we are happy about a citation (placeholder currently).
-
-```bibtex
-@inproceedings{wegmann2026diversify,
-    title = {diversify_text: An Amazing Library for Text Diversification},
-    author = {Wegmann, Anna and Others},
-    url={https://github.com/AnnaWegmann/diversify_text},
-    year = {2026},
-}
+```python
+results = diversify([
+    "The experiment was conducted in a controlled lab setting.",
+    "She graduated from MIT in 2019.",
+])
 ```
+
+```python
+[
+    {"original": "The experiment ...", "paraphrases": [{"style": "informal", "text": "..."}, ...]},
+    {"original": "She graduated ...", "paraphrases": [{"style": "informal", "text": "..."}, ...]},
+]
+```
+
+### Creating a custom method
+
+```python
+from diversify_text import Diversifier
+from diversify_text.method import DiversificationMethod
+
+
+class MyMethod(DiversificationMethod):
+    name = "my_method"
+
+    def generate(self, texts, style_dict, *, max_new_tokens, temperature, top_p, **kwargs):
+        # style_dict maps each target style name to its example texts,
+        # e.g. {"recipe": ["Cut a peeled brown onion...", ...]}.
+        # It is resolved by the core from the caller's `styles` / `style_examples`.
+        return [[f"{text} :: {name}" for name in style_dict] for text in texts]
+
+
+results = Diversifier(methods=[MyMethod()]).diversify("Hello", styles=["recipe", "personal_blog"])
+```
+
+```python
+[{"original": "Hello", "paraphrases": [
+    {"style": "recipe", "text": "Hello :: recipe"},
+    {"style": "personal_blog", "text": "Hello :: personal_blog"},
+]}]
+```
+
+A method returns `list[list[str]]` — for each input text, one generated string per style in `style_dict` order. The core attaches the style labels to the output and runs the method once per repeat, so custom methods stay simple and stateless.
 
 <!-- quickstart-end -->
 
@@ -307,3 +331,20 @@ uv sync --group docs
 sphinx-build -b html docs docs/_build/html
 open docs/_build/html/index.html
 ```
+
+<!-- citation-start -->
+
+## Citation
+
+If you use `diversify` in your research, we are happy about a citation (placeholder currently).
+
+```bibtex
+@inproceedings{wegmann2026diversify,
+    title = {diversify_text: An Amazing Library for Text Diversification},
+    author = {Wegmann, Anna and Others},
+    url={https://github.com/AnnaWegmann/diversify_text},
+    year = {2026},
+}
+```
+
+<!-- citation-end -->
