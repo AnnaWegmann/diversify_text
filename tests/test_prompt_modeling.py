@@ -72,44 +72,52 @@ class TestPromptingMethodGenerate(unittest.TestCase):
             max_new_tokens=None,
             temperature=None,
             top_p=None,
-            # Use a non-finephrase prompt so there's no bonus.
-            prompt_keys=["wikipedia_paraphrase"],
         )
         call_kwargs = method._model.generate_text.call_args[1]
         self.assertEqual(call_kwargs["temperature"], 0.7)
         self.assertEqual(call_kwargs["top_p"], 0.9)
-        # Non-finephrase prompt, no bonus.
         # Mock tokenizer returns 3 tokens → max(10, min(3*2, 2048)) = 10.
         self.assertEqual(call_kwargs["max_new_tokens_per_prompt"], [10])
 
-    def test_finephrase_bonus_only_applies_to_finephrase_prompts(self):
-        # n=5 with 1 text, explicitly cycling 5 prompts:
-        # 0: humanize (no bonus), 1: wikipedia (no bonus),
-        # 2: finephrase_faq (bonus), 3: finephrase_table (bonus),
-        # 4: finephrase_narrative (bonus).
-        # Base = max(10, min(3*2, 2048)) = 10, bonus = 50.
-        method = self._make_method_with_mock_model(
-            ["out1", "out2", "out3", "out4", "out5"]
-        )
+    def test_generate_uses_selected_prompt_key(self):
+        method = self._make_method_with_mock_model(["out"])
         method.generate(
             ["text"],
-            n=5,
+            n=1,
             max_new_tokens=None,
             temperature=None,
             top_p=None,
-            prompt_keys=[
-                "humanize_llm-as-coauthor_original",
-                "wikipedia_paraphrase",
-                "finephrase_faq",
-                "finephrase_table",
-                "finephrase_narrative",
-            ],
+            prompt="humanize_transfer",
         )
-        call_kwargs = method._model.generate_text.call_args[1]
-        self.assertEqual(
-            call_kwargs["max_new_tokens_per_prompt"],
-            [10, 10, 60, 60, 60],
+        sent_prompts = method._model.generate_text.call_args[0][0]
+        self.assertIn("machine-generated text", sent_prompts[0])
+
+    def test_generate_uses_custom_prompt_template(self):
+        method = self._make_method_with_mock_model(["out"])
+        method.generate(
+            ["my input"],
+            n=1,
+            max_new_tokens=None,
+            temperature=None,
+            top_p=None,
+            prompt="Copy [STYLE EXAMPLES] and rewrite [DOCUMENT SEGMENT] now.",
+            custom_style_bank={"my_style": ["style example a"]},
         )
+        sent_prompts = method._model.generate_text.call_args[0][0]
+        self.assertIn("my input", sent_prompts[0])
+        self.assertIn("style example a", sent_prompts[0])
+
+    def test_generate_rejects_prompt_without_style_examples(self):
+        method = self._make_method_with_mock_model(["out"])
+        with self.assertRaises(ValueError):
+            method.generate(
+                ["text"],
+                n=1,
+                max_new_tokens=None,
+                temperature=None,
+                top_p=None,
+                prompt="Rewrite: [DOCUMENT SEGMENT]",
+            )
 
 
 class TestPromptingModelLoad(unittest.TestCase):

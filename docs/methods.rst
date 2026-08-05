@@ -119,67 +119,41 @@ for inference.
    `vLLM <https://vllm.ai/>`_ support, batched inference, and streaming from
    large files are planned for a future release.
 
-**Default prompt bank.** The built-in bank contains multiple prompt templates
-covering different rewriting styles (paraphrasing, simplification, dialogue,
-tables, and more). When no explicit selection is made, the templates listed in
-:data:`~diversify_text.method.prompting.prompts.DEFAULT_PROMPTS` are used.
-See :doc:`prompts` for the full list of available templates.
-
-**Customising the prompt bank.** Like TinyStyler's style bank, you can provide
-a custom prompt bank or select specific prompts via ``method_kwargs``. Each
-prompt template must contain the placeholder ``[DOCUMENT SEGMENT]``:
-
-.. code-block:: python
-
-   custom_bank = {
-       "simple": "Rewrite the following text in simpler words: [DOCUMENT SEGMENT]",
-       "formal": "Rewrite the following text in a formal academic tone: [DOCUMENT SEGMENT]",
-   }
-
-   results = diversify(
-       "The cat sat on the mat.",
-       methods=["prompting"],
-       method_kwargs={"prompting": {"prompt_bank": custom_bank}},
-   )
-
-You can also select specific prompts by key name:
-
-.. code-block:: python
-
-   results = diversify(
-       "The cat sat on the mat.",
-       methods=["prompting"],
-       method_kwargs={"prompting": {"prompt_keys": ["wikipedia_paraphrase"]}},
-   )
-
-Zero-shot humanize rewriting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The prompt bank includes humanize prompts based on
-`Zhang et al. (2024) <https://arxiv.org/abs/2401.05952>`_ that rewrite
-machine-generated text to appear more human-written. These prompts instruct the
-model to introduce informal elements such as typos, slang, hashtags, and
-varied casing:
+**Prompt templates.** All templates are example-based style transfer prompts:
+the target style is demonstrated through example texts inserted into the
+prompt, never described in the prompt itself. The default template is
+``style_transfer``; ``humanize_transfer`` (inspired by
+`Zhang et al. (2024) <https://arxiv.org/abs/2401.05952>`_) additionally
+instructs the model to imitate human imperfections found in the style
+examples. Select a template — or pass your own — via the ``prompt`` option:
 
 .. code-block:: python
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
        methods=["prompting"],
-       method_kwargs={"prompting": {"prompt_keys": ["humanize_llm-as-coauthor"]}},
+       method_kwargs={"prompting": {"prompt": "humanize_transfer"}},
    )
 
-A stricter variant, ``humanize_llm-as-coauthor_original``, uses the original
-five modifications from the paper and explicitly forbids emojis.
+A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
+``[STYLE EXAMPLES]`` placeholders (``[STYLE NAME]`` is optional):
 
-Few-shot style transfer with prompting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: python
 
-The prompting method can also perform few-shot style transfer by combining
-style examples from the shared style bank with a few-shot prompt template.
-When ``styles`` is provided without explicit ``prompt_keys``, the method
-automatically uses the ``style_transfer`` template from
-:data:`~diversify_text.method.prompting.prompts.EXAMPLE_BASED_PROMPT_BANK`:
+   my_prompt = (
+       "Study these examples:\n[STYLE EXAMPLES]\n"
+       "Rewrite the following text in the same style. "
+       "Text: [DOCUMENT SEGMENT]"
+   )
+
+   results = diversify(
+       "The cat sat on the mat.",
+       methods=["prompting"],
+       method_kwargs={"prompting": {"prompt": my_prompt}},
+   )
+
+**Style examples.** Styles come from the shared style bank; select them with
+``styles``:
 
 .. code-block:: python
 
@@ -189,23 +163,6 @@ automatically uses the ``style_transfer`` template from
        method_kwargs={
            "prompting": {
                "styles": ["informal_tinystyler"],
-           }
-       },
-   )
-
-You can select a different few-shot template via ``prompt_keys``. For
-example, ``humanize_transfer`` combines humanization instructions with the
-style examples:
-
-.. code-block:: python
-
-   results = diversify(
-       "The experiment was conducted in a controlled lab setting.",
-       methods=["prompting"],
-       method_kwargs={
-           "prompting": {
-               "styles": ["informal_tinystyler"],
-               "prompt_keys": ["humanize_transfer"],
            }
        },
    )
