@@ -205,22 +205,6 @@ class PromptingMethod(DiversificationMethod):
             return resolve_style_sets(custom_bank, style_keys)
         return {}
 
-    @staticmethod
-    def _build_schedule(
-        key: str,
-        template: str,
-        fs_style_examples: dict[str, list[str]],
-    ) -> list[tuple[str, str, int]]:
-        """Build a generation schedule: one entry per style set.
-
-        The single active template expands to one ``(key, template,
-        style_idx)`` entry per style.  The caller iterates the schedule
-        with modulo to fill ``n`` slots, so the schedule represents one
-        full "natural" cycle through the styles.
-        """
-        n_styles = len(fs_style_examples)
-        return [(key, template, style_idx) for style_idx in range(n_styles)]
-
     def _fill_template(
         self,
         template: str,
@@ -339,18 +323,18 @@ class PromptingMethod(DiversificationMethod):
 
         n_ex = kwargs.get("n_style_examples", _DEFAULT_N_STYLE_EXAMPLES)
 
-        schedule = self._build_schedule(prompt_key, prompt_template, fs_style_examples)
-
         # TODO: accept texts as an Iterable (not just list) to support
         #       streaming from large files without materialising everything
         #       in memory.
+        # Paraphrase slot i uses style i (wrapping around when n exceeds
+        # the number of styles), always with the single active template.
         all_prompts: list[str] = []
         for i in range(n):
-            _key, template, style_idx = schedule[i % len(schedule)]
+            style_idx = i % len(fs_style_examples)
             for t in texts:
                 all_prompts.append(
                     self._fill_template(
-                        template=template,
+                        template=prompt_template,
                         text=t,
                         style_idx=style_idx,
                         fs_style_examples=fs_style_examples,
