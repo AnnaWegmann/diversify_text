@@ -8,7 +8,7 @@ input text.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 import logging
 from itertools import islice
 from pathlib import Path
@@ -32,22 +32,22 @@ _default_seed_applied: bool = False
 
 
 class Diversifier:
-    """Generate stylistic paraphrases using one or more pluggable methods.
+    """Generate stylistic paraphrases using a pluggable method.
 
-    Each method can be a separate model or algorithm. The class supports
-    combining multiple methods and automatically distributing requested styles
-    across them.
+    The method is the model or algorithm doing the style transfer in
+    the background.
 
     Parameters
     ----------
     device : str, optional
         Torch device (``"cuda"``, ``"cpu"``, ``"mps"``, ...).
-    methods : sequence[str | DiversificationMethod], optional
-        Method names and/or pre-built method instances.
+    method : str | DiversificationMethod, optional
+        A built-in method name (default ``"tinystyler"``) or a
+        pre-built method instance.
 
     Example
     -------
-    >>> div = Diversifier(methods=["tinystyler"])
+    >>> div = Diversifier(method="tinystyler")
     >>> results = div.diversify("The experiment was conducted in a lab.")
     >>> len(results)  # one dict per input text
     1
@@ -59,19 +59,19 @@ class Diversifier:
         self,
         device: str | None = None,
         *,
-        methods: Sequence[str | DiversificationMethod] | None = None,
+        method: str | DiversificationMethod | None = None,
         semantic_filter: bool = False,
-        _methods: list[DiversificationMethod] | None = None,
+        _method: DiversificationMethod | None = None,
         _mis_filter: MISFilter | None = None,
         **filter_kwargs: Any,
     ) -> None:
         self.device = device
-        if _methods is not None:
-            self._methods = _methods
+        if _method is not None:
+            self._method = _method
         else:
-            if methods is None:
-                methods = ["tinystyler"]
-            self._methods = DEFAULT_METHOD_REGISTRY.resolve(methods, device=device)
+            if method is None:
+                method = "tinystyler"
+            self._method = DEFAULT_METHOD_REGISTRY.resolve(method, device=device)
         if _mis_filter is not None:
             self._mis_filter = _mis_filter
         elif semantic_filter:
@@ -170,11 +170,10 @@ class Diversifier:
         text_iter, input_context = resolve_input(texts, text_column)
         out_path = resolve_output_path(input_context, output_dir, output_name)
 
-        # --- prepare methods (model loading etc.) ---
+        # --- prepare the method (model loading etc.) ---
         method_kwargs = method_kwargs or {}
         preprocess_kwargs = preprocess_kwargs or {}
-        for method in self._methods:
-            method.prepare()
+        self._method.prepare()
         if self._mis_filter is not None:
             self._mis_filter.prepare()
 
@@ -245,22 +244,20 @@ class Diversifier:
         self,
         method_kwargs: Mapping[str, dict[str, Any]] | None,
     ) -> int:
-        """Infer *n* from per-method kwargs when only one method is used.
+        """Infer *n* from method kwargs.
 
-        When a single method is active (currently out of tinystyler and
-        prompting) and the caller provided explicit ``styles`` — or a
-        custom style bank without a ``styles`` selection — infers the
-        number of paraphrases as the number of provided styles so each
-        style is used exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
+        When the caller provided explicit ``styles`` — or a custom style
+        bank without a ``styles`` selection — infers the number of
+        paraphrases as the number of provided styles so each style is
+        used exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
         """
-        if len(self._methods) == 1 and method_kwargs:
-            method = self._methods[0]
-            kw = method_kwargs.get(method.name, {})
-            if method.name == "prompting":
+        if method_kwargs:
+            kw = method_kwargs.get(self._method.name, {})
+            if self._method.name == "prompting":
                 style_source = kw.get("styles") or kw.get("custom_style_bank")
                 if style_source:
                     return len(style_source)
-            if method.name == "tinystyler":
+            if self._method.name == "tinystyler":
                 style_source = kw.get("styles") or kw.get("style_bank")
                 if style_source:
                     return len(style_source)
@@ -281,11 +278,6 @@ class Diversifier:
             pass
         logger.info("Using random seed: %d", seed)
 
-    @staticmethod
-    def _compute_allocations(total_styles: int, n_methods: int) -> list[int]:
-        base, remainder = divmod(total_styles, n_methods)
-        return [base + (1 if i < remainder else 0) for i in range(n_methods)]
-
     def _diversify_batch(
         self,
         *,
@@ -296,39 +288,28 @@ class Diversifier:
         top_p: float | None,
         method_kwargs: Mapping[str, dict[str, Any]],
     ) -> list[list[str]]:
-        allocations = self._compute_allocations(n, len(self._methods))
-        paraphrases_by_text: list[list[str]] = [[] for _ in batch_texts]
-
-        for method, allocated_styles in zip(self._methods, allocations):
-            if allocated_styles <= 0:
-                continue
-            kwargs = method_kwargs.get(method.name, {})
-            partial = method.generate(
-                batch_texts,
-                n=allocated_styles,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                **kwargs,
-            )
-            self._merge_paraphrases(paraphrases_by_text, partial, batch_texts)
-
+        kwargs = method_kwargs.get(self._method.name, {})
+        paraphrases_by_text = self._method.generate(
+            batch_texts,
+            n=n,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            **kwargs,
+        )
+        self._validate_paraphrases(paraphrases_by_text, batch_texts)
         return paraphrases_by_text
 
     @staticmethod
-    def _merge_paraphrases(
-        combined: list[list[str]],
+    def _validate_paraphrases(
         incoming: list[list[str]],
         source_texts: list[str],
-    ) -> int:
-        """Validate and merge a method's output into the combined results.
-
-        Returns the number of paraphrases generated per text.
-        """
+    ) -> None:
+        """Validate the shape of a method's output."""
         if len(incoming) != len(source_texts):
             raise ValueError("Method returned invalid batch size.")
         generated_styles: int | None = None
-        for idx, group in enumerate(incoming):
+        for group in incoming:
             if not isinstance(group, list) or not all(
                 isinstance(item, str) for item in group
             ):
@@ -339,8 +320,6 @@ class Diversifier:
                 raise ValueError(
                     "Method must return the same number of styles for each text."
                 )
-            combined[idx].extend(group)
-        return generated_styles or 0
 
 
 # ------------------------------------------------------------------
@@ -352,17 +331,17 @@ def diversify(
     texts: TextInput,
     *,
     device: str | None = None,
-    methods: Sequence[str | DiversificationMethod] | None = None,
+    method: str | DiversificationMethod | None = None,
     semantic_filter: bool = False,
     **kwargs,
 ) -> DiversifyOutput:
     """One-shot convenience function: create a :class:`Diversifier` and run it.
 
-    The generation method(s) and the MIS filter are cached independently
+    The generation method and the MIS filter are cached independently
     between calls.  Generation methods are cached per (``device``,
-    resolved method list), while the MIS filter is cached per ``device``.
+    resolved method), while the MIS filter is cached per ``device``.
     Switching ``semantic_filter`` on or off reuses the cached generation
-    models, and changing methods reuses the cached MIS filter when
+    model, and changing the method reuses the cached MIS filter when
     possible.  Expensive components are only recreated when their
     respective cache keys change; changing filter thresholds (``min_score``,
     ``n_candidates``) updates the existing MIS filter instance rather than
@@ -374,8 +353,9 @@ def diversify(
         Input text(s).
     device : str, optional
         Torch device.
-    methods : sequence[str | DiversificationMethod], optional
-        Method names and/or pre-built method instances.
+    method : str | DiversificationMethod, optional
+        A built-in method name (default ``"tinystyler"``) or a
+        pre-built method instance.
     semantic_filter : bool
         When ``True``, score each paraphrase with the Mutual Implication
         Score model and select the best candidate above a minimum score.
@@ -403,10 +383,10 @@ def diversify(
 
     # Retrieve cached (or freshly resolved) components.
     method_kwargs = kwargs.get("method_kwargs")
-    cached_methods = _cache.get_methods(device, methods, method_kwargs)
+    cached_method = _cache.get_method(device, method, method_kwargs)
     mis_filter = _cache.get_cached_mis_filter(device, **filter_kwargs) if semantic_filter else None
 
     # Build a Diversifier from the cached components.
-    div = Diversifier(device=device, _methods=cached_methods, _mis_filter=mis_filter)
+    div = Diversifier(device=device, _method=cached_method, _mis_filter=mis_filter)
 
     return div.diversify(texts, **kwargs)

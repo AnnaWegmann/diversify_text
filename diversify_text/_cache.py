@@ -1,13 +1,13 @@
 """Per-model caching for the :func:`~diversify_text.core.diversify` convenience function.
 
-Keeps the generation method(s) and the MIS filter in independent
+Keeps the generation method and the MIS filter in independent
 module-level caches so that toggling ``semantic_filter`` does not
-reload the generation model, and switching methods does not reload the
-MIS model.
+reload the generation model, and switching the method does not reload
+the MIS model.
 
-Each generation method is cached individually so that adding, removing,
-or reordering methods only (re)loads the ones whose configuration
-actually changed.
+Each generation method is cached under its own key so that switching
+between methods only (re)loads the one whose configuration actually
+changed.
 
 Not thread-safe.  Intended for single-threaded use in scripts and
 notebooks.  For multi-threaded applications, use :class:`Diversifier`
@@ -17,7 +17,7 @@ directly with your own instance management.
 from __future__ import annotations
 
 import inspect
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from functools import lru_cache
 from typing import Any
 
@@ -55,10 +55,10 @@ def _resolve_cache_kwargs(
     These two calls should hit the same cache entry::
 
         # Omit model — default is filled in from the signature.
-        get_methods(device=None, methods=["prompting"])
+        get_method(device=None, method="prompting")
 
         # Explicitly pass the same default value.
-        get_methods(device=None, methods=["prompting"],
+        get_method(device=None, method="prompting",
             method_kwargs={"prompting": {"model": "HuggingFaceTB/SmolLM3-3B"}})
 
     Without this function the first call would produce the key
@@ -146,35 +146,33 @@ def _single_METHOD_CACHE_key(
     return method_name, constructor_kwargs
 
 
-def get_methods(
+def get_method(
     device: str | None,
-    methods: Sequence[str | DiversificationMethod] | None,
+    method: str | DiversificationMethod | None,
     method_kwargs: Mapping[str, dict[str, Any]] | None = None,
-) -> list[DiversificationMethod]:
-    """Return cached generation methods, resolving only on config change.
+) -> DiversificationMethod:
+    """Return the cached generation method, resolving only on config change.
 
-    Iterates the requested *methods* list and resolves each one
-    individually against a module-level dict cache.  On a cache miss
-    the method is instantiated via the registry (expensive — may load
-    a model); on a hit the existing instance is reused.
+    Resolves the requested *method* against a module-level dict cache.
+    On a cache miss the method is instantiated via the registry
+    (expensive — may load a model); on a hit the existing instance is
+    reused.
 
-    Methods can be specified as strings (looked up in the registry) or
-    as pre-built :class:`DiversificationMethod` instances (passed
-    through as-is without caching, since they're already instantiated).
-    You can mix both in one call, e.g.
-    ``methods=["tinystyler", my_custom_method]``.
+    The method can be specified as a string (looked up in the registry)
+    or as a pre-built :class:`DiversificationMethod` instance (passed
+    through as-is without caching, since it's already instantiated).
 
-    Because each method is cached independently, adding or removing a
-    method from the list only loads the new ones — already-cached
-    methods are not affected.
+    Because each method is cached under its own key, switching between
+    methods only loads the new one — already-cached methods are not
+    affected.
 
     Parameters
     ----------
     device : str or None
         Torch device.  ``None`` resolves to :func:`default_device`.
-    methods : sequence of str or DiversificationMethod, optional
-        Method names and/or pre-built instances.  Defaults to
-        ``["tinystyler"]``.
+    method : str or DiversificationMethod, optional
+        Method name or pre-built instance.  Defaults to
+        ``"tinystyler"``.
     method_kwargs : mapping, optional
         Per-method keyword arguments keyed by method name, e.g.
         ``{"prompting": {"model": "gpt2"}}``.  Constructor kwargs
@@ -183,35 +181,28 @@ def get_methods(
 
     Returns
     -------
-    list[DiversificationMethod]
-        Resolved method instances in the same order as *methods*.
+    DiversificationMethod
+        The resolved method instance.
     """
     device = device or default_device()
-    if methods is None:
-        methods = ["tinystyler"]
+    if method is None:
+        method = "tinystyler"
 
-    result: list[DiversificationMethod] = []
-    for method in methods:
-        if isinstance(method, DiversificationMethod):
-            result.append(method)
-        elif isinstance(method, str):
-            key = _single_METHOD_CACHE_key(method, device, method_kwargs)
-            if key not in _METHOD_CACHE:  # cache miss → resolve and store
-                resolve_kwargs: dict[str, Any] = {"device": device}
-                if method_kwargs and (method in method_kwargs):
-                    resolve_kwargs.update(method_kwargs[method])
-                _METHOD_CACHE[key] = DEFAULT_METHOD_REGISTRY.resolve(
-                    [method], **resolve_kwargs
-                )[0]
-            result.append(_METHOD_CACHE[key])
-        else:
-            raise TypeError(
-                "method must be str or DiversificationMethod instance."
+    if isinstance(method, DiversificationMethod):
+        return method
+    if isinstance(method, str):
+        key = _single_METHOD_CACHE_key(method, device, method_kwargs)
+        if key not in _METHOD_CACHE:  # cache miss → resolve and store
+            resolve_kwargs: dict[str, Any] = {"device": device}
+            if method_kwargs and (method in method_kwargs):
+                resolve_kwargs.update(method_kwargs[method])
+            _METHOD_CACHE[key] = DEFAULT_METHOD_REGISTRY.resolve(
+                method, **resolve_kwargs
             )
-
-    if not result:
-        raise ValueError("At least one method is required.")
-    return result
+        return _METHOD_CACHE[key]
+    raise TypeError(
+        "method must be str or DiversificationMethod instance."
+    )
 
 
 # ------------------------------------------------------------------
@@ -268,7 +259,7 @@ def clear_cache() -> None:
 
     Clears both the generation method dict cache and the ``lru_cache``
     backing the MIS filter.  After calling this, the next
-    :func:`get_methods` or :func:`get_cached_mis_filter` call will
+    :func:`get_method` or :func:`get_cached_mis_filter` call will
     load models from scratch.
 
     This clears Python-level references but does not guarantee immediate

@@ -44,7 +44,7 @@ class TestMISFilterIntegration(unittest.TestCase):
 
     def _make_diversifier(self, **kwargs):
         """Create a Diversifier with IndexedMethod and a mocked MIS scorer."""
-        kwargs.setdefault("methods", [IndexedMethod()])
+        kwargs.setdefault("method", IndexedMethod())
         kwargs.setdefault("semantic_filter", True)
         div = Diversifier(**kwargs)
         self._mock_score = MagicMock()
@@ -52,12 +52,12 @@ class TestMISFilterIntegration(unittest.TestCase):
         return div
 
     def test_no_filter_by_default(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         self.assertIsNone(div._mis_filter)
 
     def test_constructor_stores_params(self):
         div = Diversifier(
-            methods=["echo"],
+            method="echo",
             semantic_filter=True,
             min_score=0.90,
             n_candidates=3,
