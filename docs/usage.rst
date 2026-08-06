@@ -1,8 +1,11 @@
 Usage Guide
 ===========
 
-Control number of paraphrases
------------------------------
+Control number of styles
+------------------------
+
+``n`` selects how many of the default styles are used — one paraphrase
+per style. It cannot be combined with ``styles`` or ``style_examples``:
 
 .. code-block:: python
 
@@ -10,7 +13,11 @@ Control number of paraphrases
 
 .. code-block:: python
 
-   [{"original": "Some text.", "paraphrases": ["...", "...", "..."]}]
+   [{"original": "Some text.", "paraphrases": [
+       {"style": "informal_tinystyler", "text": "..."},
+       {"style": "obama_tinystyler", "text": "..."},
+       {"style": "question_tinystyler", "text": "..."},
+   ]}]
 
 Reproducibility (seed)
 ----------------------
@@ -46,8 +53,8 @@ List of texts
 .. code-block:: python
 
    [
-       {"original": "The experiment ...", "paraphrases": ["...", "...", ...]},
-       {"original": "She graduated ...", "paraphrases": ["...", "...", ...]},
+       {"original": "The experiment ...", "paraphrases": [{"style": "...", "text": "..."}, ...]},
+       {"original": "She graduated ...", "paraphrases": [{"style": "...", "text": "..."}, ...]},
    ]
 
 CSV / TSV file
@@ -65,8 +72,8 @@ Each line in the JSONL output is one JSON object:
 
 .. code-block:: json
 
-   {"original": "Jane is a ...", "paraphrases": ["Jane works as a ...", "As a ..., Jane ..."]}
-   {"original": "John studied ...", "paraphrases": ["John was educated ...", "..."]}
+   {"original": "Jane is a ...", "paraphrases": [{"style": "...", "text": "Jane works as a ..."}, ...]}
+   {"original": "John studied ...", "paraphrases": [{"style": "...", "text": "John was educated ..."}, ...]}
 
 TXT file
 --------
@@ -108,58 +115,33 @@ Longer texts
 For tips on handling longer texts (punctuation splitting, increasing
 ``max_new_tokens``), see :doc:`longer_texts`.
 
-Customising the TinyStyler style bank
---------------------------------------
+Selecting styles
+----------------
 
-TinyStyler generates each paraphrase by conditioning on a *style example* — a
-short sentence that demonstrates the target writing style. The style bank is
-the list of such examples that get cycled through when producing multiple
-paraphrases.
-
-The default bank is a dictionary mapping style labels to lists of example
-sentences (drawn from the CORE corpus). You can replace or extend it by
-passing a custom bank via ``method_kwargs``.
-
-A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
-
-.. code-block:: python
-
-   from diversify_text import diversify
-   from diversify_text.styles import DEFAULT_STYLE_BANK
-
-   custom_bank = {
-       "academic": ["The results demonstrate a statistically significant effect."],
-       "enthusiastic": ["We found something really interesting — check this out!"],
-       "telegraphic": ["Key finding: effect confirmed. Details follow."],
-   }
-
-   results = diversify(
-       "The experiment was conducted in a controlled lab setting.",
-       method_kwargs={"style_bank": custom_bank},
-   )
-
-``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.styles`` so you
-can build on it:
-
-.. code-block:: python
-
-   from diversify_text.styles import DEFAULT_STYLE_BANK
-
-   extended_bank = {
-       **DEFAULT_STYLE_BANK,
-       "scientific": ["The data clearly indicate a statistically significant result."],
-   }
-
-You can also select specific styles by key name with ``styles``, instead of
-cycling through the entire bank. The number of paraphrases is determined by
-the number of selected styles:
+Every paraphrase is produced by transferring the input text into a target
+style, and each target style is defined by a set of example texts. Select
+built-in styles from the style bank with ``styles`` (by name and/or
+0-based index), or define your own with ``style_examples``; both can be
+combined in one call. One paraphrase is generated per style:
 
 .. code-block:: python
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       method_kwargs={"styles": ["research_article", "personal_blog", "recipe"]},
+       styles=["research_article", "personal_blog", "recipe"],
+       style_examples={
+           "telegraphic": ["Key finding: effect confirmed. Details follow."],
+       },
    )
+
+``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.styles`` if you
+want to look at the built-in styles and their example texts:
+
+.. code-block:: python
+
+   from diversify_text.styles import DEFAULT_STYLE_BANK
+
+   print(list(DEFAULT_STYLE_BANK))
 
 .. _creating-a-custom-method:
 
@@ -175,12 +157,19 @@ Creating a custom method
    class MyMethod(DiversificationMethod):
        name = "my_method"
 
-       def generate(self, texts, *, n, max_new_tokens, temperature, top_p, **kwargs):
-           return [[f"{text} :: variant {i}" for i in range(n)] for text in texts]
+       def generate(self, texts, style_dict, *, max_new_tokens=None,
+                    temperature=None, top_p=None, **kwargs):
+           # style_dict maps each target style name to its example texts.
+           return [[f"{text} :: {name}" for name in style_dict] for text in texts]
 
 
-   results = Diversifier(method=MyMethod()).diversify("Hello", n=3)
+   results = Diversifier(method=MyMethod()).diversify(
+       "Hello", styles=["recipe", "poem"],
+   )
 
 .. code-block:: python
 
-   [{"original": "Hello", "paraphrases": ["Hello :: variant 0", "Hello :: variant 1", "Hello :: variant 2"]}]
+   [{"original": "Hello", "paraphrases": [
+       {"style": "recipe", "text": "Hello :: recipe"},
+       {"style": "poem", "text": "Hello :: poem"},
+   ]}]

@@ -29,11 +29,11 @@ length (up to 256 tokens). You can override this with ``max_new_tokens``:
    [{
        "original": "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Despite their families' financial constraints, both parents attended the University of Oxford.",
        "paraphrases": [
-           "both parents went to the university of Oxford, Stephen Hawking was born 8 January 1942...",
-           "Well I know that both parents went to Oxford.",
-           "How is that? Stephen Hawking was born 8 January 1942 to Frank and Isobel Hawking, who both attended the University of Oxford.",
-           "Isobel and Frank Hawking were both at Oxford.",
-           "Well I mean, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking who attended Oxford.",
+           {"style": "informal_tinystyler", "text": "both parents went to the university of Oxford, Stephen Hawking was born 8 January 1942..."},
+           {"style": "obama_tinystyler", "text": "Well I know that both parents went to Oxford."},
+           {"style": "question_tinystyler", "text": "How is that? Stephen Hawking was born 8 January 1942 to Frank and Isobel Hawking, who both attended the University of Oxford."},
+           {"style": "formal_stel", "text": "Isobel and Frank Hawking were both at Oxford."},
+           {"style": "song_lyrics", "text": "Well I mean, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking who attended Oxford."},
        ]
    }]
 
@@ -67,11 +67,11 @@ independently (where the model works best), and reassembles the results:
    [{
        "original": "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Despite their families' financial constraints, both parents attended the University of Oxford.",
        "paraphrases": [
-           "Stephen Hawking was born 8 January 1942 to Frank and isobel Hawking... both parents went to the university of oxford despite their families financial constraints...",
-           "Well, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Well, both parents went to the University of Oxford despite their families' financial constraints.",
-           "How is Stephen Hawking? He was born on 8 January 1942 to Frank and Isobel Hawking. What? Both parents went to the University of Oxford despite their families financial constraints.",
-           "I believe Stephen Hawking was born on 8 January 1942. I have heard both parents went to Oxford despite their families financial constraints.",
-           "Well, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. So both parents went to Oxford despite their families financial constraints? I just want to say, the university is a great place to live.",
+           {"style": "informal_tinystyler", "text": "Stephen Hawking was born 8 January 1942 to Frank and isobel Hawking... both parents went to the university of oxford despite their families financial constraints..."},
+           {"style": "obama_tinystyler", "text": "Well, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Well, both parents went to the University of Oxford despite their families' financial constraints."},
+           {"style": "question_tinystyler", "text": "How is Stephen Hawking? He was born on 8 January 1942 to Frank and Isobel Hawking. What? Both parents went to the University of Oxford despite their families financial constraints."},
+           {"style": "formal_stel", "text": "I believe Stephen Hawking was born on 8 January 1942. I have heard both parents went to Oxford despite their families financial constraints."},
+           {"style": "song_lyrics", "text": "Well, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. So both parents went to Oxford despite their families financial constraints? I just want to say, the university is a great place to live."},
        ]
    }]
 
