@@ -106,6 +106,62 @@ class TinyStylerMethod(DiversificationMethod):
         else:
             logger.info("Using %d style(s) from style bank.", n)
 
+        return self._generate_from_style_dict_list(
+            texts,
+            style_bank[:n],
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+
+    def _generate_from_style_dict(
+        self,
+        texts: list[str],
+        style_dict: dict[str, list[str]],
+        *,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> list[list[str]]:
+        """Generate one paraphrase per style in *style_dict* for each text.
+
+        Parameters
+        ----------
+        texts : list[str]
+            Input texts to paraphrase.
+        style_dict : dict[str, list[str]]
+            Maps each target style name to its example texts (as built
+            by :func:`~diversify_text.styles.resolve_style_dict`).
+        max_new_tokens, temperature, top_p
+            As in :meth:`generate`; ``None`` uses defaults.
+
+        Returns
+        -------
+        list[list[str]]
+            For each input text, one generated string per style, in
+            *style_dict* order.
+
+        This becomes the ``generate()`` interface in #18; nothing calls
+        it yet.
+        """
+        return self._generate_from_style_dict_list(
+            texts,
+            list(style_dict.values()),
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+
+    def _generate_from_style_dict_list(
+        self,
+        texts: list[str],
+        style_sets: list[list[str]],
+        *,
+        max_new_tokens: int | None,
+        temperature: float | None,
+        top_p: float | None,
+    ) -> list[list[str]]:
+        """Shared generation loop: one transfer per style example set."""
         model = self._ensure_model()
 
         # Apply TinyStyler-specific defaults for parameters not set by
@@ -131,8 +187,7 @@ class TinyStylerMethod(DiversificationMethod):
 
         paraphrases_per_text = [[] for _ in texts]
 
-        for i in range(n):
-            style_examples = style_bank[i]
+        for style_examples in style_sets:
             batch = model.transfer(
                 texts,
                 style_examples,
