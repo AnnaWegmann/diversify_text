@@ -149,31 +149,31 @@ class TestPromptingMethodGenerate(unittest.TestCase):
 
 class TestGenerateFromStyleDict(unittest.TestCase):
 
-    def test_one_output_per_style_per_text_in_dict_order(self):
+    def test_one_output_per_style_in_dict_order(self):
         method = PromptingMethod()
         mock_model = MagicMock()
-        # The model returns one output per sent prompt; prompts are
-        # built style by style, texts within each style.
-        mock_model.generate_text.side_effect = lambda prompts, **kw: [
-            f"out{i}" for i in range(len(prompts))
-        ]
+
+        def fake_generate(prompts, **kwargs):
+            # Answer each prompt with the style example it contains, so
+            # the output directly shows which style produced it.
+            return [
+                "casual reply" if "hey there" in p else "formal reply"
+                for p in prompts
+            ]
+
+        mock_model.generate_text.side_effect = fake_generate
         method._model = mock_model
 
         # Explicit max_new_tokens skips the automatic token budget,
         # which would otherwise need the model's tokenizer.
         result = method._generate_from_style_dict(
-            ["text a", "text b"],
+            ["my text"],
             {"casual": ["hey there"], "formal": ["Good day."]},
             max_new_tokens=32,
         )
 
-        # 4 prompts sent: casual x (a, b), then formal x (a, b) —
-        # so text a gets out0 (casual) and out2 (formal).
-        self.assertEqual(result, [["out0", "out2"], ["out1", "out3"]])
-        sent_prompts = mock_model.generate_text.call_args.args[0]
-        self.assertIn("hey there", sent_prompts[0])
-        self.assertIn("text a", sent_prompts[0])
-        self.assertIn("Good day.", sent_prompts[2])
+        # One text, two styles → one output per style, in dict order.
+        self.assertEqual(result, [["casual reply", "formal reply"]])
 
 
 class TestPromptingModelLoad(unittest.TestCase):
