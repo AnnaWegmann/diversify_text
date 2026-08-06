@@ -70,10 +70,10 @@ Reads the file and writes a JSONL file next to the input
 
 Each line in the JSONL output is one JSON object:
 
-.. code-block:: text
+.. code-block:: json
 
-   {"original": "Jane is a ...", "paraphrases": [{"style": "...", "text": "Jane works as a ..."}, ...]}
-   {"original": "John studied ...", "paraphrases": [{"style": "...", "text": "John was educated ..."}, ...]}
+   {"original": "Jane is a ...", "paraphrases": [{"style": "informal_tinystyler", "text": "Jane works as a ..."}]}
+   {"original": "John studied ...", "paraphrases": [{"style": "informal_tinystyler", "text": "John was educated ..."}]}
 
 TXT file
 --------
@@ -134,14 +134,8 @@ combined in one call. One paraphrase is generated per style:
        },
    )
 
-``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.styles`` if you
-want to look at the built-in styles and their example texts:
-
-.. code-block:: python
-
-   from diversify_text.styles import DEFAULT_STYLE_BANK
-
-   print(list(DEFAULT_STYLE_BANK))
+``DEFAULT_STYLE_BANK`` (``diversify_text.styles``) holds the built-in
+styles and their example texts.
 
 .. _creating-a-custom-method:
 
@@ -173,3 +167,14 @@ Creating a custom method
        {"style": "recipe", "text": "Hello :: recipe"},
        {"style": "poem", "text": "Hello :: poem"},
    ]}]
+
+**Required:** a method must accept the two positional arguments —
+``texts`` (the input texts) and ``style_dict`` (style name → example
+texts) — and return one generated string per style for each text, in
+``style_dict`` order (shape ``len(texts)`` x ``len(style_dict)``).
+The style labels are attached by the core afterwards.
+
+**Optional:** ``max_new_tokens``, ``temperature`` and ``top_p`` are
+passed by the core; a method that has no use for them can ignore them.
+Anything the caller provides via ``method_kwargs`` arrives as extra
+keyword arguments, so method-specific options go there.
