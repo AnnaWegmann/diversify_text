@@ -106,6 +106,51 @@ class TinyStylerMethod(DiversificationMethod):
         else:
             logger.info("Using %d style(s) from style bank.", n)
 
+        # Adapter onto the new style-dict interface: the style names do
+        # not matter for generation, only the example sets and their
+        # order.  This method is replaced by _generate_from_style_dict
+        # in #18.
+        style_dict = {
+            f"style_{i}": style_examples
+            for i, style_examples in enumerate(style_bank[:n], start=1)
+        }
+        return self._generate_from_style_dict(
+            texts,
+            style_dict,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+
+    def _generate_from_style_dict(
+        self,
+        texts: list[str],
+        style_dict: dict[str, list[str]],
+        *,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> list[list[str]]:
+        """Generate one paraphrase per style in *style_dict* for each text.
+
+        Parameters
+        ----------
+        texts : list[str]
+            Input texts to paraphrase.
+        style_dict : dict[str, list[str]]
+            Maps each target style name to its example texts (as built
+            by :func:`~diversify_text.styles.resolve_style_dict`).
+        max_new_tokens, temperature, top_p
+            As in :meth:`generate`; ``None`` uses defaults.
+
+        Returns
+        -------
+        list[list[str]]
+            For each input text, one generated string per style, in
+            *style_dict* order.
+
+        This becomes the ``generate()`` interface in #18.
+        """
         model = self._ensure_model()
 
         # Apply TinyStyler-specific defaults for parameters not set by
@@ -113,26 +158,25 @@ class TinyStylerMethod(DiversificationMethod):
         temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
         top_p = top_p if top_p is not None else _DEFAULT_TOP_P
 
-        # Cap max_new_tokens between _MAX_NEW_TOKENS_FLOOR and
-        # _MAX_NEW_TOKENS_CAP, scaling with the longest input.
-        # An explicit caller value is used as-is.
-        input_token_counts = [
-            len(ids)
-            for ids in model._tokenizer(texts, truncation=True)["input_ids"]
-        ]
-        dynamic_cap = max(
-            _MAX_NEW_TOKENS_FLOOR,
-            min(
-                int(max(input_token_counts) * _MAX_NEW_TOKENS_FACTOR),
-                _MAX_NEW_TOKENS_CAP,
-            ),
-        )
-        max_new_tokens = max_new_tokens if max_new_tokens is not None else dynamic_cap
+        # An explicit max_new_tokens is used as-is; otherwise scale with
+        # the longest input, capped between _MAX_NEW_TOKENS_FLOOR and
+        # _MAX_NEW_TOKENS_CAP.
+        if max_new_tokens is None:
+            input_token_counts = [
+                len(ids)
+                for ids in model._tokenizer(texts, truncation=True)["input_ids"]
+            ]
+            max_new_tokens = max(
+                _MAX_NEW_TOKENS_FLOOR,
+                min(
+                    int(max(input_token_counts) * _MAX_NEW_TOKENS_FACTOR),
+                    _MAX_NEW_TOKENS_CAP,
+                ),
+            )
 
         paraphrases_per_text = [[] for _ in texts]
 
-        for i in range(n):
-            style_examples = style_bank[i]
+        for style_examples in style_dict.values():
             batch = model.transfer(
                 texts,
                 style_examples,
