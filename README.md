@@ -93,13 +93,13 @@ Unknown names and out-of-range indices raise an error listing what is available.
 
 ### Bring your own style examples
 
-Pass `style_examples` to define target styles with your own texts. A flat list is one style; a list of lists is several styles; a dict maps style names to example sets:
+Pass `style_texts` to define target styles with your own texts. A flat list is one style; a list of lists is several styles; a dict maps style names to example sets:
 
 ```python
 # one style, defined by its example texts
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
-    style_examples=[
+    style_texts=[
         "We found something really interesting — check this out!",
         "You won't believe how well this worked!",
     ],
@@ -108,7 +108,7 @@ results = diversify(
 # several styles, named
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
-    style_examples={
+    style_texts={
         "academic": [
             "The results demonstrate a statistically significant effect.",
             "Participants were randomly assigned to one of two conditions.",
@@ -131,7 +131,7 @@ results = diversify(
 }]
 ```
 
-`styles` and `style_examples` can be combined in one call (bank styles come first in the output). `n` cannot be combined with either — the number of styles is already determined, so passing `n` raises an error.
+`styles` and `style_texts` can be combined in one call (bank styles come first in the output). `n` cannot be combined with either — the number of styles is already determined, so passing `n` raises an error.
 
 ### Repeats
 
@@ -166,7 +166,7 @@ The default style transfer method is [TinyStyler](https://huggingface.co/tinysty
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
     method="prompting",
-    style_examples={
+    style_texts={
         "academic": [
             "The results demonstrate a statistically significant effect.",
             "Participants were randomly assigned to one of two conditions.",
@@ -197,7 +197,7 @@ from diversify_text import Diversifier
 div = Diversifier(device="cuda", method="tinystyler")
 
 batch_1 = div.diversify(texts_1, styles=["recipe", "personal_blog"])
-batch_2 = div.diversify(texts_2, style_examples=my_examples)
+batch_2 = div.diversify(texts_2, style_texts=my_examples)
 ```
 
 ### List of texts
@@ -229,7 +229,7 @@ class MyMethod(DiversificationMethod):
     def generate(self, texts, style_dict, *, max_new_tokens, temperature, top_p, **kwargs):
         # style_dict maps each target style name to its example texts,
         # e.g. {"recipe": ["Cut a peeled brown onion...", ...]}.
-        # It is resolved by the core from the caller's `styles` / `style_examples`.
+        # It is resolved by the core from the caller's `styles` / `style_texts`.
         return [[f"{text} :: {name}" for name in style_dict] for text in texts]
 
 

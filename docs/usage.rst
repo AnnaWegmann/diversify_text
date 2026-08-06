@@ -5,7 +5,7 @@ Control number of styles
 ------------------------
 
 ``n`` selects how many of the default styles are used — one paraphrase
-per style. It cannot be combined with ``styles`` or ``style_examples``:
+per style. It cannot be combined with ``styles`` or ``style_texts``:
 
 .. code-block:: python
 
@@ -121,7 +121,7 @@ Selecting styles
 Every paraphrase is produced by transferring the input text into a target
 style, and each target style is defined by a set of example texts. Select
 built-in styles from the style bank with ``styles`` (by name and/or
-0-based index), or define your own with ``style_examples``; both can be
+0-based index), or define your own with ``style_texts``; both can be
 combined in one call. One paraphrase is generated per style:
 
 .. code-block:: python
@@ -129,7 +129,7 @@ combined in one call. One paraphrase is generated per style:
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
        styles=["research_article", "personal_blog", "recipe"],
-       style_examples={
+       style_texts={
            "telegraphic": ["Key finding: effect confirmed. Details follow."],
        },
    )

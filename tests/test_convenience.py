@@ -64,7 +64,7 @@ class TestStyleSelection(unittest.TestCase):
         results = diversify(
             "hello",
             method=_FakePrompting(),
-            style_examples={"a": ["example a"], "b": ["example b"]},
+            style_texts={"a": ["example a"], "b": ["example b"]},
         )
         self.assertEqual(len(results[0]["paraphrases"]), 2)
 
@@ -78,7 +78,7 @@ class TestStyleSelection(unittest.TestCase):
             )
         self.assertEqual(
             str(cm.exception),
-            "n cannot be combined with styles or style_examples — the "
+            "n cannot be combined with styles or style_texts — the "
             "number of styles already determines the number of paraphrases.",
         )
 
@@ -86,7 +86,7 @@ class TestStyleSelection(unittest.TestCase):
         results = diversify(
             "hello",
             method=_FakeTinyStyler(),
-            style_examples={"a": ["example a"], "b": ["example b"]},
+            style_texts={"a": ["example a"], "b": ["example b"]},
             repeats=2,
         )
         # Two styles, two repeats → four paraphrases: a, b, a, b.

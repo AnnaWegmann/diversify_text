@@ -23,18 +23,18 @@ _USER_SUFFIX = "_user"
 
 def resolve_style_dict(
     styles: list[str | int] | None = None,
-    style_examples: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
+    style_texts: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
     *,
     bank: dict[str, list[str]] | None = None,
 ) -> dict[str, list[str]]:
-    """Resolve *styles* and *style_examples* into one ordered style dict.
+    """Resolve *styles* and *style_texts* into one ordered style dict.
 
     Parameters
     ----------
     styles : list of str or int, optional
         Selection from the built-in style bank, by name (``"recipe"``)
         and/or 0-based index (``7``).  Mixing is allowed.
-    style_examples : list[str] | list[list[str]] | dict, optional
+    style_texts : list[str] | list[list[str]] | dict, optional
         User-defined styles.  A flat list of strings is one style; a
         list of lists is several styles; a dict maps style names to
         example texts.  Unnamed styles are auto-named ``style_1``,
@@ -58,9 +58,9 @@ def resolve_style_dict(
     TypeError
         For input shapes that match none of the accepted forms.
     """
-    if styles is None and style_examples is None:
+    if styles is None and style_texts is None:
         raise ValueError(
-            "Provide styles (bank selection) and/or style_examples "
+            "Provide styles (bank selection) and/or style_texts "
             "(your own example texts)."
         )
     if bank is None:
@@ -99,9 +99,9 @@ def resolve_style_dict(
                 )
             resolved[name] = list(bank[name])
 
-    # --- user styles (style_examples) ---
-    if style_examples is not None:
-        for name, examples in _normalize_style_examples(style_examples).items():
+    # --- user styles (style_texts) ---
+    if style_texts is not None:
+        for name, examples in _normalize_style_texts(style_texts).items():
             if not examples:
                 raise ValueError(f"Style {name!r} has no example texts.")
             if name in resolved:
@@ -110,7 +110,7 @@ def resolve_style_dict(
                     raise ValueError(
                         f"Style name {name!r} clashes with a selected bank "
                         f"style and {renamed!r} is also taken. Rename your "
-                        "style in style_examples."
+                        "style in style_texts."
                     )
                 logger.warning(
                     "Style name %r is also a selected bank style; "
@@ -123,46 +123,46 @@ def resolve_style_dict(
     return resolved
 
 
-def _normalize_style_examples(
-    style_examples: list[str] | list[list[str]] | dict[str, list[str]],
+def _normalize_style_texts(
+    style_texts: list[str] | list[list[str]] | dict[str, list[str]],
 ) -> dict[str, list[str]]:
-    """Normalize the three accepted *style_examples* shapes into a dict.
+    """Normalize the three accepted *style_texts* shapes into a dict.
 
     Auto-names unnamed styles ``style_1``, ``style_2``, ... (1-based).
     """
-    if isinstance(style_examples, Mapping):
+    if isinstance(style_texts, Mapping):
         result: dict[str, list[str]] = {}
-        for name, examples in style_examples.items():
+        for name, examples in style_texts.items():
             if not isinstance(examples, list) or not all(
                 isinstance(x, str) for x in examples
             ):
                 raise TypeError(
-                    f"style_examples[{name!r}] must be a list of strings."
+                    f"style_texts[{name!r}] must be a list of strings."
                 )
             result[str(name)] = list(examples)
         return result
 
-    if isinstance(style_examples, list):
+    if isinstance(style_texts, list):
         # Flat list of strings → one style.
-        if all(isinstance(x, str) for x in style_examples):
-            return {"style_1": list(style_examples)}
+        if all(isinstance(x, str) for x in style_texts):
+            return {"style_1": list(style_texts)}
         # List of lists of strings → several styles.
         if all(
             isinstance(group, list)
             and all(isinstance(x, str) for x in group)
-            for group in style_examples
+            for group in style_texts
         ):
             return {
                 f"style_{i}": list(group)
-                for i, group in enumerate(style_examples, start=1)
+                for i, group in enumerate(style_texts, start=1)
             }
         raise TypeError(
-            "style_examples list entries must be all strings (one style) "
+            "style_texts list entries must be all strings (one style) "
             "or all lists of strings (several styles), not a mix."
         )
 
     raise TypeError(
-        "style_examples must be a list of strings, a list of lists of "
+        "style_texts must be a list of strings, a list of lists of "
         "strings, or a dict mapping style names to lists of strings."
     )
 

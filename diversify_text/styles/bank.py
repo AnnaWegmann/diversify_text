@@ -7,14 +7,14 @@ Both TinyStyler (via authorship embeddings) and the prompting method (via
 few-shot in-context examples) draw from this bank.
 
 Select styles from it with the ``styles`` parameter, or pass your own
-example texts via ``style_examples``:
+example texts via ``style_texts``:
 
     from diversify_text import diversify
 
     results = diversify(
         texts,
         styles=["recipe", "personal_blog"],
-        style_examples={
+        style_texts={
             "scientific": [
                 "The data clearly indicate a statistically significant result.",
             ],

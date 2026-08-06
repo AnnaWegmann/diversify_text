@@ -86,7 +86,7 @@ class Diversifier:
         *,
         n: int | None = None,
         styles: list[str | int] | None = None,
-        style_examples: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
+        style_texts: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
         repeats: int = 1,
         text_column: str = "text",
         batch_size: int = 32,
@@ -109,13 +109,13 @@ class Diversifier:
         n : int or None
             Number of distinct styles to draw from the default styles
             (and therefore paraphrases per text) when neither *styles*
-            nor *style_examples* is given.  Defaults to ``5``.  Cannot
-            be combined with *styles* or *style_examples* — the number
+            nor *style_texts* is given.  Defaults to ``5``.  Cannot
+            be combined with *styles* or *style_texts* — the number
             of styles already determines the number of paraphrases.
         styles : list of str or int, optional
             Selection from the built-in style bank, by name
             (``"recipe"``) and/or 0-based index (``7``).
-        style_examples : list[str] | list[list[str]] | dict, optional
+        style_texts : list[str] | list[list[str]] | dict, optional
             Your own target styles, defined by example texts: a flat
             list is one style, a list of lists is several styles, a
             dict maps style names to example texts.  Can be combined
@@ -175,14 +175,14 @@ class Diversifier:
         # Resolve the target styles into one style dict.  Explicit
         # styles determine the number of paraphrases; n only selects
         # from the default styles when nothing else is given.
-        if styles is not None or style_examples is not None:
+        if styles is not None or style_texts is not None:
             if n is not None:
                 raise ValueError(
-                    "n cannot be combined with styles or style_examples "
+                    "n cannot be combined with styles or style_texts "
                     "— the number of styles already determines the "
                     "number of paraphrases."
                 )
-            style_dict = resolve_style_dict(styles, style_examples)
+            style_dict = resolve_style_dict(styles, style_texts)
         else:
             if n is None:
                 n = self._DEFAULT_N
@@ -387,7 +387,7 @@ def diversify(
     **kwargs
         Forwarded to :class:`Diversifier` (``min_score``,
         ``n_candidates``) and :meth:`Diversifier.diversify`
-        (``n``, ``styles``, ``style_examples``, ``repeats``,
+        (``n``, ``styles``, ``style_texts``, ``repeats``,
         ``text_column``, ``batch_size``, ``max_new_tokens``,
         ``temperature``, ``top_p``, ``seed``, ``method_kwargs``,
         ``preprocess_kwargs``, ``output_dir``, ``output_name``).
