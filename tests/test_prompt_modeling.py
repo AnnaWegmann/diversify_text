@@ -116,6 +116,23 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         self.assertIn("my input", sent_prompts[0])
         self.assertIn("style example a", sent_prompts[0])
 
+    def test_n_larger_than_available_styles_raises(self):
+        # No mock needed: the check runs before any model is loaded.
+        # The default style list has 5 styles.
+        method = PromptingMethod()
+        with self.assertRaises(ValueError) as cm:
+            method.generate(
+                ["text"],
+                n=7,
+                max_new_tokens=None,
+                temperature=None,
+                top_p=None,
+            )
+        self.assertEqual(
+            str(cm.exception),
+            "n=7 exceeds the number of available styles (5).",
+        )
+
     def test_generate_rejects_prompt_without_style_examples(self):
         method = self._make_method_with_mock_model(["out"])
         with self.assertRaises(ValueError):

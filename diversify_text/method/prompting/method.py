@@ -307,34 +307,40 @@ class PromptingMethod(DiversificationMethod):
             ``prompt``, ``styles``, ``custom_style_bank``, and
             ``n_style_examples``.
         """
-        model = self._ensure_model()
-        temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
-        top_p = top_p if top_p is not None else _DEFAULT_TOP_P
-
+        # Resolve the prompt and styles and check n before any model
+        # work, so bad input fails fast without loading a model.
         prompt_key, prompt_template = self._resolve_prompt(kwargs.get("prompt"))
-        all_max_new_tokens = self._compute_max_new_tokens(
-            texts, n, max_new_tokens,
-        )
-        logger.info("Using prompt template %r for %d paraphrase(s).", prompt_key, n)
-
         fs_style_examples = self._resolve_few_shot_examples(**kwargs)
         # Every template is example-based: default to DEFAULT_STYLES
         # when no explicit styles were provided.
         if not fs_style_examples:
             from diversify_text.styles import DEFAULT_STYLES
             fs_style_examples = resolve_style_sets(None, DEFAULT_STYLES)
+        if n > len(fs_style_examples):
+            raise ValueError(
+                f"n={n} exceeds the number of available styles "
+                f"({len(fs_style_examples)})."
+            )
+        logger.info("Using prompt template %r for %d paraphrase(s).", prompt_key, n)
         logger.info("Style sets: %s", ", ".join(fs_style_examples.keys()))
+
+        model = self._ensure_model()
+        temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
+        top_p = top_p if top_p is not None else _DEFAULT_TOP_P
+        all_max_new_tokens = self._compute_max_new_tokens(
+            texts, n, max_new_tokens,
+        )
 
         n_ex = kwargs.get("n_style_examples", _DEFAULT_N_STYLE_EXAMPLES)
 
         # TODO: accept texts as an Iterable (not just list) to support
         #       streaming from large files without materialising everything
         #       in memory.
-        # Paraphrase slot i uses style i (wrapping around when n exceeds
-        # the number of styles), always with the single active template.
+        # Paraphrase slot i uses style i, always with the single active
+        # template.
         all_prompts: list[str] = []
         for i in range(n):
-            style_idx = i % len(fs_style_examples)
+            style_idx = i
             for t in texts:
                 all_prompts.append(
                     self._fill_template(
