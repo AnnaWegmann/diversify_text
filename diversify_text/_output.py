@@ -180,9 +180,13 @@ class OutputWriter:
         ----------
         originals : list[str]
             The original texts in this batch.
-            One inner list per original text, each containing *n*
-            paraphrased variants.  For example, with 2 styles and 2
-            texts: ``[["a_style1", "a_style2"], ["b_style1", "b_style2"]]``.
+        paraphrases_by_text : list[list[dict[str, str]]]
+            One inner list per original text, each containing one
+            ``{"style": ..., "text": ...}`` entry per target style.
+            For example, with 2 styles and 1 text:
+            ``[[{"style": "formal", "text": "..."},
+            {"style": "recipe", "text": "..."}]]``.
+
         Raises
         ------
         ValueError
