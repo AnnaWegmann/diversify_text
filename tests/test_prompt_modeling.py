@@ -117,9 +117,9 @@ class TestGenerateFromStyleDict(unittest.TestCase):
 
 class TestPromptingModelLoad(unittest.TestCase):
 
-    @patch("diversify_text.method.prompting.model.PromptingModel._load_transformers")
+    @patch("diversify_text.method.llm.PromptingModel._load_transformers")
     def test_load_calls_transformers(self, mock_load_tf):
-        from diversify_text.method.prompting.model import PromptingModel
+        from diversify_text.method.llm import PromptingModel
 
         model = PromptingModel(model_id="test-model", device="cpu")
         model.load()
