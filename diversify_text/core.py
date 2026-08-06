@@ -362,15 +362,14 @@ def diversify(
 ) -> DiversifyOutput:
     """One-shot convenience function: create a :class:`Diversifier` and run it.
 
-    The generation method and the MIS filter are cached independently
-    between calls.  Generation methods are cached per (``device``,
-    resolved method), while the MIS filter is cached per ``device``.
-    Switching ``semantic_filter`` on or off reuses the cached generation
-    model, and changing the method reuses the cached MIS filter when
-    possible.  Expensive components are only recreated when their
-    respective cache keys change; changing filter thresholds (``min_score``,
-    ``n_candidates``) updates the existing MIS filter instance rather than
-    reloading it.
+    Loaded models are cached between calls: the generation model per
+    configuration (``model``, ``device``, ``precision``) and the MIS
+    filter per ``device``, independently of each other.  Switching
+    ``semantic_filter`` on or off reuses the cached generation model,
+    changing the method reuses the cached MIS filter, and per-call
+    options never trigger a model reload; changing filter thresholds
+    (``min_score``, ``n_candidates``) updates the existing MIS filter
+    instance rather than reloading it.
 
     Parameters
     ----------

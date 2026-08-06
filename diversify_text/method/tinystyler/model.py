@@ -111,3 +111,24 @@ def style_transfer(
     """One-shot convenience: load model, transfer, return results."""
     ts = TinyStyler(device=device)
     return ts.transfer(texts, style, **kwargs)
+
+
+# ------------------------------------------------------------------
+# Model cache: one loaded TinyStyler per device, shared across method
+# instances.
+# ------------------------------------------------------------------
+
+_MODEL_CACHE: dict[str, TinyStyler] = {}
+
+
+def get_tinystyler(device: str | None = None) -> TinyStyler:
+    """Return a loaded TinyStyler, one shared instance per device."""
+    resolved_device = device or default_device()
+    if resolved_device not in _MODEL_CACHE:
+        _MODEL_CACHE[resolved_device] = TinyStyler(device=resolved_device)
+    return _MODEL_CACHE[resolved_device]
+
+
+def clear_model_cache() -> None:
+    """Drop all cached models (used by :func:`diversify_text.clear_cache`)."""
+    _MODEL_CACHE.clear()

@@ -1,13 +1,13 @@
-"""Per-model caching for the :func:`~diversify_text.core.diversify` convenience function.
+"""Model caching for the :func:`~diversify_text.core.diversify` convenience function.
 
-Keeps the generation method and the MIS filter in independent
-module-level caches so that toggling ``semantic_filter`` does not
-reload the generation model, and switching the method does not reload
-the MIS model.
-
-Each generation method is cached under its own key so that switching
-between methods only (re)loads the one whose configuration actually
-changed.
+Loaded models are cached, method instances are not: method objects are
+cheap to create, and each model family keeps one loaded instance per
+configuration in its own module (the causal LM engine in
+:mod:`diversify_text.method.llm`, the TinyStyler model in
+:mod:`diversify_text.method.tinystyler.model`, the MIS filter here).
+Toggling ``semantic_filter`` therefore does not reload the generation
+model, switching methods does not reload the MIS model, and per-call
+options never trigger a model reload.
 
 Not thread-safe.  Intended for single-threaded use in scripts and
 notebooks.  For multi-threaded applications, use :class:`Diversifier`
@@ -16,7 +16,6 @@ directly with your own instance management.
 
 from __future__ import annotations
 
-import inspect
 from collections.abc import Mapping
 from functools import lru_cache
 from typing import Any
@@ -25,125 +24,7 @@ from diversify_text._utils import default_device
 from diversify_text.filter.mis import MISFilter, _DEFAULT_MIN_SCORE, _DEFAULT_N_CANDIDATES
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 from diversify_text.method.llm import clear_engine_cache
-
-
-# kwargs that affect model construction and should invalidate the cache.
-# Per-call kwargs (styles, prompt, n_style_examples, etc.) are excluded.
-_CACHE_KWARGS = {"model", "device", "precision"}
-
-
-# ------------------------------------------------------------------
-# Generation method cache (dict-based, one entry per method)
-# ------------------------------------------------------------------
-
-_METHOD_CACHE: dict[tuple, DiversificationMethod] = {}
-
-
-def _resolve_cache_kwargs(
-    method_name: str,
-    device: str,
-    method_kwargs: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Resolve the full set of cache-relevant kwargs for a method.
-
-    Merges caller-provided kwargs with the constructor's own defaults
-    (discovered via ``inspect.signature``) so that the cache key is
-    the same whether the caller explicitly passes a default value or
-    omits it.  Only kwargs in :data:`_CACHE_KWARGS` are included.
-
-    For example, ``PromptingMethod.__init__`` has
-    ``model="HuggingFaceTB/SmolLM3-3B"`` as a default.
-    These two calls should hit the same cache entry::
-
-        # Omit model — default is filled in from the signature.
-        get_method(device=None, method="prompting")
-
-        # Explicitly pass the same default value.
-        get_method(device=None, method="prompting",
-            method_kwargs={"model": "HuggingFaceTB/SmolLM3-3B"})
-
-    Without this function the first call would produce the key
-    ``("prompting", (("device", "cpu"),))`` (no model) and the second
-    ``("prompting", (("device", "cpu"), ("model", "HuggingFaceTB/..."),))``
-    — different keys, two copies of the same model loaded.
-
-    Parameters
-    ----------
-    method_name : str
-        Registry name of the method (e.g. ``"tinystyler"``).
-    device : str
-        Torch device string (already resolved, never ``None``).
-    method_kwargs : mapping, optional
-        Method-specific keyword arguments.  Only the cache-relevant
-        kwargs (:data:`_CACHE_KWARGS`) are inspected.
-
-    Returns
-    -------
-    dict[str, Any]
-        The full set of cache-relevant kwargs, e.g.
-        ``{"device": "cpu", "model": "HuggingFaceTB/SmolLM3-3B", "precision": "auto"}``.
-    """
-    # Start with device (always present).
-    resolved: dict[str, Any] = {"device": device}
-
-    # Fill in constructor defaults from the method class signature.
-    method_class = DEFAULT_METHOD_REGISTRY.get(method_name)
-    signature = inspect.signature(method_class)
-    for param_name, param in signature.parameters.items():
-        # inspect.Parameter.empty is a sentinel meaning "no default value."
-        # We skip those — only fill in defaults that actually exist.
-        if (
-            param_name in _CACHE_KWARGS
-            and param_name not in resolved
-            and param.default is not inspect.Parameter.empty
-        ):
-            resolved[param_name] = param.default
-
-    # Override defaults with caller-provided kwargs.
-    if method_kwargs:
-        for k, v in method_kwargs.items():
-            if k in _CACHE_KWARGS:
-                resolved[k] = v
-
-    return resolved
-
-
-def _single_METHOD_CACHE_key(
-    method_name: str,
-    device: str,
-    method_kwargs: Mapping[str, Any] | None = None,
-) -> tuple:
-    """Build a hashable key for a single generation method.
-
-    The key uniquely identifies a loaded model instance.  It includes
-    only constructor-level kwargs (``model``, ``device``, ``precision``)
-    that determine *which* model gets loaded.  Per-call kwargs like
-    ``styles`` or ``prompt`` are excluded — changing those should reuse
-    the same model, not trigger an expensive reload.
-
-    Constructor defaults are resolved via ``inspect.signature`` so that
-    explicitly passing a default value produces the same cache key as
-    omitting it entirely.
-
-    Parameters
-    ----------
-    method_name : str
-        Registry name of the method (e.g. ``"tinystyler"``).
-    device : str
-        Torch device string (already resolved, never ``None``).
-    method_kwargs : mapping, optional
-        Method-specific keyword arguments.  Only cache-relevant kwargs
-        are included in the key.
-
-    Returns
-    -------
-    tuple
-        A hashable key, e.g.
-        ``("prompting", "cpu", (("model", "default-model"), ("precision", "auto")))``.
-    """
-    resolved = _resolve_cache_kwargs(method_name, device, method_kwargs)
-    constructor_kwargs = tuple(sorted(resolved.items()))
-    return method_name, constructor_kwargs
+from diversify_text.method.tinystyler.model import clear_model_cache
 
 
 def get_method(
@@ -151,58 +32,34 @@ def get_method(
     method: str | DiversificationMethod | None,
     method_kwargs: Mapping[str, Any] | None = None,
 ) -> DiversificationMethod:
-    """Return the cached generation method, resolving only on config change.
+    """Resolve *method* into a ready instance.
 
-    Resolves the requested *method* against a module-level dict cache.
-    On a cache miss the method is instantiated via the registry
-    (expensive — may load a model); on a hit the existing instance is
-    reused.
-
-    The method can be specified as a string (looked up in the registry)
-    or as a pre-built :class:`DiversificationMethod` instance (passed
-    through as-is without caching, since it's already instantiated).
-
-    Because each method is cached under its own key, switching between
-    methods only loads the new one — already-cached methods are not
-    affected.
+    Method instances are cheap and are created fresh on every call —
+    the expensive model loading is cached at the model level in each
+    method's module, so a fresh instance still reuses loaded models.
 
     Parameters
     ----------
     device : str or None
-        Torch device.  ``None`` resolves to :func:`default_device`.
+        Torch device.  ``None`` lets the method auto-detect.
     method : str or DiversificationMethod, optional
-        Method name or pre-built instance.  Defaults to
-        ``"tinystyler"``.
+        Method name or pre-built instance (returned as-is).  Defaults
+        to ``"tinystyler"``.
     method_kwargs : mapping, optional
-        Method-specific keyword arguments, e.g.
-        ``{"model": "gpt2"}``.  Constructor kwargs
-        (``model``, ``device``, ``precision``) affect the cache key;
-        per-call kwargs (``styles``, ``prompt``) do not.
-
-    Returns
-    -------
-    DiversificationMethod
-        The resolved method instance.
+        Method-specific keyword arguments, e.g. ``{"model": "gpt2"}``.
+        Constructor arguments are forwarded to the method; per-call
+        arguments (``prompt``, ...) are ignored here and applied at
+        generation time.
     """
-    # Pre-built instances pass through untouched — resolve the device
-    # only for the string path, where it feeds the cache key.
     if isinstance(method, DiversificationMethod):
         return method
-
-    device = device or default_device()
     if method is None:
         method = "tinystyler"
-
     if isinstance(method, str):
-        key = _single_METHOD_CACHE_key(method, device, method_kwargs)
-        if key not in _METHOD_CACHE:  # cache miss → resolve and store
-            resolve_kwargs: dict[str, Any] = {"device": device}
-            if method_kwargs:
-                resolve_kwargs.update(method_kwargs)
-            _METHOD_CACHE[key] = DEFAULT_METHOD_REGISTRY.resolve(
-                method, **resolve_kwargs
-            )
-        return _METHOD_CACHE[key]
+        resolve_kwargs: dict[str, Any] = {"device": device}
+        if method_kwargs:
+            resolve_kwargs.update(method_kwargs)
+        return DEFAULT_METHOD_REGISTRY.resolve(method, **resolve_kwargs)
     raise TypeError(
         "method must be str or DiversificationMethod instance."
     )
@@ -260,17 +117,14 @@ def get_cached_mis_filter(
 def clear_cache() -> None:
     """Drop references to all cached models so their memory can be reclaimed when possible.
 
-    Clears the generation method dict cache, the shared language-model
-    engine cache, and the ``lru_cache`` backing the MIS filter.  After
-    calling this, the next :func:`get_method` or
-    :func:`get_cached_mis_filter` call will load models from scratch.
+    Clears the causal LM engine cache, the TinyStyler model cache, and
+    the ``lru_cache`` backing the MIS filter.  After calling this, the
+    next generation or filter use will load models from scratch.
 
     This clears Python-level references but does not guarantee immediate
     GPU/CPU memory release (e.g., allocator pools may retain reserved
     memory).
     """
-    global _METHOD_CACHE
-
-    _METHOD_CACHE = {}
     clear_engine_cache()
+    clear_model_cache()
     _load_mis_filter.cache_clear()
