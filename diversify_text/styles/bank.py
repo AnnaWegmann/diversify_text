@@ -6,19 +6,19 @@ list of example sentences that together define a target writing style.
 Both TinyStyler (via authorship embeddings) and the prompting method (via
 few-shot in-context examples) draw from this bank.
 
-Import and pass to a method via ``method_kwargs`` to override or extend:
+Select styles from it with the ``styles`` parameter, or pass your own
+example texts via ``style_examples``:
 
-    from diversify_text.styles import DEFAULT_STYLE_BANK
+    from diversify_text import diversify
 
-    custom_bank = {
-        **DEFAULT_STYLE_BANK,
-        "scientific": [
-            "The data clearly indicate a statistically significant result.",
-        ],
-    }
     results = diversify(
         texts,
-        method_kwargs={"style_bank": custom_bank},
+        styles=["recipe", "personal_blog"],
+        style_examples={
+            "scientific": [
+                "The data clearly indicate a statistically significant result.",
+            ],
+        },
     )
 
 Several examples are drawn from the CORE corpus (https://doi.org/10.1007/s10579-013-9256-1).

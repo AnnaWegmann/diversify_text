@@ -22,14 +22,18 @@ class DiversificationMethod(ABC):
     def generate(
         self,
         texts: list[str],
+        style_dict: dict[str, list[str]],
         *,
-        n: int,
-        max_new_tokens: int | None,
-        temperature: float | None,
-        top_p: float | None,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
         **kwargs: Any,
     ) -> list[list[str]]:
         """Return paraphrases per input text.
 
-        Output shape must be ``len(texts)`` x ``n``.
+        *style_dict* maps each target style name to its example texts
+        (as built by :func:`~diversify_text.styles.resolve_style_dict`).
+        For each input text, return one generated string per style, in
+        *style_dict* order — output shape ``len(texts)`` x
+        ``len(style_dict)``.
         """
