@@ -247,10 +247,40 @@ class CausalLMMethod(DiversificationMethod):
         self._ensure_model()
 
     def _ensure_model(self) -> PromptingModel:
-        """Lazily initialise the model on first use."""
+        """Fetch the shared engine on first use."""
         if self._model is None:
-            self._model = PromptingModel(
-                model_id=self.model_id, device=self.device, precision=self.precision
+            self._model = get_engine(
+                self.model_id, self.device, self.precision
             )
-            self._model.load()
         return self._model
+
+
+# ------------------------------------------------------------------
+# Engine cache: one loaded model per configuration, shared across
+# methods so e.g. prompting and zero_shot with the same model do not
+# hold two copies in memory.
+# ------------------------------------------------------------------
+
+_ENGINE_CACHE: dict[tuple, PromptingModel] = {}
+
+
+def get_engine(
+    model_id: str,
+    device: str | None,
+    precision: str | None,
+) -> PromptingModel:
+    """Return a loaded engine, one shared instance per configuration."""
+    resolved_device = device or default_device()
+    key = (model_id, resolved_device, precision)
+    if key not in _ENGINE_CACHE:
+        engine = PromptingModel(
+            model_id=model_id, device=resolved_device, precision=precision
+        )
+        engine.load()
+        _ENGINE_CACHE[key] = engine
+    return _ENGINE_CACHE[key]
+
+
+def clear_engine_cache() -> None:
+    """Drop all cached engines (used by :func:`diversify_text.clear_cache`)."""
+    _ENGINE_CACHE.clear()

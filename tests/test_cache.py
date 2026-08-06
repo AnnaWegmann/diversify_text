@@ -1,6 +1,7 @@
 """Tests for per-model caching in _cache.py."""
 
 import unittest
+import unittest.mock
 
 import diversify_text._cache as _cache
 
@@ -166,6 +167,30 @@ class TestPromptingCache(_CacheTestBase):
         _cache.clear_cache()
         p_after = _cache.get_method(device=None, method="prompting")
         self.assertIsNot(p_before, p_after)
+
+
+# ------------------------------------------------------------------
+# Shared engine cache
+# ------------------------------------------------------------------
+
+
+class TestEngineCache(_CacheTestBase):
+
+    @unittest.mock.patch("diversify_text.method.llm.PromptingModel.load")
+    def test_same_configuration_shares_one_engine(self, _mock_load):
+        """Two methods with the same model configuration share one loaded engine."""
+        from diversify_text.method.prompting import PromptingMethod
+        engine_a = PromptingMethod()._ensure_model()
+        engine_b = PromptingMethod()._ensure_model()
+        self.assertIs(engine_a, engine_b)
+
+    @unittest.mock.patch("diversify_text.method.llm.PromptingModel.load")
+    def test_clear_cache_drops_engines(self, _mock_load):
+        from diversify_text.method.prompting import PromptingMethod
+        engine_before = PromptingMethod()._ensure_model()
+        _cache.clear_cache()
+        engine_after = PromptingMethod()._ensure_model()
+        self.assertIsNot(engine_before, engine_after)
 
 
 # ------------------------------------------------------------------

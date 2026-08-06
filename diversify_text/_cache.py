@@ -24,6 +24,7 @@ from typing import Any
 from diversify_text._utils import default_device
 from diversify_text.filter.mis import MISFilter, _DEFAULT_MIN_SCORE, _DEFAULT_N_CANDIDATES
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
+from diversify_text.method.llm import clear_engine_cache
 
 
 # kwargs that affect model construction and should invalidate the cache.
@@ -259,10 +260,10 @@ def get_cached_mis_filter(
 def clear_cache() -> None:
     """Drop references to all cached models so their memory can be reclaimed when possible.
 
-    Clears both the generation method dict cache and the ``lru_cache``
-    backing the MIS filter.  After calling this, the next
-    :func:`get_method` or :func:`get_cached_mis_filter` call will
-    load models from scratch.
+    Clears the generation method dict cache, the shared language-model
+    engine cache, and the ``lru_cache`` backing the MIS filter.  After
+    calling this, the next :func:`get_method` or
+    :func:`get_cached_mis_filter` call will load models from scratch.
 
     This clears Python-level references but does not guarantee immediate
     GPU/CPU memory release (e.g., allocator pools may retain reserved
@@ -271,4 +272,5 @@ def clear_cache() -> None:
     global _METHOD_CACHE
 
     _METHOD_CACHE = {}
+    clear_engine_cache()
     _load_mis_filter.cache_clear()
