@@ -359,39 +359,3 @@ DEFAULT_STYLE_BANK: dict[str, list[str]] = {
 }
 
 
-def resolve_style_sets(
-    style_bank: dict[str, list[str]] | None = None,
-    styles: list[str] | None = None,
-) -> dict[str, list[str]]:
-    """Resolve style bank and optional key filter into a style dict.
-
-    Used by both TinyStyler and the prompting method.
-
-    Parameters
-    ----------
-    style_bank : dict or None
-        Custom style bank. ``None`` falls back to
-        :data:`DEFAULT_STYLE_BANK`.
-    styles : list[str] or None
-        Select only these keys from the bank. Order is preserved.
-
-    Returns
-    -------
-    dict[str, list[str]]
-        Mapping of style names to example sentence lists.
-    """
-    bank = style_bank if style_bank is not None else DEFAULT_STYLE_BANK
-
-    if styles is not None:
-        unknown = set(styles) - set(bank.keys())
-        if unknown:
-            raise ValueError(
-                f"Unknown style key(s): {sorted(unknown)}. "
-                f"Available: {sorted(bank.keys())}"
-            )
-        return {k: bank[k] for k in styles}
-
-    if style_bank is not None:
-        return dict(style_bank)
-
-    return {k: bank[k] for k in DEFAULT_STYLES}
