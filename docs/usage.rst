@@ -70,7 +70,7 @@ Reads the file and writes a JSONL file next to the input
 
 Each line in the JSONL output is one JSON object:
 
-.. code-block:: json
+.. code-block:: text
 
    {"original": "Jane is a ...", "paraphrases": [{"style": "...", "text": "Jane works as a ..."}, ...]}
    {"original": "John studied ...", "paraphrases": [{"style": "...", "text": "John was educated ..."}, ...]}
