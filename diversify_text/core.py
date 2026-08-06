@@ -128,7 +128,6 @@ class Diversifier:
             disable seeding entirely.
         method_kwargs : mapping[str, Any], optional
             Method-specific keyword arguments. Example:
-            ``{"style_bank": {...}}`` for tinystyler, or
             ``{"prompt": "humanize_transfer"}`` for prompting.
         preprocess_kwargs : dict, optional
             Keyword arguments forwarded to

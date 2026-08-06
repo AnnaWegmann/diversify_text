@@ -108,15 +108,15 @@ class TestPromptingCache(_CacheTestBase):
         p2 = _cache.get_method(device=None, method="prompting")
         self.assertIs(p1, p2)
 
-    def test_changing_prompts_does_not_reload(self):
-        """prompts is a per-call kwarg, not a constructor kwarg."""
+    def test_changing_prompt_does_not_reload(self):
+        """prompt is a per-call kwarg, not a constructor kwarg."""
         p1 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompts": ["Rewrite formally."]},
+            method_kwargs={"prompt": "humanize_transfer"},
         )
         p2 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompts": ["Rewrite casually."]},
+            method_kwargs={"prompt": "style_transfer"},
         )
         self.assertIs(p1, p2)
 

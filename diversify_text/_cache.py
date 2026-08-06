@@ -27,7 +27,7 @@ from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
 
 
 # kwargs that affect model construction and should invalidate the cache.
-# Per-call kwargs (styles, prompts, n_style_examples, etc.) are excluded.
+# Per-call kwargs (styles, prompt, n_style_examples, etc.) are excluded.
 _CACHE_KWARGS = {"model", "device", "precision"}
 
 
@@ -117,7 +117,7 @@ def _single_METHOD_CACHE_key(
     The key uniquely identifies a loaded model instance.  It includes
     only constructor-level kwargs (``model``, ``device``, ``precision``)
     that determine *which* model gets loaded.  Per-call kwargs like
-    ``styles`` or ``prompts`` are excluded — changing those should reuse
+    ``styles`` or ``prompt`` are excluded — changing those should reuse
     the same model, not trigger an expensive reload.
 
     Constructor defaults are resolved via ``inspect.signature`` so that
