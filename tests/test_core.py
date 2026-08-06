@@ -36,7 +36,15 @@ class TestDiversifier(unittest.TestCase):
     def test_custom_method_instance(self):
         div = Diversifier(method=PrefixMethod("x"))
         results = div.diversify("hello", n=3)
-        self.assertEqual(results[0]["paraphrases"], ["x:hello:0", "x:hello:1", "x:hello:2"])
+        # Each paraphrase is labeled with the default style it belongs to.
+        self.assertEqual(
+            results[0]["paraphrases"],
+            [
+                {"style": "informal_tinystyler", "text": "x:hello:0"},
+                {"style": "obama_tinystyler", "text": "x:hello:1"},
+                {"style": "question_tinystyler", "text": "x:hello:2"},
+            ],
+        )
 
     def test_failing_method_raises(self):
         div = Diversifier(method=FailingMethod())
@@ -53,7 +61,13 @@ class TestDiversifier(unittest.TestCase):
         results = div.diversify(["a", "b", "c", "d", "e"], n=2, batch_size=2)
         self.assertEqual(method.calls, 3)
         self.assertEqual(len(results), 5)
-        self.assertEqual(results[0]["paraphrases"], ["a:0", "a:1"])
+        self.assertEqual(
+            results[0]["paraphrases"],
+            [
+                {"style": "informal_tinystyler", "text": "a:0"},
+                {"style": "obama_tinystyler", "text": "a:1"},
+            ],
+        )
 
     def test_iterator_input_with_output_dir(self):
         def gen():

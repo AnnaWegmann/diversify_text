@@ -172,7 +172,7 @@ class OutputWriter:
     def write_batch(
         self,
         originals: list[str],
-        paraphrases_by_text: list[list[str]],
+        paraphrases_by_text: list[list[dict[str, str]]],
     ) -> None:
         """Append one batch of results.
 
@@ -180,7 +180,6 @@ class OutputWriter:
         ----------
         originals : list[str]
             The original texts in this batch.
-        paraphrases_by_text : list[list[str]]
             One inner list per original text, each containing *n*
             paraphrased variants.  For example, with 2 styles and 2
             texts: ``[["a_style1", "a_style2"], ["b_style1", "b_style2"]]``.

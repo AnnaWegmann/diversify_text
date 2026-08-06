@@ -70,7 +70,10 @@ class TestSentenceSplitting(unittest.TestCase):
             "One. Two!", n=1,
             preprocess_kwargs={"split_on_punctuation": True},
         )
-        self.assertEqual(results[0]["paraphrases"], ["p:One.:0 p:Two!:0"])
+        self.assertEqual(
+            results[0]["paraphrases"],
+            [{"style": "informal_tinystyler", "text": "p:One.:0 p:Two!:0"}],
+        )
 
     def test_csv_with_punctuation_writes_one_jsonl_record_per_original(self):
         div = Diversifier(method="echo")

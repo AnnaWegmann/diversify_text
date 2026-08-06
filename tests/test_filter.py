@@ -82,9 +82,9 @@ class TestMISFilterIntegration(unittest.TestCase):
         paraphrases = results[0]["paraphrases"]
         self.assertEqual(len(paraphrases), 2)
         # Style 0: first candidate failed (0.5), best is candidate 1 (0.85).
-        self.assertEqual(paraphrases[0], "hello:s0:c1")
+        self.assertEqual(paraphrases[0]["text"], "hello:s0:c1")
         # Style 1: first candidate passed (0.9), kept as-is.
-        self.assertEqual(paraphrases[1], "hello:s1:c0")
+        self.assertEqual(paraphrases[1]["text"], "hello:s1:c0")
         # 3 score calls: first candidate + 2 remaining.
         self.assertEqual(self._mock_score.call_count, 3)
 
@@ -100,7 +100,7 @@ class TestMISFilterIntegration(unittest.TestCase):
         paraphrases = results[0]["paraphrases"]
         self.assertEqual(len(paraphrases), 1)
         # Best score is 0.6 from candidate 1.
-        self.assertEqual(paraphrases[0], "hello:s0:c1")
+        self.assertEqual(paraphrases[0]["text"], "hello:s0:c1")
 
 
 if __name__ == "__main__":

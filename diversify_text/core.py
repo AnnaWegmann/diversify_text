@@ -161,7 +161,8 @@ class Diversifier:
             For in-memory input (``str``, ``list[str]``) without
             *output_dir*, returns a list with one entry per input text::
 
-                {"original": str, "paraphrases": list[str]}
+                {"original": str,
+                 "paraphrases": [{"style": str, "text": str}, ...]}
 
             Otherwise, returns the ``Path`` to the output file(s).
         """
@@ -250,7 +251,16 @@ class Diversifier:
                     else:
                         paraphrases_by_text = all_candidates[0]
 
-                    writer.write_batch(batch_texts, paraphrases_by_text)
+                    # Label each paraphrase with the style that produced
+                    # it (slot i belongs to style i of the style dict).
+                    labeled_by_text = [
+                        [
+                            {"style": style_name, "text": paraphrase}
+                            for style_name, paraphrase in zip(style_dict, row)
+                        ]
+                        for row in paraphrases_by_text
+                    ]
+                    writer.write_batch(batch_texts, labeled_by_text)
                     pbar.update(len(batch_texts))
         except Exception:
             writer.finish()
