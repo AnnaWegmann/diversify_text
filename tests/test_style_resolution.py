@@ -24,21 +24,21 @@ class TestResolveStyleDict(unittest.TestCase):
         self.assertEqual(result, {"formal": _BANK["formal"]})
 
     def test_flat_list_is_one_style_named_style_1(self):
-        result = resolve_style_dict(style_examples=["ex a", "ex b"])
+        result = resolve_style_dict(style_texts=["ex a", "ex b"])
         self.assertEqual(result, {"style_1": ["ex a", "ex b"]})
 
     def test_list_of_lists_gives_one_style_per_list(self):
-        result = resolve_style_dict(style_examples=[["a1", "a2"], ["b1"]])
+        result = resolve_style_dict(style_texts=[["a1", "a2"], ["b1"]])
         self.assertEqual(result, {"style_1": ["a1", "a2"], "style_2": ["b1"]})
 
     def test_dict_keeps_style_names(self):
-        result = resolve_style_dict(style_examples={"academic": ["ex 1"]})
+        result = resolve_style_dict(style_texts={"academic": ["ex 1"]})
         self.assertEqual(result, {"academic": ["ex 1"]})
 
     def test_combined_call_puts_bank_styles_first(self):
         result = resolve_style_dict(
             styles=["formal"],
-            style_examples={"academic": ["ex 1"]},
+            style_texts={"academic": ["ex 1"]},
             bank=_BANK,
         )
         self.assertEqual(
@@ -50,7 +50,7 @@ class TestResolveStyleDict(unittest.TestCase):
     def test_user_style_clashing_with_bank_style_is_renamed(self):
         result = resolve_style_dict(
             styles=["recipe"],
-            style_examples={"recipe": ["my own example"]},
+            style_texts={"recipe": ["my own example"]},
             bank=_BANK,
         )
         self.assertEqual(

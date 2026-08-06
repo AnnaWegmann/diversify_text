@@ -153,7 +153,7 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
    )
 
 **Style examples.** Styles come from the shared style bank; select them with
-the top-level ``styles`` parameter (or pass your own via ``style_examples``):
+the top-level ``styles`` parameter (or pass your own via ``style_texts``):
 
 .. code-block:: python
 
