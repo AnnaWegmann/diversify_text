@@ -39,13 +39,11 @@ class TestStyleSelection(unittest.TestCase):
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
     def test_n_selects_that_many_bank_styles(self):
-        # n draws from the whole style bank, so values beyond the old
-        # 5-style default list work.
         results = diversify("hello", n=7, method=_FakeTinyStyler())
         self.assertEqual(len(results[0]["paraphrases"]), 7)
 
     def test_n_larger_than_available_styles_raises(self):
-        bank_size = len(DEFAULT_STYLE_BANK)  # 49 at the time of writing
+        bank_size = len(DEFAULT_STYLE_BANK)
         with self.assertRaises(ValueError) as cm:
             diversify("hello", n=bank_size + 1, method=_FakeTinyStyler())
         self.assertEqual(
