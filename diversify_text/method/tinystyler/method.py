@@ -87,6 +87,25 @@ class TinyStylerMethod(DiversificationMethod):
         top_p: float | None,
         **kwargs: Any,
     ) -> list[list[str]]:
+        # Resolve styles and check n before any model work, so bad
+        # input fails fast without loading a model.
+        styles_arg = kwargs.get("styles")
+        if styles_arg is None and kwargs.get("style_bank") is None:
+            styles_arg = DEFAULT_STYLES[:n]
+        style_bank = self._resolve_styles(
+            kwargs.get("style_bank"),
+            styles_arg,
+        )
+        if n > len(style_bank):
+            raise ValueError(
+                f"n={n} exceeds the number of available styles "
+                f"({len(style_bank)})."
+            )
+        if styles_arg is not None:
+            logger.info("Using styles: %s", ", ".join(styles_arg))
+        else:
+            logger.info("Using %d style(s) from style bank.", n)
+
         model = self._ensure_model()
 
         # Apply TinyStyler-specific defaults for parameters not set by
@@ -110,30 +129,10 @@ class TinyStylerMethod(DiversificationMethod):
         )
         max_new_tokens = max_new_tokens if max_new_tokens is not None else dynamic_cap
 
-        styles_arg = kwargs.get("styles")
-        if styles_arg is None and kwargs.get("style_bank") is None:
-            styles_arg = DEFAULT_STYLES[:n]
-        style_bank = self._resolve_styles(
-            kwargs.get("style_bank"),
-            styles_arg,
-        )
-        # When explicit style keys are given, they determine the count.
-        effective_n = n
-        if effective_n > len(style_bank):
-            logger.warning(
-                "n=%d exceeds the number of style bank entries (%d). "
-                "Styles will wrap around, producing repeated style patterns. "
-                "Consider adding more entries to the style bank.",
-                effective_n, len(style_bank),
-            )
-        if styles_arg is not None:
-            logger.info("Using styles: %s", ", ".join(styles_arg))
-        else:
-            logger.info("Using %d style(s) from style bank.", effective_n)
         paraphrases_per_text = [[] for _ in texts]
 
-        for i in range(effective_n):
-            style_examples = style_bank[i % len(style_bank)]
+        for i in range(n):
+            style_examples = style_bank[i]
             batch = model.transfer(
                 texts,
                 style_examples,
