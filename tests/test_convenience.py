@@ -82,6 +82,24 @@ class TestStyleSelection(unittest.TestCase):
             "number of styles already determines the number of paraphrases.",
         )
 
+    def test_repeats_interleave_styles(self):
+        results = diversify(
+            "hello",
+            method=_FakeTinyStyler(),
+            style_examples={"a": ["example a"], "b": ["example b"]},
+            repeats=2,
+        )
+        # Two styles, two repeats → four paraphrases: a, b, a, b.
+        self.assertEqual(
+            [p["style"] for p in results[0]["paraphrases"]],
+            ["a", "b", "a", "b"],
+        )
+
+    def test_repeats_below_one_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            diversify("hello", method=_FakeTinyStyler(), repeats=0)
+        self.assertEqual(str(cm.exception), "repeats must be >= 1.")
+
     def test_prompt_selection_does_not_affect_count(self):
         results = diversify(
             "hello",
