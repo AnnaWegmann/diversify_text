@@ -18,7 +18,7 @@ Import and pass to a method via ``method_kwargs`` to override or extend:
     }
     results = diversify(
         texts,
-        method_kwargs={"tinystyler": {"style_bank": custom_bank}},
+        method_kwargs={"style_bank": custom_bank},
     )
 
 Several examples are drawn from the CORE corpus (https://doi.org/10.1007/s10579-013-9256-1).

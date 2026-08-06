@@ -90,7 +90,7 @@ class Diversifier:
         temperature: float | None = None,
         top_p: float | None = None,
         seed: int | None | object = _SENTINEL,
-        method_kwargs: Mapping[str, dict[str, Any]] | None = None,
+        method_kwargs: Mapping[str, Any] | None = None,
         preprocess_kwargs: dict[str, Any] | None = None,
         output_dir: str | Path | None = None,
         output_name: str | None = None,
@@ -126,9 +126,10 @@ class Diversifier:
             first call only and skipped on subsequent calls.  Pass an
             explicit integer to always (re-)seed.  Pass ``None`` to
             disable seeding entirely.
-        method_kwargs : mapping[str, dict], optional
-            Per-method keyword arguments. Example:
-            ``{"tinystyler": {"style_bank": [...]}}``.
+        method_kwargs : mapping[str, Any], optional
+            Method-specific keyword arguments. Example:
+            ``{"style_bank": {...}}`` for tinystyler, or
+            ``{"prompt": "humanize_transfer"}`` for prompting.
         preprocess_kwargs : dict, optional
             Keyword arguments forwarded to
             :func:`~diversify_text._preprocess.preprocess`.  Example:
@@ -238,7 +239,7 @@ class Diversifier:
 
     def _infer_n_from_method_kwargs(
         self,
-        method_kwargs: Mapping[str, dict[str, Any]] | None,
+        method_kwargs: Mapping[str, Any] | None,
     ) -> int:
         """Infer *n* from method kwargs.
 
@@ -248,13 +249,18 @@ class Diversifier:
         used exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
         """
         if method_kwargs:
-            kw = method_kwargs.get(self._method.name, {})
             if self._method.name == "prompting":
-                style_source = kw.get("styles") or kw.get("custom_style_bank")
+                style_source = (
+                    method_kwargs.get("styles")
+                    or method_kwargs.get("custom_style_bank")
+                )
                 if style_source:
                     return len(style_source)
             if self._method.name == "tinystyler":
-                style_source = kw.get("styles") or kw.get("style_bank")
+                style_source = (
+                    method_kwargs.get("styles")
+                    or method_kwargs.get("style_bank")
+                )
                 if style_source:
                     return len(style_source)
         return self._DEFAULT_N
@@ -282,16 +288,15 @@ class Diversifier:
         max_new_tokens: int | None,
         temperature: float | None,
         top_p: float | None,
-        method_kwargs: Mapping[str, dict[str, Any]],
+        method_kwargs: Mapping[str, Any],
     ) -> list[list[str]]:
-        kwargs = method_kwargs.get(self._method.name, {})
         paraphrases_by_text = self._method.generate(
             batch_texts,
             n=n,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_p=top_p,
-            **kwargs,
+            **method_kwargs,
         )
         self._validate_paraphrases(paraphrases_by_text, batch_texts)
         return paraphrases_by_text

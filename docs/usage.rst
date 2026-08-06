@@ -135,7 +135,7 @@ A style bank can be a ``dict[str, list[str]]`` or a ``list[list[str]]``:
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       method_kwargs={"tinystyler": {"style_bank": custom_bank}},
+       method_kwargs={"style_bank": custom_bank},
    )
 
 ``DEFAULT_STYLE_BANK`` is exported from ``diversify_text.styles`` so you
@@ -158,7 +158,7 @@ the number of selected styles:
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       method_kwargs={"tinystyler": {"styles": ["research_article", "personal_blog", "recipe"]}},
+       method_kwargs={"styles": ["research_article", "personal_blog", "recipe"]},
    )
 
 .. _creating-a-custom-method:

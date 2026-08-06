@@ -41,7 +41,7 @@ _METHOD_CACHE: dict[tuple, DiversificationMethod] = {}
 def _resolve_cache_kwargs(
     method_name: str,
     device: str,
-    method_kwargs: Mapping[str, dict[str, Any]] | None = None,
+    method_kwargs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Resolve the full set of cache-relevant kwargs for a method.
 
@@ -59,7 +59,7 @@ def _resolve_cache_kwargs(
 
         # Explicitly pass the same default value.
         get_method(device=None, method="prompting",
-            method_kwargs={"prompting": {"model": "HuggingFaceTB/SmolLM3-3B"}})
+            method_kwargs={"model": "HuggingFaceTB/SmolLM3-3B"})
 
     Without this function the first call would produce the key
     ``("prompting", (("device", "cpu"),))`` (no model) and the second
@@ -73,8 +73,8 @@ def _resolve_cache_kwargs(
     device : str
         Torch device string (already resolved, never ``None``).
     method_kwargs : mapping, optional
-        Per-method keyword arguments keyed by method name.  Only the
-        entry for *method_name* is inspected.
+        Method-specific keyword arguments.  Only the cache-relevant
+        kwargs (:data:`_CACHE_KWARGS`) are inspected.
 
     Returns
     -------
@@ -99,8 +99,8 @@ def _resolve_cache_kwargs(
             resolved[param_name] = param.default
 
     # Override defaults with caller-provided kwargs.
-    if method_kwargs and (method_name in method_kwargs):
-        for k, v in method_kwargs[method_name].items():
+    if method_kwargs:
+        for k, v in method_kwargs.items():
             if k in _CACHE_KWARGS:
                 resolved[k] = v
 
@@ -110,7 +110,7 @@ def _resolve_cache_kwargs(
 def _single_METHOD_CACHE_key(
     method_name: str,
     device: str,
-    method_kwargs: Mapping[str, dict[str, Any]] | None = None,
+    method_kwargs: Mapping[str, Any] | None = None,
 ) -> tuple:
     """Build a hashable key for a single generation method.
 
@@ -131,9 +131,8 @@ def _single_METHOD_CACHE_key(
     device : str
         Torch device string (already resolved, never ``None``).
     method_kwargs : mapping, optional
-        Per-method keyword arguments keyed by method name.  Only the
-        entry for *method_name* is inspected, and only cache
-        kwargs within that entry are included in the key.
+        Method-specific keyword arguments.  Only cache-relevant kwargs
+        are included in the key.
 
     Returns
     -------
@@ -149,7 +148,7 @@ def _single_METHOD_CACHE_key(
 def get_method(
     device: str | None,
     method: str | DiversificationMethod | None,
-    method_kwargs: Mapping[str, dict[str, Any]] | None = None,
+    method_kwargs: Mapping[str, Any] | None = None,
 ) -> DiversificationMethod:
     """Return the cached generation method, resolving only on config change.
 
@@ -174,10 +173,10 @@ def get_method(
         Method name or pre-built instance.  Defaults to
         ``"tinystyler"``.
     method_kwargs : mapping, optional
-        Per-method keyword arguments keyed by method name, e.g.
-        ``{"prompting": {"model": "gpt2"}}``.  Constructor kwargs
+        Method-specific keyword arguments, e.g.
+        ``{"model": "gpt2"}``.  Constructor kwargs
         (``model``, ``device``, ``precision``) affect the cache key;
-        per-call kwargs (``styles``, ``prompts``) do not.
+        per-call kwargs (``styles``, ``prompt``) do not.
 
     Returns
     -------
@@ -197,8 +196,8 @@ def get_method(
         key = _single_METHOD_CACHE_key(method, device, method_kwargs)
         if key not in _METHOD_CACHE:  # cache miss → resolve and store
             resolve_kwargs: dict[str, Any] = {"device": device}
-            if method_kwargs and (method in method_kwargs):
-                resolve_kwargs.update(method_kwargs[method])
+            if method_kwargs:
+                resolve_kwargs.update(method_kwargs)
             _METHOD_CACHE[key] = DEFAULT_METHOD_REGISTRY.resolve(
                 method, **resolve_kwargs
             )
