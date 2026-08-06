@@ -147,6 +147,35 @@ class TestPromptingMethodGenerate(unittest.TestCase):
             )
 
 
+class TestGenerateFromStyleDict(unittest.TestCase):
+
+    def test_one_output_per_style_in_dict_order(self):
+        method = PromptingMethod()
+        mock_model = MagicMock()
+
+        def fake_generate(prompts, **kwargs):
+            # Answer each prompt with the style example it contains, so
+            # the output directly shows which style produced it.
+            return [
+                "casual reply" if "hey there" in p else "formal reply"
+                for p in prompts
+            ]
+
+        mock_model.generate_text.side_effect = fake_generate
+        method._model = mock_model
+
+        # Explicit max_new_tokens skips the automatic token budget,
+        # which would otherwise need the model's tokenizer.
+        result = method._generate_from_style_dict(
+            ["my text"],
+            {"casual": ["hey there"], "formal": ["Good day."]},
+            max_new_tokens=32,
+        )
+
+        # One text, two styles → one output per style, in dict order.
+        self.assertEqual(result, [["casual reply", "formal reply"]])
+
+
 class TestPromptingModelLoad(unittest.TestCase):
 
     @patch("diversify_text.method.prompting.model.PromptingModel._load_transformers")

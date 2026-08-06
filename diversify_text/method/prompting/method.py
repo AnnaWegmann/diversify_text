@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 # import re  # TODO: decide what to do with thinking models
+from itertools import islice
 from typing import Any
 
 from diversify_text.method.base import DiversificationMethod
@@ -307,9 +308,8 @@ class PromptingMethod(DiversificationMethod):
             ``prompt``, ``styles``, ``custom_style_bank``, and
             ``n_style_examples``.
         """
-        # Resolve the prompt and styles and check n before any model
-        # work, so bad input fails fast without loading a model.
-        prompt_key, prompt_template = self._resolve_prompt(kwargs.get("prompt"))
+        # Resolve the styles and check n before any model work, so bad
+        # input fails fast without loading a model.
         fs_style_examples = self._resolve_few_shot_examples(**kwargs)
         # Every template is example-based: default to DEFAULT_STYLES
         # when no explicit styles were provided.
@@ -321,8 +321,62 @@ class PromptingMethod(DiversificationMethod):
                 f"n={n} exceeds the number of available styles "
                 f"({len(fs_style_examples)})."
             )
+
+        # Adapter onto the new style-dict interface: use the first n
+        # style sets.  This method is replaced by
+        # _generate_from_style_dict in #18.
+        style_dict = dict(islice(fs_style_examples.items(), n))
+        return self._generate_from_style_dict(
+            texts,
+            style_dict,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            prompt=kwargs.get("prompt"),
+            n_style_examples=kwargs.get(
+                "n_style_examples", _DEFAULT_N_STYLE_EXAMPLES
+            ),
+        )
+
+    def _generate_from_style_dict(
+        self,
+        texts: list[str],
+        style_dict: dict[str, list[str]],
+        *,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        prompt: str | None = None,
+        n_style_examples: int = _DEFAULT_N_STYLE_EXAMPLES,
+    ) -> list[list[str]]:
+        """Generate one paraphrase per style in *style_dict* for each text.
+
+        Parameters
+        ----------
+        texts : list[str]
+            Input texts to paraphrase.
+        style_dict : dict[str, list[str]]
+            Maps each target style name to its example texts (as built
+            by :func:`~diversify_text.styles.resolve_style_dict`).
+        max_new_tokens, temperature, top_p
+            As in :meth:`generate`; ``None`` uses defaults.
+        prompt : str or None
+            Prompt selection, see :meth:`_resolve_prompt`.
+        n_style_examples : int
+            Maximum number of example texts inserted per prompt.
+
+        Returns
+        -------
+        list[list[str]]
+            For each input text, one generated string per style, in
+            *style_dict* order.
+
+        This becomes the ``generate()`` interface in #18.
+        """
+        prompt_key, prompt_template = self._resolve_prompt(prompt)
+        n = len(style_dict)
         logger.info("Using prompt template %r for %d paraphrase(s).", prompt_key, n)
-        logger.info("Style sets: %s", ", ".join(fs_style_examples.keys()))
+        logger.info("Style sets: %s", ", ".join(style_dict.keys()))
 
         model = self._ensure_model()
         temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
@@ -331,24 +385,21 @@ class PromptingMethod(DiversificationMethod):
             texts, n, max_new_tokens,
         )
 
-        n_ex = kwargs.get("n_style_examples", _DEFAULT_N_STYLE_EXAMPLES)
-
         # TODO: accept texts as an Iterable (not just list) to support
         #       streaming from large files without materialising everything
         #       in memory.
         # Paraphrase slot i uses style i, always with the single active
         # template.
         all_prompts: list[str] = []
-        for i in range(n):
-            style_idx = i
+        for style_idx in range(n):
             for t in texts:
                 all_prompts.append(
                     self._fill_template(
                         template=prompt_template,
                         text=t,
                         style_idx=style_idx,
-                        fs_style_examples=fs_style_examples,
-                        n_style_examples=n_ex,
+                        fs_style_examples=style_dict,
+                        n_style_examples=n_style_examples,
                     )
                 )
 
