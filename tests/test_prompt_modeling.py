@@ -37,42 +37,9 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         method._model = mock_model
         return method
 
-    def test_generate_multiple_texts(self):
-        method = self._make_method_with_mock_model(["para a", "para b"])
-        result = method.generate(
-            ["text a", "text b"],
-            n=1,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
-        )
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0][0], "para a")
-        self.assertEqual(result[1][0], "para b")
-
-    def test_generate_multiple_styles(self):
-        # n=3 with 1 text → 3 prompts in a single generate_text call.
-        method = self._make_method_with_mock_model(["para1", "para2", "para3"])
-        result = method.generate(
-            ["hello"],
-            n=3,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
-        )
-        self.assertEqual(len(result[0]), 3)
-        self.assertEqual(result[0], ["para1", "para2", "para3"])
-        method._model.generate_text.assert_called_once()
-
     def test_generate_applies_defaults_for_none_params(self):
         method = self._make_method_with_mock_model(["out"])
-        method.generate(
-            ["text"],
-            n=1,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
-        )
+        method.generate(["text"], {"casual": ["hey there"]})
         # .kwargs holds the keyword arguments of the generate_text call.
         call_kwargs = method._model.generate_text.call_args.kwargs
         self.assertEqual(call_kwargs["temperature"], 0.7)
@@ -84,10 +51,7 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         method = self._make_method_with_mock_model(["out"])
         method.generate(
             ["text"],
-            n=1,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
+            {"casual": ["hey there"]},
             prompt="humanize_transfer",
         )
         # .args[0] is the first positional argument of the generate_text
@@ -103,12 +67,8 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         )
         method.generate(
             ["my input"],
-            n=1,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
+            {"my_style": ["style example a"]},
             prompt=custom_prompt,
-            custom_style_bank={"my_style": ["style example a"]},
         )
         # .args[0] is the first positional argument of the generate_text
         # call: the list of fully-filled prompt strings sent to the model.
@@ -116,33 +76,12 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         self.assertIn("my input", sent_prompts[0])
         self.assertIn("style example a", sent_prompts[0])
 
-    def test_n_larger_than_available_styles_raises(self):
-        # No mock needed: the check runs before any model is loaded.
-        # The default style list has 5 styles.
-        # The available count changes when n draws from the full bank (#19).
-        method = PromptingMethod()
-        with self.assertRaises(ValueError) as cm:
-            method.generate(
-                ["text"],
-                n=7,
-                max_new_tokens=None,
-                temperature=None,
-                top_p=None,
-            )
-        self.assertEqual(
-            str(cm.exception),
-            "n=7 exceeds the number of available styles (5).",
-        )
-
     def test_generate_rejects_prompt_without_style_examples(self):
         method = self._make_method_with_mock_model(["out"])
         with self.assertRaises(ValueError):
             method.generate(
                 ["text"],
-                n=1,
-                max_new_tokens=None,
-                temperature=None,
-                top_p=None,
+                {"casual": ["hey there"]},
                 prompt="Rewrite: [DOCUMENT SEGMENT]",
             )
 
@@ -166,7 +105,7 @@ class TestGenerateFromStyleDict(unittest.TestCase):
 
         # Explicit max_new_tokens skips the automatic token budget,
         # which would otherwise need the model's tokenizer.
-        result = method._generate_from_style_dict(
+        result = method.generate(
             ["my text"],
             {"casual": ["hey there"], "formal": ["Good day."]},
             max_new_tokens=32,

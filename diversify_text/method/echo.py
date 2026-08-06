@@ -15,11 +15,11 @@ class EchoMethod(DiversificationMethod):
     def generate(
         self,
         texts: list[str],
+        style_dict: dict[str, list[str]],
         *,
-        n: int,
-        max_new_tokens: int | None,
-        temperature: float | None,
-        top_p: float | None,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
         **kwargs: Any,
     ) -> list[list[str]]:
-        return [[text for _ in range(n)] for text in texts]
+        return [[text for _ in style_dict] for text in texts]

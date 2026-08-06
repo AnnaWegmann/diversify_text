@@ -23,6 +23,7 @@ from diversify_text._preprocess import preprocess
 import diversify_text._cache as _cache
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
+from diversify_text.styles import DEFAULT_STYLES, resolve_style_dict
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,8 @@ class Diversifier:
         texts: TextInput,
         *,
         n: int | None = None,
+        styles: list[str | int] | None = None,
+        style_examples: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
         text_column: str = "text",
         batch_size: int = 32,
         max_new_tokens: int | None = None,
@@ -95,7 +98,7 @@ class Diversifier:
         output_dir: str | Path | None = None,
         output_name: str | None = None,
     ) -> DiversifyOutput:
-        """Produce *n* stylistic paraphrases for each input text.
+        """Produce one stylistic paraphrase per target style for each input text.
 
         Parameters
         ----------
@@ -103,9 +106,19 @@ class Diversifier:
             A single text, a list of texts, a generator/iterable of texts,
             or a path to a ``.csv``, ``.tsv``, or ``.txt`` file.
         n : int or None
-            Number of stylistically diverse paraphrases to generate per
-            input text.  ``None`` (default) uses ``len(styles)`` when
-            styles are provided via *method_kwargs*, or ``5`` otherwise.
+            Number of distinct styles to draw from the default styles
+            (and therefore paraphrases per text) when neither *styles*
+            nor *style_examples* is given.  Defaults to ``5``.  Cannot
+            be combined with *styles* or *style_examples* — the number
+            of styles already determines the number of paraphrases.
+        styles : list of str or int, optional
+            Selection from the built-in style bank, by name
+            (``"recipe"``) and/or 0-based index (``7``).
+        style_examples : list[str] | list[list[str]] | dict, optional
+            Your own target styles, defined by example texts: a flat
+            list is one style, a list of lists is several styles, a
+            dict maps style names to example texts.  Can be combined
+            with *styles*.
         text_column : str
             Column name to extract when *texts* points to a CSV/TSV file.
         batch_size : int
@@ -152,13 +165,28 @@ class Diversifier:
 
             Otherwise, returns the ``Path`` to the output file(s).
         """
-        # Resolve n: when a single method is used and the user provided
-        # explicit styles, default n to the number of styles so each is
-        # used exactly once.
-        if n is None:
-            n = self._infer_n_from_method_kwargs(method_kwargs)
-        if n < 1:
-            raise ValueError("n must be >= 1.")
+        # Resolve the target styles into one style dict.  Explicit
+        # styles determine the number of paraphrases; n only selects
+        # from the default styles when nothing else is given.
+        if styles is not None or style_examples is not None:
+            if n is not None:
+                raise ValueError(
+                    "n cannot be combined with styles or style_examples "
+                    "— the number of styles already determines the "
+                    "number of paraphrases."
+                )
+            style_dict = resolve_style_dict(styles, style_examples)
+        else:
+            if n is None:
+                n = self._DEFAULT_N
+            if n < 1:
+                raise ValueError("n must be >= 1.")
+            if n > len(DEFAULT_STYLES):
+                raise ValueError(
+                    f"n={n} exceeds the number of available styles "
+                    f"({len(DEFAULT_STYLES)})."
+                )
+            style_dict = resolve_style_dict(styles=list(DEFAULT_STYLES[:n]))
         if batch_size < 1:
             raise ValueError("batch_size must be >= 1.")
 
@@ -187,7 +215,7 @@ class Diversifier:
             if self._mis_filter is not None
             else 1
         )
-        writer = OutputWriter(input_context, n, out_path)
+        writer = OutputWriter(input_context, len(style_dict), out_path)
         writer.open()
         try:
             with tqdm(total=input_context.total, desc="Diversifying", unit="text") as pbar:
@@ -205,7 +233,7 @@ class Diversifier:
                     for _ in range(n_candidates):
                         candidate = self._diversify_batch(
                             batch_texts=generation_texts,
-                            n=n,
+                            style_dict=style_dict,
                             max_new_tokens=max_new_tokens,
                             temperature=temperature,
                             top_p=top_p,
@@ -236,34 +264,6 @@ class Diversifier:
 
     _DEFAULT_N = 5
 
-    def _infer_n_from_method_kwargs(
-        self,
-        method_kwargs: Mapping[str, Any] | None,
-    ) -> int:
-        """Infer *n* from method kwargs.
-
-        When the caller provided explicit ``styles`` — or a custom style
-        bank without a ``styles`` selection — infers the number of
-        paraphrases as the number of provided styles so each style is
-        used exactly once.  Otherwise returns :attr:`_DEFAULT_N`.
-        """
-        if method_kwargs:
-            if self._method.name == "prompting":
-                style_source = (
-                    method_kwargs.get("styles")
-                    or method_kwargs.get("custom_style_bank")
-                )
-                if style_source:
-                    return len(style_source)
-            if self._method.name == "tinystyler":
-                style_source = (
-                    method_kwargs.get("styles")
-                    or method_kwargs.get("style_bank")
-                )
-                if style_source:
-                    return len(style_source)
-        return self._DEFAULT_N
-
     @staticmethod
     def _apply_seed(seed: int) -> None:
         import random
@@ -283,7 +283,7 @@ class Diversifier:
         self,
         *,
         batch_texts: list[str],
-        n: int,
+        style_dict: dict[str, list[str]],
         max_new_tokens: int | None,
         temperature: float | None,
         top_p: float | None,
@@ -291,7 +291,7 @@ class Diversifier:
     ) -> list[list[str]]:
         paraphrases_by_text = self._method.generate(
             batch_texts,
-            n=n,
+            style_dict,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_p=top_p,
@@ -362,9 +362,9 @@ def diversify(
     **kwargs
         Forwarded to :class:`Diversifier` (``min_score``,
         ``n_candidates``) and :meth:`Diversifier.diversify`
-        (``n``, ``text_column``, ``batch_size``,
-        ``max_new_tokens``, ``temperature``, ``top_p``, ``seed``,
-        ``method_kwargs``, ``preprocess_kwargs``,
+        (``n``, ``styles``, ``style_examples``, ``text_column``,
+        ``batch_size``, ``max_new_tokens``, ``temperature``, ``top_p``,
+        ``seed``, ``method_kwargs``, ``preprocess_kwargs``,
         ``output_dir``, ``output_name``).
 
     Returns

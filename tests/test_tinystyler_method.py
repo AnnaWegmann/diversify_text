@@ -1,4 +1,4 @@
-"""Tests for TinyStyler's style-dict generation (the future generate(), #18)."""
+"""Tests for TinyStyler's generate()."""
 
 import unittest
 from unittest.mock import MagicMock
@@ -25,7 +25,7 @@ class TestGenerateFromStyleDict(unittest.TestCase):
         method = _method_with_mock_model()
         # Explicit max_new_tokens skips the automatic token budget,
         # which would otherwise need the model's tokenizer.
-        result = method._generate_from_style_dict(
+        result = method.generate(
             ["text a", "text b"],
             {"casual": ["hey there"], "formal": ["Good day."]},
             max_new_tokens=32,

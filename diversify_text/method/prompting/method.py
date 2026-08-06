@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 # import re  # TODO: decide what to do with thinking models
-from itertools import islice
 from typing import Any
 
 from diversify_text.method.base import DiversificationMethod
@@ -17,7 +16,6 @@ from diversify_text.method.prompting.prompts import (
     PROMPT_BANK,
     REQUIRED_PLACEHOLDERS,
 )
-from diversify_text.styles import resolve_style_sets
 
 logger = logging.getLogger(__name__)
 
@@ -197,19 +195,6 @@ class PromptingMethod(DiversificationMethod):
                 result.append(budget)
         return result
 
-    @staticmethod
-    def _resolve_few_shot_examples(**kwargs: Any) -> dict[str, list[str]]:
-        """Resolve few-shot style examples from kwargs.
-
-        Returns a dict mapping style names to example sentences, or
-        an empty dict when no style kwargs are provided.
-        """
-        style_keys = kwargs.get("styles")
-        custom_bank = kwargs.get("custom_style_bank")
-        if style_keys is not None or custom_bank is not None:
-            return resolve_style_sets(custom_bank, style_keys)
-        return {}
-
     def _fill_template(
         self,
         template: str,
@@ -283,64 +268,6 @@ class PromptingMethod(DiversificationMethod):
     def generate(
         self,
         texts: list[str],
-        *,
-        n: int,
-        max_new_tokens: int | None,
-        temperature: float | None,
-        top_p: float | None,
-        **kwargs: Any,
-    ) -> list[list[str]]:
-        """Generate ``n`` paraphrases for each text.
-
-        Parameters
-        ----------
-        texts : list[str]
-            Input texts to paraphrase.
-        n : int
-            Number of paraphrases to produce per text.
-        max_new_tokens : int or None
-            Maximum tokens to generate. ``None`` auto-scales from
-            input length (capped at ``_MAX_NEW_TOKENS_CAP``).
-        temperature, top_p : float or None
-            Sampling parameters. ``None`` uses defaults.
-        **kwargs
-            Extra options forwarded from ``Diversifier``, including
-            ``prompt``, ``styles``, ``custom_style_bank``, and
-            ``n_style_examples``.
-        """
-        # Resolve the styles and check n before any model work, so bad
-        # input fails fast without loading a model.
-        fs_style_examples = self._resolve_few_shot_examples(**kwargs)
-        # Every template is example-based: default to DEFAULT_STYLES
-        # when no explicit styles were provided.
-        if not fs_style_examples:
-            from diversify_text.styles import DEFAULT_STYLES
-            fs_style_examples = resolve_style_sets(None, DEFAULT_STYLES)
-        if n > len(fs_style_examples):
-            raise ValueError(
-                f"n={n} exceeds the number of available styles "
-                f"({len(fs_style_examples)})."
-            )
-
-        # Adapter onto the new style-dict interface: use the first n
-        # style sets.  This method is replaced by
-        # _generate_from_style_dict in #18.
-        style_dict = dict(islice(fs_style_examples.items(), n))
-        return self._generate_from_style_dict(
-            texts,
-            style_dict,
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            prompt=kwargs.get("prompt"),
-            n_style_examples=kwargs.get(
-                "n_style_examples", _DEFAULT_N_STYLE_EXAMPLES
-            ),
-        )
-
-    def _generate_from_style_dict(
-        self,
-        texts: list[str],
         style_dict: dict[str, list[str]],
         *,
         max_new_tokens: int | None = None,
@@ -348,6 +275,7 @@ class PromptingMethod(DiversificationMethod):
         top_p: float | None = None,
         prompt: str | None = None,
         n_style_examples: int = _DEFAULT_N_STYLE_EXAMPLES,
+        **kwargs: Any,
     ) -> list[list[str]]:
         """Generate one paraphrase per style in *style_dict* for each text.
 
@@ -370,8 +298,6 @@ class PromptingMethod(DiversificationMethod):
         list[list[str]]
             For each input text, one generated string per style, in
             *style_dict* order.
-
-        This becomes the ``generate()`` interface in #18.
         """
         prompt_key, prompt_template = self._resolve_prompt(prompt)
         n = len(style_dict)

@@ -7,7 +7,6 @@ from typing import Any
 
 from diversify_text.method.base import DiversificationMethod
 from diversify_text.method.tinystyler.model import TinyStyler
-from diversify_text.styles import DEFAULT_STYLES, resolve_style_sets
 
 logger = logging.getLogger(__name__)
 
@@ -35,94 +34,7 @@ class TinyStylerMethod(DiversificationMethod):
             self._model = TinyStyler(device=self.device)
         return self._model
 
-    @staticmethod
-    def _resolve_styles(
-        style_bank: Any = None,
-        styles: list[str] | None = None,
-    ) -> list[list[str]]:
-        """Resolve *style_bank* and optional *styles* key filter.
-
-        Delegates dict-based resolution to the shared
-        :func:`~diversify_text.styles.resolve_style_sets`.
-        Also supports legacy list-format style banks.
-
-        Returns
-        -------
-        list[list[str]]
-            One list of example strings per selected style.
-        """
-        # Dict or default → use the shared resolver.
-        if style_bank is None or isinstance(style_bank, dict):
-            return list(resolve_style_sets(style_bank, styles).values())
-
-        # Legacy list-format: can't filter by key.
-        if styles is not None:
-            raise TypeError(
-                "Cannot use 'styles' key selection with a list-format "
-                "style bank. Pass a dict-format bank or use the default."
-            )
-        if not isinstance(style_bank, list):
-            raise TypeError("style_bank must be a list or dict of style example groups.")
-        normalized: list[list[str]] = []
-        for group in style_bank:
-            if isinstance(group, str):
-                normalized.append([group])
-            elif isinstance(group, list) and all(isinstance(x, str) for x in group):
-                normalized.append(group)
-            else:
-                raise TypeError(
-                    "Each style set must be either a string or list[str]."
-                )
-        if not normalized:
-            raise ValueError("style_bank cannot be empty.")
-        return normalized
-
     def generate(
-        self,
-        texts: list[str],
-        *,
-        n: int,
-        max_new_tokens: int | None,
-        temperature: float | None,
-        top_p: float | None,
-        **kwargs: Any,
-    ) -> list[list[str]]:
-        # Resolve styles and check n before any model work, so bad
-        # input fails fast without loading a model.
-        styles_arg = kwargs.get("styles")
-        if styles_arg is None and kwargs.get("style_bank") is None:
-            styles_arg = DEFAULT_STYLES[:n]
-        style_bank = self._resolve_styles(
-            kwargs.get("style_bank"),
-            styles_arg,
-        )
-        if n > len(style_bank):
-            raise ValueError(
-                f"n={n} exceeds the number of available styles "
-                f"({len(style_bank)})."
-            )
-        if styles_arg is not None:
-            logger.info("Using styles: %s", ", ".join(styles_arg))
-        else:
-            logger.info("Using %d style(s) from style bank.", n)
-
-        # Adapter onto the new style-dict interface: the style names do
-        # not matter for generation, only the example sets and their
-        # order.  This method is replaced by _generate_from_style_dict
-        # in #18.
-        style_dict = {
-            f"style_{i}": style_examples
-            for i, style_examples in enumerate(style_bank[:n], start=1)
-        }
-        return self._generate_from_style_dict(
-            texts,
-            style_dict,
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            top_p=top_p,
-        )
-
-    def _generate_from_style_dict(
         self,
         texts: list[str],
         style_dict: dict[str, list[str]],
@@ -130,6 +42,7 @@ class TinyStylerMethod(DiversificationMethod):
         max_new_tokens: int | None = None,
         temperature: float | None = None,
         top_p: float | None = None,
+        **kwargs: Any,
     ) -> list[list[str]]:
         """Generate one paraphrase per style in *style_dict* for each text.
 
@@ -141,15 +54,13 @@ class TinyStylerMethod(DiversificationMethod):
             Maps each target style name to its example texts (as built
             by :func:`~diversify_text.styles.resolve_style_dict`).
         max_new_tokens, temperature, top_p
-            As in :meth:`generate`; ``None`` uses defaults.
+            Generation parameters; ``None`` uses defaults.
 
         Returns
         -------
         list[list[str]]
             For each input text, one generated string per style, in
             *style_dict* order.
-
-        This becomes the ``generate()`` interface in #18.
         """
         model = self._ensure_model()
 
