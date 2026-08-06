@@ -88,7 +88,7 @@ using insights from `The Synthetic Data Playbook <https://huggingface.co/spaces/
 
 .. code-block:: python
 
-   results = diversify("The cat sat on the mat.", methods=["prompting"])
+   results = diversify("The cat sat on the mat.", method="prompting")
 
 **Choosing a model.** Any HuggingFace causal LM can be used. Pass the model
 identifier to the constructor:
@@ -99,7 +99,7 @@ identifier to the constructor:
    from diversify_text.method.prompting import PromptingMethod
 
    method = PromptingMethod(model="mistralai/Mistral-7B-Instruct-v0.3")
-   results = Diversifier(methods=[method]).diversify("The cat sat on the mat.")
+   results = Diversifier(method=method).diversify("The cat sat on the mat.")
 
 Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
@@ -131,7 +131,7 @@ examples. Select a template — or pass your own — via the ``prompt`` option:
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       methods=["prompting"],
+       method="prompting",
        method_kwargs={"prompting": {"prompt": "humanize_transfer"}},
    )
 
@@ -148,7 +148,7 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
 
    results = diversify(
        "The cat sat on the mat.",
-       methods=["prompting"],
+       method="prompting",
        method_kwargs={"prompting": {"prompt": my_prompt}},
    )
 
@@ -159,7 +159,7 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       methods=["prompting"],
+       method="prompting",
        method_kwargs={
            "prompting": {
                "styles": ["informal_tinystyler"],

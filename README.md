@@ -165,7 +165,7 @@ The default style transfer method is [TinyStyler](https://huggingface.co/tinysty
 ```python
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
-    methods=["prompting"],
+    method="prompting",
     style_examples={
         "academic": [
             "The results demonstrate a statistically significant effect.",
@@ -194,7 +194,7 @@ You can also instantiate a `Diversifier` yourself for full control over the mode
 ```python
 from diversify_text import Diversifier
 
-div = Diversifier(device="cuda", methods=["tinystyler"])
+div = Diversifier(device="cuda", method="tinystyler")
 
 batch_1 = div.diversify(texts_1, styles=["recipe", "personal_blog"])
 batch_2 = div.diversify(texts_2, style_examples=my_examples)
@@ -233,7 +233,7 @@ class MyMethod(DiversificationMethod):
         return [[f"{text} :: {name}" for name in style_dict] for text in texts]
 
 
-results = Diversifier(methods=[MyMethod()]).diversify("Hello", styles=["recipe", "personal_blog"])
+results = Diversifier(method=MyMethod()).diversify("Hello", styles=["recipe", "personal_blog"])
 ```
 
 ```python
