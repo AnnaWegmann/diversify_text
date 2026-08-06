@@ -51,7 +51,7 @@ configurable *style bank* to produce multiple stylistically diverse outputs.
 the `CORE corpus <https://doi.org/10.1007/s10579-013-9256-1>`_, the
 `TinyStyler repository <https://github.com/zacharyhorvitz/TinyStyler>`_ and
 the `STEL demo for the formality dimension <https://github.com/nlpsoc/STEL/blob/main/Data/STEL/dimensions/quad_stel-dimension_formal-100_sample.tsv>`_.
-See :data:`diversify_text.method.tinystyler.styles.DEFAULT_STYLE_BANK` for the
+See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the
 full list of available styles.
 
 **Citation:**
@@ -153,14 +153,14 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
    )
 
 **Style examples.** Styles come from the shared style bank; select them with
-``styles``:
+the top-level ``styles`` parameter (or pass your own via ``style_examples``):
 
 .. code-block:: python
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
        method="prompting",
-       method_kwargs={"styles": ["informal_tinystyler"]},
+       styles=["informal_tinystyler"],
    )
 
 Development
