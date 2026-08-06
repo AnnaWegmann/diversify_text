@@ -119,6 +119,7 @@ class TestPromptingMethodGenerate(unittest.TestCase):
     def test_n_larger_than_available_styles_raises(self):
         # No mock needed: the check runs before any model is loaded.
         # The default style list has 5 styles.
+        # The available count changes when n draws from the full bank (#19).
         method = PromptingMethod()
         with self.assertRaises(ValueError) as cm:
             method.generate(
