@@ -108,16 +108,6 @@ Longer texts
 For tips on handling longer texts (punctuation splitting, increasing
 ``max_new_tokens``), see :doc:`longer_texts`.
 
-Multiple methods
-----------------
-
-You can combine methods to get diverse paraphrases from different approaches.
-The requested ``n`` are distributed across the methods:
-
-.. code-block:: python
-
-   results = diversify("The cat sat on the mat.", methods=["tinystyler", "prompting"], n=4)
-
 Customising the TinyStyler style bank
 --------------------------------------
 
@@ -189,7 +179,7 @@ Creating a custom method
            return [[f"{text} :: variant {i}" for i in range(n)] for text in texts]
 
 
-   results = Diversifier(methods=[MyMethod()]).diversify("Hello", n=3)
+   results = Diversifier(method=MyMethod()).diversify("Hello", n=3)
 
 .. code-block:: python
 
