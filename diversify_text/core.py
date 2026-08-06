@@ -61,17 +61,13 @@ class Diversifier:
         *,
         method: str | DiversificationMethod | None = None,
         semantic_filter: bool = False,
-        _method: DiversificationMethod | None = None,
         _mis_filter: MISFilter | None = None,
         **filter_kwargs: Any,
     ) -> None:
         self.device = device
-        if _method is not None:
-            self._method = _method
-        else:
-            if method is None:
-                method = "tinystyler"
-            self._method = DEFAULT_METHOD_REGISTRY.resolve(method, device=device)
+        if method is None:
+            method = "tinystyler"
+        self._method = DEFAULT_METHOD_REGISTRY.resolve(method, device=device)
         if _mis_filter is not None:
             self._mis_filter = _mis_filter
         elif semantic_filter:
@@ -386,7 +382,10 @@ def diversify(
     cached_method = _cache.get_method(device, method, method_kwargs)
     mis_filter = _cache.get_cached_mis_filter(device, **filter_kwargs) if semantic_filter else None
 
-    # Build a Diversifier from the cached components.
-    div = Diversifier(device=device, _method=cached_method, _mis_filter=mis_filter)
+    # Build a Diversifier from the cached components.  Passing the
+    # pre-built method instance via the public parameter is free — the
+    # registry passes instances through without reloading.  The filter
+    # has no public object parameter, hence the private one.
+    div = Diversifier(device=device, method=cached_method, _mis_filter=mis_filter)
 
     return div.diversify(texts, **kwargs)

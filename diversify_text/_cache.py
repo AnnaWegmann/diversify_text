@@ -184,12 +184,15 @@ def get_method(
     DiversificationMethod
         The resolved method instance.
     """
+    # Pre-built instances pass through untouched — resolve the device
+    # only for the string path, where it feeds the cache key.
+    if isinstance(method, DiversificationMethod):
+        return method
+
     device = device or default_device()
     if method is None:
         method = "tinystyler"
 
-    if isinstance(method, DiversificationMethod):
-        return method
     if isinstance(method, str):
         key = _single_METHOD_CACHE_key(method, device, method_kwargs)
         if key not in _METHOD_CACHE:  # cache miss → resolve and store
