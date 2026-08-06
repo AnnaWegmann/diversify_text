@@ -132,7 +132,7 @@ examples. Select a template — or pass your own — via the ``prompt`` option:
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
        method="prompting",
-       method_kwargs={"prompting": {"prompt": "humanize_transfer"}},
+       method_kwargs={"prompt": "humanize_transfer"},
    )
 
 A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
@@ -149,7 +149,7 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
    results = diversify(
        "The cat sat on the mat.",
        method="prompting",
-       method_kwargs={"prompting": {"prompt": my_prompt}},
+       method_kwargs={"prompt": my_prompt},
    )
 
 **Style examples.** Styles come from the shared style bank; select them with
@@ -160,11 +160,7 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
        method="prompting",
-       method_kwargs={
-           "prompting": {
-               "styles": ["informal_tinystyler"],
-           }
-       },
+       method_kwargs={"styles": ["informal_tinystyler"]},
    )
 
 Development

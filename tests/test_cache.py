@@ -74,11 +74,11 @@ class TestTinyStylerCache(_CacheTestBase):
         """styles is a per-call kwarg, not a constructor kwarg."""
         ts1 = _cache.get_method(
             device=None, method="tinystyler",
-            method_kwargs={"tinystyler": {"styles": ["formal"]}},
+            method_kwargs={"styles": ["formal"]},
         )
         ts2 = _cache.get_method(
             device=None, method="tinystyler",
-            method_kwargs={"tinystyler": {"styles": ["casual"]}},
+            method_kwargs={"styles": ["casual"]},
         )
         self.assertIs(ts1, ts2)
 
@@ -108,15 +108,15 @@ class TestPromptingCache(_CacheTestBase):
         p2 = _cache.get_method(device=None, method="prompting")
         self.assertIs(p1, p2)
 
-    def test_changing_prompts_does_not_reload(self):
-        """prompts is a per-call kwarg, not a constructor kwarg."""
+    def test_changing_prompt_does_not_reload(self):
+        """prompt is a per-call kwarg, not a constructor kwarg."""
         p1 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompting": {"prompts": ["Rewrite formally."]}},
+            method_kwargs={"prompt": "humanize_transfer"},
         )
         p2 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompting": {"prompts": ["Rewrite casually."]}},
+            method_kwargs={"prompt": "style_transfer"},
         )
         self.assertIs(p1, p2)
 
@@ -124,11 +124,11 @@ class TestPromptingCache(_CacheTestBase):
         """model is a constructor kwarg — changing it must reload."""
         p1 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompting": {"model": "model-a"}},
+            method_kwargs={"model": "model-a"},
         )
         p2 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompting": {"model": "model-b"}},
+            method_kwargs={"model": "model-b"},
         )
         self.assertIsNot(p1, p2)
 
@@ -136,11 +136,11 @@ class TestPromptingCache(_CacheTestBase):
         """precision is a constructor kwarg — changing it must reload."""
         p1 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompting": {"precision": "float16"}},
+            method_kwargs={"precision": "float16"},
         )
         p2 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompting": {"precision": "bfloat16"}},
+            method_kwargs={"precision": "bfloat16"},
         )
         self.assertIsNot(p1, p2)
 
@@ -150,7 +150,7 @@ class TestPromptingCache(_CacheTestBase):
         p1 = _cache.get_method(device=None, method="prompting")
         p2 = _cache.get_method(
             device=None, method="prompting",
-            method_kwargs={"prompting": {"model": _DEFAULT_MODEL}},
+            method_kwargs={"model": _DEFAULT_MODEL},
         )
         self.assertIs(p1, p2)
 
