@@ -3,6 +3,7 @@
 import unittest
 
 from diversify_text import Diversifier, diversify
+from diversify_text.styles import DEFAULT_STYLE_BANK
 
 from tests.fixtures import PrefixMethod
 
@@ -37,18 +38,20 @@ class TestStyleSelection(unittest.TestCase):
         results = diversify("hello", method=_FakeTinyStyler())
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
-    def test_n_selects_that_many_default_styles(self):
-        results = diversify("hello", n=3, method=_FakeTinyStyler())
-        self.assertEqual(len(results[0]["paraphrases"]), 3)
+    def test_n_selects_that_many_bank_styles(self):
+        # n draws from the whole style bank, so values beyond the old
+        # 5-style default list work.
+        results = diversify("hello", n=7, method=_FakeTinyStyler())
+        self.assertEqual(len(results[0]["paraphrases"]), 7)
 
     def test_n_larger_than_available_styles_raises(self):
-        # The default style list has 5 styles.
-        # The available count changes when n draws from the full bank (#19).
+        bank_size = len(DEFAULT_STYLE_BANK)  # 49 at the time of writing
         with self.assertRaises(ValueError) as cm:
-            diversify("hello", n=7, method=_FakeTinyStyler())
+            diversify("hello", n=bank_size + 1, method=_FakeTinyStyler())
         self.assertEqual(
             str(cm.exception),
-            "n=7 exceeds the number of available styles (5).",
+            f"n={bank_size + 1} exceeds the number of available styles "
+            f"({bank_size}).",
         )
 
     def test_styles_from_bank_give_one_paraphrase_each(self):

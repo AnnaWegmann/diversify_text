@@ -23,7 +23,7 @@ from diversify_text._preprocess import preprocess
 import diversify_text._cache as _cache
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
-from diversify_text.styles import DEFAULT_STYLES, resolve_style_dict
+from diversify_text.styles import DEFAULT_STYLE_BANK, resolve_style_dict
 
 logger = logging.getLogger(__name__)
 
@@ -182,12 +182,12 @@ class Diversifier:
                 n = self._DEFAULT_N
             if n < 1:
                 raise ValueError("n must be >= 1.")
-            if n > len(DEFAULT_STYLES):
+            if n > len(DEFAULT_STYLE_BANK):
                 raise ValueError(
                     f"n={n} exceeds the number of available styles "
-                    f"({len(DEFAULT_STYLES)})."
+                    f"({len(DEFAULT_STYLE_BANK)})."
                 )
-            style_dict = resolve_style_dict(styles=list(DEFAULT_STYLES[:n]))
+            style_dict = resolve_style_dict(styles=list(DEFAULT_STYLE_BANK)[:n])
         if batch_size < 1:
             raise ValueError("batch_size must be >= 1.")
 
