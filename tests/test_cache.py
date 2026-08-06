@@ -146,7 +146,7 @@ class TestPromptingCache(_CacheTestBase):
 
     def test_explicit_default_reuses_cache(self):
         """Passing the default model explicitly should hit the same cache entry."""
-        from diversify_text.method.prompting.method import _DEFAULT_MODEL
+        from diversify_text.method.llm import _DEFAULT_MODEL
         p1 = _cache.get_method(device=None, method="prompting")
         p2 = _cache.get_method(
             device=None, method="prompting",

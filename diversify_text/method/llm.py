@@ -1,6 +1,9 @@
-"""Model wrapper for prompt-based text generation.
+"""Shared causal language model engine for prompt-based methods.
 
-Uses the ``transformers`` library (``AutoModelForCausalLM``).
+:class:`PromptingModel` wraps the model itself (load + generate);
+:class:`CausalLMMethod` is the shared base class for methods that
+generate through it.  Uses the ``transformers`` library
+(``AutoModelForCausalLM``).
 
 .. note:: vLLM support is planned for a future release.
 """
@@ -13,8 +16,11 @@ import torch
 from huggingface_hub import snapshot_download
 
 from diversify_text._utils import default_device, spinner, suppress_hf_load_noise
+from diversify_text.method.base import DiversificationMethod
 
 logger = logging.getLogger(__name__)
+
+_DEFAULT_MODEL = "HuggingFaceTB/SmolLM3-3B"
 
 
 class PromptingModel:
@@ -203,3 +209,48 @@ class PromptingModel:
                 **kwargs,
             )
         return prompts
+
+
+class CausalLMMethod(DiversificationMethod):
+    """Shared base for methods that generate via a causal language model.
+
+    Handles the model configuration and lazy loading; subclasses
+    implement :meth:`generate`.
+    """
+
+    def __init__(
+        self,
+        model: str = _DEFAULT_MODEL,
+        device: str | None = None,
+        precision: str | None = "auto",
+    ) -> None:
+        """Initialise the method.
+
+        Parameters
+        ----------
+        model : str
+            HuggingFace model identifier.
+        device : str or None
+            Torch device (e.g. ``"cpu"``, ``"mps"``, ``"cuda"``).
+            Defaults to auto-detection via :func:`default_device`.
+        precision : str or None
+            Model weight precision: ``"auto"`` (bfloat16), ``"float16"``,
+            ``"bfloat16"``, or ``None`` (float32).
+        """
+        self.model_id = model
+        self.device = device
+        self.precision = precision
+        self._model: PromptingModel | None = None
+
+    def prepare(self) -> None:
+        """Download and load the underlying language model."""
+        self._ensure_model()
+
+    def _ensure_model(self) -> PromptingModel:
+        """Lazily initialise the model on first use."""
+        if self._model is None:
+            self._model = PromptingModel(
+                model_id=self.model_id, device=self.device, precision=self.precision
+            )
+            self._model.load()
+        return self._model

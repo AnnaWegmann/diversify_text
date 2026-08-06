@@ -6,8 +6,7 @@ import logging
 # import re  # TODO: decide what to do with thinking models
 from typing import Any
 
-from diversify_text.method.base import DiversificationMethod
-from diversify_text.method.prompting.model import PromptingModel
+from diversify_text.method.llm import CausalLMMethod
 from diversify_text.method.prompting.prompts import (
     DEFAULT_PROMPT,
     PLACEHOLDER_STYLE_EXAMPLES,
@@ -19,7 +18,6 @@ from diversify_text.method.prompting.prompts import (
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_MODEL = "HuggingFaceTB/SmolLM3-3B"
 _DEFAULT_TEMPERATURE = 0.7
 _DEFAULT_TOP_P = 0.9
 _MAX_NEW_TOKENS_FACTOR = 2.0
@@ -28,47 +26,10 @@ _MAX_NEW_TOKENS_CAP = 2048
 _DEFAULT_N_STYLE_EXAMPLES = 16
 
 
-class PromptingMethod(DiversificationMethod):
+class PromptingMethod(CausalLMMethod):
     """Diversification method that prompts a causal LM for paraphrases."""
 
     name = "prompting"
-
-    def __init__(
-        self,
-        model: str = _DEFAULT_MODEL,
-        device: str | None = None,
-        precision: str | None = "auto",
-    ) -> None:
-        """Initialise the prompting method.
-
-        Parameters
-        ----------
-        model : str
-            HuggingFace model identifier.
-        device : str or None
-            Torch device (e.g. ``"cpu"``, ``"mps"``, ``"cuda"``).
-            Defaults to auto-detection via :func:`default_device`.
-        precision : str or None
-            Model weight precision: ``"auto"`` (bfloat16), ``"float16"``,
-            ``"bfloat16"``, or ``None`` (float32).
-        """
-        self.model_id = model
-        self.device = device
-        self.precision = precision
-        self._model: PromptingModel | None = None
-
-    def prepare(self) -> None:
-        """Download and load the underlying language model."""
-        self._ensure_model()
-
-    def _ensure_model(self) -> PromptingModel:
-        """Lazily initialise the model on first use."""
-        if self._model is None:
-            self._model = PromptingModel(
-                model_id=self.model_id, device=self.device, precision=self.precision
-            )
-            self._model.load()
-        return self._model
 
     @staticmethod
     def _resolve_prompt(prompt: str | None = None) -> tuple[str, str]:
