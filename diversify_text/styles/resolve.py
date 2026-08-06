@@ -1,9 +1,11 @@
-"""Resolution of user-facing style parameters into the canonical style dict.
+"""Resolution of user-facing style parameters into one normalized style dict.
 
-The resolver follows the parse-don't-validate pattern: the several input
-shapes accepted by :func:`~diversify_text.core.diversify` are normalized
-once, here at the boundary, into one ordered ``dict[str, list[str]]``
-(style name → example texts) that all downstream code consumes.
+:func:`~diversify_text.core.diversify` accepts styles in several shapes
+(bank names, bank indices, a user's own example texts as list or dict).
+The functions here convert all of those, once, into a single ordered
+``dict[str, list[str]]`` mapping each style name to its example texts.
+All later code only ever sees that dict, so shape handling happens in
+exactly one place and bad input fails early with a clear message.
 """
 
 from __future__ import annotations
@@ -171,7 +173,9 @@ def resolve_style_sets(
 ) -> dict[str, list[str]]:
     """Resolve style bank and optional key filter into a style dict.
 
-    Used by both TinyStyler and the prompting method.
+    Predecessor of :func:`resolve_style_dict`, still called by TinyStyler
+    and the prompting method through their current interface; it is
+    removed in #18 when the methods switch to the new style dict.
 
     Parameters
     ----------
