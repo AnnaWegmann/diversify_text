@@ -39,7 +39,7 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         """n=None + 3 styles → 3 paraphrases."""
         results = diversify(
             "hello",
-            methods=[_FakeTinyStyler()],
+            method=_FakeTinyStyler(),
             method_kwargs={"tinystyler": {"styles": ["a", "b", "c"]}},
         )
         self.assertEqual(len(results[0]["paraphrases"]), 3)
@@ -49,21 +49,21 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         results = diversify(
             "hello",
             n=10,
-            methods=[_FakeTinyStyler()],
+            method=_FakeTinyStyler(),
             method_kwargs={"tinystyler": {"styles": ["informal_tinystyler"]}},
         )
         self.assertEqual(len(results[0]["paraphrases"]), 10)
 
     def test_tinystyler_no_kwargs_defaults_to_default_n(self):
         """n=None + no method_kwargs → _DEFAULT_N."""
-        results = diversify("hello", methods=[_FakeTinyStyler()])
+        results = diversify("hello", method=_FakeTinyStyler())
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
     def test_tinystyler_n_inferred_from_style_bank(self):
         """n=None + a 2-style custom bank (no styles selection) → 2 paraphrases."""
         results = diversify(
             "hello",
-            methods=[_FakeTinyStyler()],
+            method=_FakeTinyStyler(),
             method_kwargs={"tinystyler": {"style_bank": {
                 "a": ["example a"], "b": ["example b"],
             }}},
@@ -76,7 +76,7 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         """n=None + a prompt selection (no styles) → _DEFAULT_N."""
         results = diversify(
             "hello",
-            methods=[_FakePrompting()],
+            method=_FakePrompting(),
             method_kwargs={"prompting": {"prompt": "humanize_transfer"}},
         )
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
@@ -85,7 +85,7 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         """n=None + a 2-style custom bank (no styles selection) → 2 paraphrases."""
         results = diversify(
             "hello",
-            methods=[_FakePrompting()],
+            method=_FakePrompting(),
             method_kwargs={"prompting": {"custom_style_bank": {
                 "a": ["example a"], "b": ["example b"],
             }}},
@@ -94,7 +94,7 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
 
     def test_prompting_no_kwargs_defaults_to_default_n(self):
         """n=None + no method_kwargs → _DEFAULT_N."""
-        results = diversify("hello", methods=[_FakePrompting()])
+        results = diversify("hello", method=_FakePrompting())
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
     # -- prompting: styles only ----------------------------------------------
@@ -103,7 +103,7 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         """n=None + 3 styles → 3 paraphrases."""
         results = diversify(
             "hello",
-            methods=[_FakePrompting()],
+            method=_FakePrompting(),
             method_kwargs={"prompting": {"styles": ["a", "b", "c"]}},
         )
         self.assertEqual(len(results[0]["paraphrases"]), 3)
@@ -113,7 +113,7 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         results = diversify(
             "hello",
             n=10,
-            methods=[_FakePrompting()],
+            method=_FakePrompting(),
             method_kwargs={"prompting": {"styles": ["informal_tinystyler"]}},
         )
         self.assertEqual(len(results[0]["paraphrases"]), 10)
@@ -124,7 +124,7 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
         """A prompt selection + 3 styles → 3 paraphrases (one per style)."""
         results = diversify(
             "hello",
-            methods=[_FakePrompting()],
+            method=_FakePrompting(),
             method_kwargs={"prompting": {
                 "prompt": "style_transfer",
                 "styles": ["a", "b", "c"],
@@ -134,14 +134,14 @@ class TestInferNFromMethodKwargs(unittest.TestCase):
 
     # -- edge cases ----------------------------------------------------------
 
-    def test_multiple_methods_ignore_inference(self):
-        """n inference only applies for single-method setups; multi falls back to default."""
+    def test_method_kwargs_for_other_method_ignored(self):
+        """Kwargs for a different method name do not affect inference."""
         results = diversify(
             "hello",
-            methods=[_FakeTinyStyler(), _FakePrompting()],
+            method=_FakePrompting(),
             method_kwargs={"tinystyler": {"styles": ["a"]}},
         )
-        # Two methods, _infer_n skips → falls back to _DEFAULT_N
+        # Kwargs keyed to another method → falls back to _DEFAULT_N
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
 
