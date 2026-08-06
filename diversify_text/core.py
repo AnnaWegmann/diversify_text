@@ -87,6 +87,7 @@ class Diversifier:
         n: int | None = None,
         styles: list[str | int] | None = None,
         style_examples: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
+        repeats: int = 1,
         text_column: str = "text",
         batch_size: int = 32,
         max_new_tokens: int | None = None,
@@ -119,6 +120,11 @@ class Diversifier:
             list is one style, a list of lists is several styles, a
             dict maps style names to example texts.  Can be combined
             with *styles*.
+        repeats : int
+            How many paraphrases to generate per style (default 1).
+            The output interleaves the styles: style A, style B,
+            style A, style B.  With the semantic filter on, generation
+            cost is styles x repeats x ``n_candidates``.
         text_column : str
             Column name to extract when *texts* points to a CSV/TSV file.
         batch_size : int
@@ -188,6 +194,8 @@ class Diversifier:
                     f"({len(DEFAULT_STYLE_BANK)})."
                 )
             style_dict = resolve_style_dict(styles=list(DEFAULT_STYLE_BANK)[:n])
+        if repeats < 1:
+            raise ValueError("repeats must be >= 1.")
         if batch_size < 1:
             raise ValueError("batch_size must be >= 1.")
 
@@ -216,7 +224,7 @@ class Diversifier:
             if self._mis_filter is not None
             else 1
         )
-        writer = OutputWriter(input_context, len(style_dict), out_path)
+        writer = OutputWriter(input_context, len(style_dict) * repeats, out_path)
         writer.open()
         try:
             with tqdm(total=input_context.total, desc="Diversifying", unit="text") as pbar:
@@ -229,17 +237,23 @@ class Diversifier:
                         batch_texts, **preprocess_kwargs
                     )
 
-                    # Generate n_candidates sets of paraphrases.
+                    # Generate n_candidates sets of paraphrases.  Each
+                    # set holds one full style round per repeat, so the
+                    # styles interleave: style A, style B, style A, ...
                     all_candidates: list[list[list[str]]] = []
                     for _ in range(n_candidates):
-                        candidate = self._diversify_batch(
-                            batch_texts=generation_texts,
-                            style_dict=style_dict,
-                            max_new_tokens=max_new_tokens,
-                            temperature=temperature,
-                            top_p=top_p,
-                            method_kwargs=method_kwargs,
-                        )
+                        candidate = [[] for _ in generation_texts]
+                        for _ in range(repeats):
+                            style_round = self._diversify_batch(
+                                batch_texts=generation_texts,
+                                style_dict=style_dict,
+                                max_new_tokens=max_new_tokens,
+                                temperature=temperature,
+                                top_p=top_p,
+                                method_kwargs=method_kwargs,
+                            )
+                            for row, extra in zip(candidate, style_round):
+                                row.extend(extra)
                         candidate = postprocess(candidate, preprocess_context)
                         all_candidates.append(candidate)
 
@@ -252,11 +266,12 @@ class Diversifier:
                         paraphrases_by_text = all_candidates[0]
 
                     # Label each paraphrase with the style that produced
-                    # it (slot i belongs to style i of the style dict).
+                    # it (the style names cycle once per repeat).
+                    slot_styles = list(style_dict) * repeats
                     labeled_by_text = [
                         [
                             {"style": style_name, "text": paraphrase}
-                            for style_name, paraphrase in zip(style_dict, row)
+                            for style_name, paraphrase in zip(slot_styles, row)
                         ]
                         for row in paraphrases_by_text
                     ]
@@ -372,10 +387,10 @@ def diversify(
     **kwargs
         Forwarded to :class:`Diversifier` (``min_score``,
         ``n_candidates``) and :meth:`Diversifier.diversify`
-        (``n``, ``styles``, ``style_examples``, ``text_column``,
-        ``batch_size``, ``max_new_tokens``, ``temperature``, ``top_p``,
-        ``seed``, ``method_kwargs``, ``preprocess_kwargs``,
-        ``output_dir``, ``output_name``).
+        (``n``, ``styles``, ``style_examples``, ``repeats``,
+        ``text_column``, ``batch_size``, ``max_new_tokens``,
+        ``temperature``, ``top_p``, ``seed``, ``method_kwargs``,
+        ``preprocess_kwargs``, ``output_dir``, ``output_name``).
 
     Returns
     -------
