@@ -21,7 +21,9 @@ from diversify_text.method.base import DiversificationMethod
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_MODEL = "HuggingFaceTB/SmolLM3-3B"
+#: Default causal language model for prompt-based methods.
+#: (TinyStyler is unrelated: it always loads its own fixed model.)
+_DEFAULT_LLM = "HuggingFaceTB/SmolLM3-3B"
 _DEFAULT_TEMPERATURE = 0.7
 _DEFAULT_TOP_P = 0.9
 _MAX_NEW_TOKENS_FACTOR = 2.0
@@ -241,7 +243,7 @@ class CausalLMMethod(DiversificationMethod):
 
     def __init__(
         self,
-        model: str = _DEFAULT_MODEL,
+        model: str = _DEFAULT_LLM,
         device: str | None = None,
         precision: str | None = "auto",
     ) -> None:
