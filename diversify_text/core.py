@@ -23,7 +23,7 @@ from diversify_text._preprocess import preprocess
 import diversify_text._cache as _cache
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
-from diversify_text.styles import DEFAULT_STYLE_BANK, resolve_style_dict
+from diversify_text.styles import resolve_style_dict
 
 logger = logging.getLogger(__name__)
 
@@ -173,9 +173,11 @@ class Diversifier:
 
             Otherwise, returns the ``Path`` to the output file(s).
         """
-        # Resolve the target styles into one style dict.  Explicit
-        # styles determine the number of paraphrases; n only selects
-        # from the default styles when nothing else is given.
+        # Resolve the target styles into one style dict, against the
+        # active method's style bank.  Explicit styles determine the
+        # number of paraphrases; n only selects from the bank when
+        # nothing else is given.
+        bank = self._method.style_bank
         if styles is not None or style_texts is not None:
             if n is not None:
                 raise ValueError(
@@ -183,18 +185,20 @@ class Diversifier:
                     "— the number of styles already determines the "
                     "number of paraphrases."
                 )
-            style_dict = resolve_style_dict(styles, style_texts)
+            style_dict = resolve_style_dict(styles, style_texts, bank=bank)
         else:
             if n is None:
-                n = self._DEFAULT_N
+                # Cap the default at the bank size, so methods with
+                # small banks still work with a plain call.
+                n = min(self._DEFAULT_N, len(bank))
             if n < 1:
                 raise ValueError("n must be >= 1.")
-            if n > len(DEFAULT_STYLE_BANK):
+            if n > len(bank):
                 raise ValueError(
                     f"n={n} exceeds the number of available styles "
-                    f"({len(DEFAULT_STYLE_BANK)})."
+                    f"({len(bank)})."
                 )
-            style_dict = resolve_style_dict(styles=list(DEFAULT_STYLE_BANK)[:n])
+            style_dict = resolve_style_dict(styles=list(bank)[:n], bank=bank)
         if repeats < 1:
             raise ValueError("repeats must be >= 1.")
         if batch_size < 1:
