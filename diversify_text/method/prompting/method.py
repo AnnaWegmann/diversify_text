@@ -18,11 +18,6 @@ from diversify_text.method.prompting.prompts import (
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_TEMPERATURE = 0.7
-_DEFAULT_TOP_P = 0.9
-_MAX_NEW_TOKENS_FACTOR = 2.0
-_MAX_NEW_TOKENS_FLOOR = 10
-_MAX_NEW_TOKENS_CAP = 2048
 _DEFAULT_N_STYLE_EXAMPLES = 16
 
 
@@ -112,49 +107,6 @@ class PromptingMethod(CausalLMMethod):
         selected = examples[:n]
         return "\n".join(f'- "{ex}"' for ex in selected)
 
-    def _compute_max_new_tokens(
-        self,
-        texts: list[str],
-        n: int,
-        max_new_tokens: int | None,
-    ) -> list[int]:
-        """Compute per-prompt max_new_tokens for the full n × texts grid.
-
-        When *max_new_tokens* is explicit, every prompt gets that value.
-        Otherwise each text gets a budget scaled from its own token count
-        (factor ``_MAX_NEW_TOKENS_FACTOR``, clamped between
-        ``_MAX_NEW_TOKENS_FLOOR`` and ``_MAX_NEW_TOKENS_CAP``).
-
-        Returns a flat list of length ``n * len(texts)`` in the same
-        order as the prompt loop: for each style index *i*, for each
-        text *j*.
-        """
-        total = n * len(texts)
-        if max_new_tokens is not None:
-            return [max_new_tokens] * total
-
-        # Tokenize once to get per-text token counts.
-        model = self._ensure_model()
-        token_counts = [
-            len(ids)
-            for ids in model._tokenizer(texts, truncation=True)["input_ids"]
-        ]
-        # TODO: decide what to do with thinking models
-        # is_thinking = getattr(model, "_is_thinking_model", False) is True
-
-        # Build flat list matching the prompt loop order.
-        result: list[int] = []
-        for _i in range(n):
-            for count in token_counts:
-                budget = max(
-                    _MAX_NEW_TOKENS_FLOOR,
-                    min(int(count * _MAX_NEW_TOKENS_FACTOR), _MAX_NEW_TOKENS_CAP),
-                )
-                # TODO: decide what to do with thinking models
-                # if is_thinking:
-                #     budget = _MAX_NEW_TOKENS_CAP
-                result.append(budget)
-        return result
 
     def _fill_template(
         self,
@@ -265,13 +217,6 @@ class PromptingMethod(CausalLMMethod):
         logger.info("Using prompt template %r for %d paraphrase(s).", prompt_key, n)
         logger.info("Style sets: %s", ", ".join(style_dict.keys()))
 
-        model = self._ensure_model()
-        temperature = temperature if temperature is not None else _DEFAULT_TEMPERATURE
-        top_p = top_p if top_p is not None else _DEFAULT_TOP_P
-        all_max_new_tokens = self._compute_max_new_tokens(
-            texts, n, max_new_tokens,
-        )
-
         # TODO: accept texts as an Iterable (not just list) to support
         #       streaming from large files without materialising everything
         #       in memory.
@@ -290,22 +235,10 @@ class PromptingMethod(CausalLMMethod):
                     )
                 )
 
-        # Generate one prompt at a time (each with its own max_new_tokens).
-        flat_results = model.generate_text(
+        return self._run_prompts(
             all_prompts,
-            max_new_tokens_per_prompt=all_max_new_tokens,
+            texts,
+            max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_p=top_p,
         )
-
-        # Reshape flat results back into list[list[str]] (len(texts) x n).
-        num_texts = len(texts)
-        paraphrases_per_text: list[list[str]] = [[] for _ in texts]
-        for i in range(n):
-            for row_idx in range(num_texts):
-                generated = flat_results[i * num_texts + row_idx]
-                # TODO: decide what to do with thinking models
-                # generated = re.sub(r"<think>.*?</think>\s*", "", generated, flags=re.DOTALL)
-                paraphrases_per_text[row_idx].append(generated.strip())
-
-        return paraphrases_per_text
