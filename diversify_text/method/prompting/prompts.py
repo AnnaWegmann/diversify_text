@@ -8,6 +8,8 @@ intentionally not supported.
 
 from __future__ import annotations
 
+from diversify_text.method.llm import PLACEHOLDER_TEXT
+
 # -- Prompt key constants -----------------------------------------------------
 # Used in both the bank dict and DEFAULT_PROMPT so renaming a key only
 # requires a single change.
@@ -15,8 +17,9 @@ from __future__ import annotations
 STYLE_TRANSFER = "style_transfer"
 HUMANIZE_TRANSFER = "humanize_transfer"
 
-# Placeholder tokens used inside prompt templates.
-PLACEHOLDER_TEXT = "[DOCUMENT SEGMENT]"
+# Placeholder tokens used inside prompt templates.  The document
+# placeholder (``PLACEHOLDER_TEXT``) is shared with other prompt-based
+# methods and imported from :mod:`diversify_text.method.llm`.
 PLACEHOLDER_STYLE_EXAMPLES = "[STYLE EXAMPLES]"
 PLACEHOLDER_STYLE_NAME = "[STYLE NAME]"
 
