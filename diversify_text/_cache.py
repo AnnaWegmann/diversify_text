@@ -9,8 +9,9 @@ model in :mod:`diversify_text.method.llm`, the TinyStyler model in
 :mod:`diversify_text.method.tinystyler.model`, and the MIS filter
 below.
 
-Not thread-safe.  Intended for single-threaded use in scripts and
-notebooks.
+Concurrent use is not supported yet: two threads hitting a cold cache
+can load the same model twice, and the MIS filter's threshold settings
+are shared state.  Proper multi-threading support is future work.
 """
 
 from __future__ import annotations
@@ -41,10 +42,7 @@ def model_cache(loader: Callable) -> Callable:
     gets loaded (hashable and fully resolved: pass a real device
     string, not ``None``).  Settings that should not cause a reload are
     applied after loading, outside the loader (see
-    :func:`get_cached_mis_filter`).  Loaders are standalone functions
-    rather than methods on the classes, because a method's ``self``
-    would be part of the key: every instance would get its own cache
-    entry, and no sharing would happen.
+    :func:`get_cached_mis_filter`).
     """
     cached = lru_cache(maxsize=1)(loader)
     _MODEL_CACHES.append(cached)

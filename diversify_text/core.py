@@ -406,12 +406,14 @@ def diversify(
     filter_keys = {"min_score", "n_candidates"}
     filter_kwargs = {k: kwargs.pop(k) for k in filter_keys if k in kwargs}
 
-    # Resolve the method (same default as Diversifier).  Instances are
-    # cheap to create — the expensive model loading is cached at the
-    # model level (see _cache.model_cache), so a fresh instance reuses
-    # loaded models.  Constructor arguments in method_kwargs (e.g.
-    # ``model``) are applied here; per-call arguments are applied at
-    # generation time.
+    # Resolve the method (same default as Diversifier).  No model is
+    # loaded and nothing is cached here — the method object just stores
+    # its configuration.  The model is loaded on first use, when
+    # div.diversify() calls the method's prepare(): that fetches the
+    # model through the method's @model_cache loader (see _cache.py),
+    # which is where reuse across calls happens.  Constructor arguments
+    # in method_kwargs (e.g. ``model``) are applied here; per-call
+    # arguments are applied at generation time.
     resolve_kwargs: dict[str, Any] = {"device": device}
     if kwargs.get("method_kwargs"):
         resolve_kwargs.update(kwargs["method_kwargs"])
