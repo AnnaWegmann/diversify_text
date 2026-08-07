@@ -100,6 +100,27 @@ class TestStyleSelection(unittest.TestCase):
             diversify("hello", method=_FakeTinyStyler(), repeats=0)
         self.assertEqual(str(cm.exception), "repeats must be >= 1.")
 
+    def test_method_style_bank_drives_selection(self):
+        """styles and the n-default pool come from the active method's bank."""
+
+        class _TwoStyleMethod(PrefixMethod):
+            name = "two_style"
+            style_bank = {"a": ["ex a"], "b": ["ex b"]}
+
+        # Plain call: the default n is capped at the bank size.
+        results = diversify("hello", method=_TwoStyleMethod("ts"))
+        self.assertEqual(
+            [p["style"] for p in results[0]["paraphrases"]],
+            ["a", "b"],
+        )
+
+        # Name selection resolves against the method's own bank.
+        results = diversify("hello", method=_TwoStyleMethod("ts"), styles=["b"])
+        self.assertEqual(
+            [p["style"] for p in results[0]["paraphrases"]],
+            ["b"],
+        )
+
     def test_prompt_selection_does_not_affect_count(self):
         results = diversify(
             "hello",

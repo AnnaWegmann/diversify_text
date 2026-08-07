@@ -5,11 +5,19 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
+from diversify_text.styles import DEFAULT_STYLE_BANK
+
 
 class DiversificationMethod(ABC):
     """Interface for pluggable diversification methods."""
 
     name = "base"
+
+    #: The style bank this method selects from: style name → the texts
+    #: that define the style.  ``styles`` names/indices and the
+    #: ``n``-default pool are resolved against the active method's
+    #: bank.  Methods may override it with their own bank.
+    style_bank: dict[str, list[str]] = DEFAULT_STYLE_BANK
 
     def prepare(self) -> None:
         """Load any resources (models, tokenizers) needed before generation.
