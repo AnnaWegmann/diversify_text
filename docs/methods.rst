@@ -27,6 +27,11 @@ Overview
      - TBD
      - TBD
      - Prompt-based paraphrasing using a causal LM
+   * - ``zero_shot``
+     - ~1.7B params (default)
+     - TBD
+     - TBD
+     - Styles defined by rewrite instructions, via a causal LM
 
 TinyStyler
 ----------
@@ -161,6 +166,39 @@ the top-level ``styles`` parameter (or pass your own via ``style_texts``):
        "The experiment was conducted in a controlled lab setting.",
        method="prompting",
        styles=["informal_tinystyler"],
+   )
+
+Zero-shot
+---------
+
+The ``zero_shot`` method defines each style by a rewrite *instruction*
+instead of example texts, and sends one instruction per style to a
+causal language model (same default model and options — ``model``,
+``precision`` — as the prompting method).
+
+Its own style bank maps style names to instructions
+(:data:`diversify_text.method.zero_shot.ZERO_SHOT_STYLE_BANK`:
+``formal``, ``simple``, ``complex``, ``caps``, ``lowercase``, and
+more), so ``styles`` and ``n`` select from these:
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       method="zero_shot",
+       styles=["formal", "caps"],
+   )
+
+With this method, ``style_texts`` are instructions — exactly one per
+style. An instruction can place the input text itself with
+``[DOCUMENT SEGMENT]``; otherwise the text is appended at the end:
+
+.. code-block:: python
+
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       method="zero_shot",
+       style_texts={"pirate": ["Rewrite the text as an old-timey pirate would say it."]},
    )
 
 Development

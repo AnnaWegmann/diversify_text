@@ -17,6 +17,7 @@ pip install diversify-text
   - [Bring your own style examples](#bring-your-own-style-examples)
   - [Repeats](#repeats)
   - [Prompting method](#prompting-method)
+  - [Zero-shot method](#zero-shot-method)
   - [Caching](#caching)
   - [Using the class directly](#using-the-class-directly)
   - [List of texts](#list-of-texts)
@@ -176,6 +177,28 @@ results = diversify(
 ```
 
 Only prompts that take style example texts are supported — every method receives the same input and produces the same output.
+
+### Zero-shot method
+
+The `zero_shot` method defines styles by rewrite *instructions* instead of example texts. It has its own style bank of instruction styles:
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    method="zero_shot",
+    styles=["formal", "caps"],
+)
+```
+
+With this method, `style_texts` are instructions — exactly one per style. An instruction can place the input text itself with `[DOCUMENT SEGMENT]`; otherwise the text is appended at the end:
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    method="zero_shot",
+    style_texts={"pirate": ["Rewrite the text as an old-timey pirate would say it."]},
+)
+```
 
 ### Caching
 
