@@ -362,15 +362,14 @@ def diversify(
 ) -> DiversifyOutput:
     """One-shot convenience function: create a :class:`Diversifier` and run it.
 
-    The generation method and the MIS filter are cached independently
-    between calls.  Generation methods are cached per (``device``,
-    resolved method), while the MIS filter is cached per ``device``.
-    Switching ``semantic_filter`` on or off reuses the cached generation
-    model, and changing the method reuses the cached MIS filter when
-    possible.  Expensive components are only recreated when their
-    respective cache keys change; changing filter thresholds (``min_score``,
-    ``n_candidates``) updates the existing MIS filter instance rather than
-    reloading it.
+    Loaded models are cached between calls: the generation model per
+    configuration (``model``, ``device``, ``precision``) and the MIS
+    filter per ``device``, independently of each other.  Switching
+    ``semantic_filter`` on or off reuses the cached generation model,
+    changing the method reuses the cached MIS filter, and per-call
+    options never trigger a model reload; changing filter thresholds
+    (``min_score``, ``n_candidates``) updates the existing MIS filter
+    instance rather than reloading it.
 
     Parameters
     ----------
@@ -406,15 +405,21 @@ def diversify(
     filter_keys = {"min_score", "n_candidates"}
     filter_kwargs = {k: kwargs.pop(k) for k in filter_keys if k in kwargs}
 
-    # Retrieve cached (or freshly resolved) components.
-    method_kwargs = kwargs.get("method_kwargs")
-    cached_method = _cache.get_method(device, method, method_kwargs)
+    # Resolve the method.  Instances are cheap to create — the
+    # expensive model loading is cached at the model level (see
+    # _cache.model_cache), so a fresh instance reuses loaded models.
+    # Constructor arguments in method_kwargs (e.g. ``model``) are
+    # applied here; per-call arguments are applied at generation time.
+    resolve_kwargs: dict[str, Any] = {"device": device}
+    if kwargs.get("method_kwargs"):
+        resolve_kwargs.update(kwargs["method_kwargs"])
+    resolved_method = DEFAULT_METHOD_REGISTRY.resolve(
+        method if method is not None else "tinystyler", **resolve_kwargs
+    )
+
     mis_filter = _cache.get_cached_mis_filter(device, **filter_kwargs) if semantic_filter else None
 
-    # Build a Diversifier from the cached components.  Passing the
-    # pre-built method instance via the public parameter is free — the
-    # registry passes instances through without reloading.  The filter
-    # has no public object parameter, hence the private one.
-    div = Diversifier(device=device, method=cached_method, _mis_filter=mis_filter)
+    # The filter has no public object parameter, hence the private one.
+    div = Diversifier(device=device, method=resolved_method, _mis_filter=mis_filter)
 
     return div.diversify(texts, **kwargs)

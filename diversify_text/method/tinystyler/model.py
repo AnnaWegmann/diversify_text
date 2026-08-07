@@ -15,6 +15,7 @@ from typing import Union
 import torch
 from huggingface_hub import hf_hub_download
 
+from diversify_text._cache import model_cache
 from diversify_text._utils import default_device, spinner, suppress_hf_load_noise
 
 logger = logging.getLogger(__name__)
@@ -111,3 +112,9 @@ def style_transfer(
     """One-shot convenience: load model, transfer, return results."""
     ts = TinyStyler(device=device)
     return ts.transfer(texts, style, **kwargs)
+
+
+@model_cache
+def _load_tinystyler(device: str) -> TinyStyler:
+    """Load the TinyStyler model (cached, shared across method instances)."""
+    return TinyStyler(device=device)
