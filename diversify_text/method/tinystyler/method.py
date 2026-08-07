@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from diversify_text._utils import default_device
 from diversify_text.method.base import DiversificationMethod
-from diversify_text.method.tinystyler.model import TinyStyler
+from diversify_text.method.tinystyler.model import TinyStyler, _load_tinystyler
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +31,9 @@ class TinyStylerMethod(DiversificationMethod):
         self._ensure_model()
 
     def _ensure_model(self) -> TinyStyler:
+        """Fetch the shared model on first use."""
         if self._model is None:
-            self._model = TinyStyler(device=self.device)
+            self._model = _load_tinystyler(self.device or default_device())
         return self._model
 
     def generate(

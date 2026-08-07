@@ -1,4 +1,4 @@
-"""Shared causal language model engine for prompt-based methods.
+"""Shared causal language model for prompt-based methods.
 
 :class:`PromptingModel` wraps the model itself (load + generate);
 :class:`CausalLMMethod` is the shared base class for methods that
@@ -15,6 +15,7 @@ import logging
 import torch
 from huggingface_hub import snapshot_download
 
+from diversify_text._cache import model_cache
 from diversify_text._utils import default_device, spinner, suppress_hf_load_noise
 from diversify_text.method.base import DiversificationMethod
 
@@ -211,6 +212,18 @@ class PromptingModel:
         return prompts
 
 
+@model_cache
+def _load_llm(
+    model_id: str,
+    device: str,
+    precision: str | None,
+) -> PromptingModel:
+    """Load a causal language model (cached, shared across methods)."""
+    llm = PromptingModel(model_id=model_id, device=device, precision=precision)
+    llm.load()
+    return llm
+
+
 class CausalLMMethod(DiversificationMethod):
     """Shared base for methods that generate via a causal language model.
 
@@ -247,10 +260,9 @@ class CausalLMMethod(DiversificationMethod):
         self._ensure_model()
 
     def _ensure_model(self) -> PromptingModel:
-        """Lazily initialise the model on first use."""
+        """Fetch the shared model on first use."""
         if self._model is None:
-            self._model = PromptingModel(
-                model_id=self.model_id, device=self.device, precision=self.precision
+            self._model = _load_llm(
+                self.model_id, self.device or default_device(), self.precision
             )
-            self._model.load()
         return self._model
