@@ -28,6 +28,7 @@ from diversify_text.styles import DEFAULT_STYLE_BANK, resolve_style_dict
 logger = logging.getLogger(__name__)
 
 _DEFAULT_SEED = 51173
+_DEFAULT_METHOD = "tinystyler"
 _SENTINEL = object()
 _default_seed_applied: bool = False
 
@@ -67,7 +68,7 @@ class Diversifier:
     ) -> None:
         self.device = device
         if method is None:
-            method = "tinystyler"
+            method = _DEFAULT_METHOD
         self._method = DEFAULT_METHOD_REGISTRY.resolve(method, device=device)
         if _mis_filter is not None:
             self._mis_filter = _mis_filter
@@ -405,16 +406,17 @@ def diversify(
     filter_keys = {"min_score", "n_candidates"}
     filter_kwargs = {k: kwargs.pop(k) for k in filter_keys if k in kwargs}
 
-    # Resolve the method.  Instances are cheap to create — the
-    # expensive model loading is cached at the model level (see
-    # _cache.model_cache), so a fresh instance reuses loaded models.
-    # Constructor arguments in method_kwargs (e.g. ``model``) are
-    # applied here; per-call arguments are applied at generation time.
+    # Resolve the method (same default as Diversifier).  Instances are
+    # cheap to create — the expensive model loading is cached at the
+    # model level (see _cache.model_cache), so a fresh instance reuses
+    # loaded models.  Constructor arguments in method_kwargs (e.g.
+    # ``model``) are applied here; per-call arguments are applied at
+    # generation time.
     resolve_kwargs: dict[str, Any] = {"device": device}
     if kwargs.get("method_kwargs"):
         resolve_kwargs.update(kwargs["method_kwargs"])
     resolved_method = DEFAULT_METHOD_REGISTRY.resolve(
-        method if method is not None else "tinystyler", **resolve_kwargs
+        method if method is not None else _DEFAULT_METHOD, **resolve_kwargs
     )
 
     mis_filter = _cache.get_cached_mis_filter(device, **filter_kwargs) if semantic_filter else None

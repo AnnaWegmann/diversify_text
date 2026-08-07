@@ -1,14 +1,13 @@
 """Model caching.
 
-Loaded models are cached, method instances are not: method objects are
-cheap to create, while model loading is expensive.  Every model module
-wraps its loader in :func:`model_cache`, which keeps the most recently
-loaded model per family (switching configuration drops the previous
-model automatically) and registers the loader so :func:`clear_cache`
-can drop everything.  The cached loaders live next to their model
-classes: the causal LM engine in :mod:`diversify_text.method.llm`, the
-TinyStyler model in :mod:`diversify_text.method.tinystyler.model`, and
-the MIS filter below.
+Loaded models are cached, method instances are not.  The rule: method
+objects must be cheap to create, and anything expensive — model
+loading — happens inside a *loader*, a small function whose only job
+is to load and return one model, wrapped with :func:`model_cache`.
+The loaders live next to their model classes: the causal language
+model in :mod:`diversify_text.method.llm`, the TinyStyler model in
+:mod:`diversify_text.method.tinystyler.model`, and the MIS filter
+below.
 
 Not thread-safe.  Intended for single-threaded use in scripts and
 notebooks.
@@ -17,28 +16,35 @@ notebooks.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable
 
 from diversify_text._utils import default_device
 from diversify_text.filter.mis import MISFilter, _DEFAULT_MIN_SCORE, _DEFAULT_N_CANDIDATES
-
-_Loader = TypeVar("_Loader", bound=Callable)
 
 #: All cached loaders, registered by :func:`model_cache`.
 _MODEL_CACHES: list[Any] = []
 
 
-def model_cache(loader: _Loader) -> _Loader:
+def model_cache(loader: Callable) -> Callable:
     """Cache a model loader: the most recently loaded model stays loaded.
 
-    Wraps *loader* in ``functools.lru_cache(maxsize=1)`` — calling it
-    again with the same arguments reuses the loaded model, calling it
-    with different arguments (e.g. another model name or device) loads
-    the new model and drops the previous one.  The loader is registered
-    so :func:`clear_cache` clears it too.
+    A *loader* is a small function whose only job is to load and return
+    one model.  This decorator wraps it in
+    ``functools.lru_cache(maxsize=1)`` and registers it so
+    :func:`clear_cache` clears it too.  Each decorated loader gets its
+    own independent cache — one causal LM, one TinyStyler and one MIS
+    filter can all be loaded at the same time; only loading a *second*
+    configuration of the same family drops the previous one.
 
-    Loader arguments must be hashable and fully resolved (pass a real
-    device string, not ``None``), since they form the cache key.
+    The loader's parameters are the cache key — nothing more.  A loader
+    therefore takes exactly the arguments that determine which model
+    gets loaded (hashable and fully resolved: pass a real device
+    string, not ``None``).  Settings that should not cause a reload are
+    applied after loading, outside the loader (see
+    :func:`get_cached_mis_filter`).  Loaders are standalone functions
+    rather than methods on the classes, because a method's ``self``
+    would be part of the key: every instance would get its own cache
+    entry, and no sharing would happen.
     """
     cached = lru_cache(maxsize=1)(loader)
     _MODEL_CACHES.append(cached)
