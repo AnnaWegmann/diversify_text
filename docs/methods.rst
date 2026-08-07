@@ -27,6 +27,11 @@ Overview
      - TBD
      - TBD
      - Prompt-based paraphrasing using a causal LM
+   * - ``zero_shot``
+     - ~1.7B params (default)
+     - TBD
+     - TBD
+     - Styles defined by rewrite instructions, via a causal LM
 
 TinyStyler
 ----------
@@ -51,7 +56,7 @@ configurable *style bank* to produce multiple stylistically diverse outputs.
 the `CORE corpus <https://doi.org/10.1007/s10579-013-9256-1>`_, the
 `TinyStyler repository <https://github.com/zacharyhorvitz/TinyStyler>`_ and
 the `STEL demo for the formality dimension <https://github.com/nlpsoc/STEL/blob/main/Data/STEL/dimensions/quad_stel-dimension_formal-100_sample.tsv>`_.
-See :data:`diversify_text.method.tinystyler.styles.DEFAULT_STYLE_BANK` for the
+See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the
 full list of available styles.
 
 **Citation:**
@@ -88,7 +93,7 @@ using insights from `The Synthetic Data Playbook <https://huggingface.co/spaces/
 
 .. code-block:: python
 
-   results = diversify("The cat sat on the mat.", methods=["prompting"])
+   results = diversify("The cat sat on the mat.", method="prompting")
 
 **Choosing a model.** Any HuggingFace causal LM can be used. Pass the model
 identifier to the constructor:
@@ -99,7 +104,7 @@ identifier to the constructor:
    from diversify_text.method.prompting import PromptingMethod
 
    method = PromptingMethod(model="mistralai/Mistral-7B-Instruct-v0.3")
-   results = Diversifier(methods=[method]).diversify("The cat sat on the mat.")
+   results = Diversifier(method=method).diversify("The cat sat on the mat.")
 
 Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
@@ -119,95 +124,81 @@ for inference.
    `vLLM <https://vllm.ai/>`_ support, batched inference, and streaming from
    large files are planned for a future release.
 
-**Default prompt bank.** The built-in bank contains multiple prompt templates
-covering different rewriting styles (paraphrasing, simplification, dialogue,
-tables, and more). When no explicit selection is made, the templates listed in
-:data:`~diversify_text.method.prompting.prompts.DEFAULT_PROMPTS` are used.
-See :doc:`prompts` for the full list of available templates.
-
-**Customising the prompt bank.** Like TinyStyler's style bank, you can provide
-a custom prompt bank or select specific prompts via ``method_kwargs``. Each
-prompt template must contain the placeholder ``[DOCUMENT SEGMENT]``:
+**Prompt templates.** All templates are example-based style transfer prompts:
+the target style is demonstrated through example texts inserted into the
+prompt; prompts without style examples are intentionally not supported. The
+default template is ``style_transfer``; ``humanize_transfer`` (inspired by
+`Zhang et al. (2024) <https://arxiv.org/abs/2401.05952>`_) additionally
+instructs the model to imitate human imperfections found in the style
+examples. Select a template — or pass your own — via the ``prompt`` option:
 
 .. code-block:: python
 
-   custom_bank = {
-       "simple": "Rewrite the following text in simpler words: [DOCUMENT SEGMENT]",
-       "formal": "Rewrite the following text in a formal academic tone: [DOCUMENT SEGMENT]",
-   }
+   results = diversify(
+       "The experiment was conducted in a controlled lab setting.",
+       method="prompting",
+       method_kwargs={"prompt": "humanize_transfer"},
+   )
+
+A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
+``[STYLE EXAMPLES]`` placeholders (``[STYLE NAME]`` is optional):
+
+.. code-block:: python
+
+   my_prompt = (
+       "Study these examples:\n[STYLE EXAMPLES]\n"
+       "Rewrite the following text in the same style. "
+       "Text: [DOCUMENT SEGMENT]"
+   )
 
    results = diversify(
        "The cat sat on the mat.",
-       methods=["prompting"],
-       method_kwargs={"prompting": {"prompt_bank": custom_bank}},
+       method="prompting",
+       method_kwargs={"prompt": my_prompt},
    )
 
-You can also select specific prompts by key name:
-
-.. code-block:: python
-
-   results = diversify(
-       "The cat sat on the mat.",
-       methods=["prompting"],
-       method_kwargs={"prompting": {"prompt_keys": ["wikipedia_paraphrase"]}},
-   )
-
-Zero-shot humanize rewriting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The prompt bank includes humanize prompts based on
-`Zhang et al. (2024) <https://arxiv.org/abs/2401.05952>`_ that rewrite
-machine-generated text to appear more human-written. These prompts instruct the
-model to introduce informal elements such as typos, slang, hashtags, and
-varied casing:
+**Style examples.** Styles come from the shared style bank; select them with
+the top-level ``styles`` parameter (or pass your own via ``style_texts``):
 
 .. code-block:: python
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       methods=["prompting"],
-       method_kwargs={"prompting": {"prompt_keys": ["humanize_llm-as-coauthor"]}},
+       method="prompting",
+       styles=["informal_tinystyler"],
    )
 
-A stricter variant, ``humanize_llm-as-coauthor_original``, uses the original
-five modifications from the paper and explicitly forbids emojis.
+Zero-shot
+---------
 
-Few-shot style transfer with prompting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``zero_shot`` method defines each style by a rewrite *instruction*
+instead of example texts, and sends one instruction per style to a
+causal language model (same default model and options — ``model``,
+``precision`` — as the prompting method).
 
-The prompting method can also perform few-shot style transfer by combining
-style examples from the shared style bank with a few-shot prompt template.
-When ``styles`` is provided without explicit ``prompt_keys``, the method
-automatically uses the ``style_transfer`` template from
-:data:`~diversify_text.method.prompting.prompts.EXAMPLE_BASED_PROMPT_BANK`:
+Its own style bank maps style names to instructions
+(:data:`diversify_text.method.zero_shot.ZERO_SHOT_STYLE_BANK`:
+``formal``, ``simple``, ``complex``, ``caps``, ``lowercase``, and
+more), so ``styles`` and ``n`` select from these:
 
 .. code-block:: python
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       methods=["prompting"],
-       method_kwargs={
-           "prompting": {
-               "styles": ["informal_tinystyler"],
-           }
-       },
+       method="zero_shot",
+       styles=["formal", "caps"],
    )
 
-You can select a different few-shot template via ``prompt_keys``. For
-example, ``humanize_transfer`` combines humanization instructions with the
-style examples:
+With this method, ``style_texts`` are instructions — exactly one per
+style. An instruction can place the input text itself with
+``[DOCUMENT SEGMENT]``; otherwise the text is appended at the end:
 
 .. code-block:: python
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       methods=["prompting"],
-       method_kwargs={
-           "prompting": {
-               "styles": ["informal_tinystyler"],
-               "prompt_keys": ["humanize_transfer"],
-           }
-       },
+       method="zero_shot",
+       style_texts={"pirate": ["Rewrite the text as an old-timey pirate would say it."]},
    )
 
 Development

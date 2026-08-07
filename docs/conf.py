@@ -18,6 +18,7 @@ release = tomllib.loads((_root / "pyproject.toml").read_text())["project"]["vers
 
 # -- General configuration ----------------------------------------------
 extensions = [
+    "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",

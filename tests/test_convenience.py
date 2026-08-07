@@ -1,13 +1,9 @@
-"""Tests for the convenience ``diversify()`` function: n inference from method_kwargs."""
+"""Tests for the convenience ``diversify()`` function: style selection and n."""
 
 import unittest
 
 from diversify_text import Diversifier, diversify
-from diversify_text.method.prompting.prompts import (
-    EXAMPLE_BASED_PROMPT_BANK,
-    NAME_BASED_PROMPT_BANK,
-)
-from diversify_text.styles import DEFAULT_STYLES
+from diversify_text.styles import DEFAULT_STYLE_BANK
 
 from tests.fixtures import PrefixMethod
 
@@ -16,9 +12,9 @@ _DEFAULT_N = Diversifier._DEFAULT_N
 
 # -- Add Fixtures ----------------------------------------------------------
 
-# PrefixMethod is a simple fixture that returns exactly n "paraphrases" per text,
-# so we subclass it and only override ``name`` to trigger the right inference branch
-# without loading real models.
+# PrefixMethod is a simple fixture that returns one "paraphrase" per style,
+# so we subclass it and only override ``name`` to test without loading
+# real models.
 
 
 class _FakeTinyStyler(PrefixMethod):
@@ -35,140 +31,102 @@ class _FakePrompting(PrefixMethod):
         super().__init__("pr")
 
 
-class TestInferNFromMethodKwargs(unittest.TestCase):
-    """Verify that n is correctly inferred from method_kwargs when omitted."""
+class TestStyleSelection(unittest.TestCase):
+    """The number of styles determines the number of paraphrases."""
 
-    # -- tinystyler ----------------------------------------------------------
-
-    def test_tinystyler_n_inferred_from_styles(self):
-        """n=None + 3 styles → 3 paraphrases."""
-        results = diversify(
-            "hello",
-            methods=[_FakeTinyStyler()],
-            method_kwargs={"tinystyler": {"styles": ["a", "b", "c"]}},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 3)
-
-    def test_tinystyler_explicit_n_overrides_styles_len(self):
-        """n=10 + 1 style → 10 paraphrases (n wins)."""
-        results = diversify(
-            "hello",
-            n=10,
-            methods=[_FakeTinyStyler()],
-            method_kwargs={"tinystyler": {"styles": ["informal_tinystyler"]}},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
-
-    def test_tinystyler_no_kwargs_defaults_to_default_n(self):
-        """n=None + no method_kwargs → _DEFAULT_N."""
-        results = diversify("hello", methods=[_FakeTinyStyler()])
+    def test_default_gives_default_n_paraphrases(self):
+        results = diversify("hello", method=_FakeTinyStyler())
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
-    # -- prompting: prompt_keys only -----------------------------------------
+    def test_n_selects_that_many_bank_styles(self):
+        results = diversify("hello", n=7, method=_FakeTinyStyler())
+        self.assertEqual(len(results[0]["paraphrases"]), 7)
 
-    def test_prompting_style_dep_key_without_styles_defaults_to_default_styles(self):
-        """n=None + 1 style-dependent prompt_key + no styles → len(DEFAULT_STYLES)."""
+    def test_n_larger_than_available_styles_raises(self):
+        bank_size = len(DEFAULT_STYLE_BANK)
+        with self.assertRaises(ValueError) as cm:
+            diversify("hello", n=bank_size + 1, method=_FakeTinyStyler())
+        self.assertEqual(
+            str(cm.exception),
+            f"n={bank_size + 1} exceeds the number of available styles "
+            f"({bank_size}).",
+        )
+
+    def test_styles_from_bank_give_one_paraphrase_each(self):
         results = diversify(
             "hello",
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["style_transfer"]}},
+            method=_FakeTinyStyler(),
+            styles=["recipe", "poem"],
         )
-        self.assertEqual(len(results[0]["paraphrases"]), len(DEFAULT_STYLES))
+        self.assertEqual(len(results[0]["paraphrases"]), 2)
 
-    def test_prompting_style_dep_n_overrides(self):
-        """n=10 + 2 prompt_keys → 10 paraphrases (n wins)."""
+    def test_own_style_examples_give_one_paraphrase_each(self):
         results = diversify(
             "hello",
-            n=10,
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["style_transfer"]}},
+            method=_FakePrompting(),
+            style_texts={"a": ["example a"], "b": ["example b"]},
         )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
+        self.assertEqual(len(results[0]["paraphrases"]), 2)
 
-    def test_prompting_zero_shot_key_infers_n_1(self):
-        """n=None + 1 zero-shot prompt_key → 1 paraphrase."""
+    def test_n_combined_with_styles_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            diversify(
+                "hello",
+                n=3,
+                method=_FakeTinyStyler(),
+                styles=["recipe"],
+            )
+        self.assertEqual(
+            str(cm.exception),
+            "n cannot be combined with styles or style_texts — the "
+            "number of styles already determines the number of paraphrases.",
+        )
+
+    def test_repeats_interleave_styles(self):
         results = diversify(
             "hello",
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["wikipedia_paraphrase"]}},
+            method=_FakeTinyStyler(),
+            style_texts={"a": ["example a"], "b": ["example b"]},
+            repeats=2,
         )
-        self.assertEqual(len(results[0]["paraphrases"]), 1)
+        # Two styles, two repeats → four paraphrases: a, b, a, b.
+        self.assertEqual(
+            [p["style"] for p in results[0]["paraphrases"]],
+            ["a", "b", "a", "b"],
+        )
 
-    def test_prompting_explicit_n_overrides_prompt_keys(self):
-        """n=10 + 2 prompt_keys → 10 paraphrases (n wins)."""
+    def test_repeats_below_one_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            diversify("hello", method=_FakeTinyStyler(), repeats=0)
+        self.assertEqual(str(cm.exception), "repeats must be >= 1.")
+
+    def test_method_style_bank_drives_selection(self):
+        """styles and the n-default pool come from the active method's bank."""
+
+        class _TwoStyleMethod(PrefixMethod):
+            name = "two_style"
+            style_bank = {"a": ["ex a"], "b": ["ex b"]}
+
+        # Plain call: the default n is capped at the bank size.
+        results = diversify("hello", method=_TwoStyleMethod("ts"))
+        self.assertEqual(
+            [p["style"] for p in results[0]["paraphrases"]],
+            ["a", "b"],
+        )
+
+        # Name selection resolves against the method's own bank.
+        results = diversify("hello", method=_TwoStyleMethod("ts"), styles=["b"])
+        self.assertEqual(
+            [p["style"] for p in results[0]["paraphrases"]],
+            ["b"],
+        )
+
+    def test_prompt_selection_does_not_affect_count(self):
         results = diversify(
             "hello",
-            n=10,
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"prompt_keys": ["wikipedia_paraphrase"]}},
+            method=_FakePrompting(),
+            method_kwargs={"prompt": "humanize_transfer"},
         )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
-
-    def test_prompting_no_kwargs_defaults_to_default_n(self):
-        """n=None + no method_kwargs → _DEFAULT_N."""
-        results = diversify("hello", methods=[_FakePrompting()])
-        self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
-
-    # -- prompting: styles only ----------------------------------------------
-
-    def test_prompting_n_inferred_from_styles(self):
-        """n=None + 3 styles → 3 paraphrases."""
-        results = diversify(
-            "hello",
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"styles": ["a", "b", "c"]}},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 3)
-
-    def test_prompting_explicit_n_overrides_styles_len(self):
-        """n=10 + 1 style → 10 paraphrases (n wins)."""
-        results = diversify(
-            "hello",
-            n=10,
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {"styles": ["informal_tinystyler"]}},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
-
-    # -- prompting: mixed prompt_keys + styles -------------------------------
-
-    def test_prompting_mixed_style_and_zero_shot(self):
-        """One style-based + one zero-shot + 3 styles → 3+1 = 4."""
-        results = diversify(
-            "hello",
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {
-                "prompt_keys": ["style_transfer", "wikipedia_paraphrase"],
-                "styles": ["a", "b", "c"],
-            }},
-        )
-        # style_transfer is in EXAMPLE_BASED_PROMPT_BANK → 3
-        # wikipedia_paraphrase is zero-shot → 1
-        self.assertEqual(len(results[0]["paraphrases"]), 4)
-
-    def test_prompting_mixed_explicit_n_overrides(self):
-        """Explicit n=10 overrides mixed inference."""
-        results = diversify(
-            "hello",
-            n=10,
-            methods=[_FakePrompting()],
-            method_kwargs={"prompting": {
-                "prompt_keys": ["style_transfer", "wikipedia_paraphrase"],
-                "styles": ["a", "b"],
-            }},
-        )
-        self.assertEqual(len(results[0]["paraphrases"]), 10)
-
-    # -- edge cases ----------------------------------------------------------
-
-    def test_multiple_methods_ignore_inference(self):
-        """n inference only applies for single-method setups; multi falls back to default."""
-        results = diversify(
-            "hello",
-            methods=[_FakeTinyStyler(), _FakePrompting()],
-            method_kwargs={"tinystyler": {"styles": ["a"]}},
-        )
-        # Two methods, _infer_n skips → falls back to _DEFAULT_N
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
 

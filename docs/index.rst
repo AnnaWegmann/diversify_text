@@ -12,5 +12,4 @@ local transformer models.
    usage
    longer_texts
    methods
-   prompts
    api

@@ -13,7 +13,7 @@ from tests.fixtures import CountingMethod, FailingMethod, PrefixMethod
 class TestDiversifier(unittest.TestCase):
 
     def test_single_text_returns_one_result(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         results = div.diversify("hello")
         self.assertEqual(len(results), 1)
         self.assertIn("original", results[0])
@@ -21,12 +21,12 @@ class TestDiversifier(unittest.TestCase):
         self.assertEqual(results[0]["original"], "hello")
 
     def test_n_controls_paraphrase_count(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         results = div.diversify("hello", n=3)
         self.assertEqual(len(results[0]["paraphrases"]), 3)
 
     def test_multiple_texts(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         results = div.diversify(["a", "b", "c"])
         self.assertEqual(len(results), 3)
         for r in results:
@@ -34,40 +34,47 @@ class TestDiversifier(unittest.TestCase):
             self.assertIn("paraphrases", r)
 
     def test_custom_method_instance(self):
-        div = Diversifier(methods=[PrefixMethod("x")])
+        div = Diversifier(method=PrefixMethod("x"))
         results = div.diversify("hello", n=3)
-        self.assertEqual(results[0]["paraphrases"], ["x:hello:0", "x:hello:1", "x:hello:2"])
-
-    def test_multiple_methods_distribute_styles(self):
-        div = Diversifier(methods=[PrefixMethod("a"), PrefixMethod("b")])
-        paraphrases = div.diversify("hello", n=5)[0]["paraphrases"]
-        self.assertEqual(len(paraphrases), 5)
-        self.assertEqual(paraphrases[:3], ["a:hello:0", "a:hello:1", "a:hello:2"])
-        self.assertEqual(paraphrases[3:], ["b:hello:0", "b:hello:1"])
+        # Each paraphrase is labeled with the default style it belongs to.
+        self.assertEqual(
+            results[0]["paraphrases"],
+            [
+                {"style": "informal_tinystyler", "text": "x:hello:0"},
+                {"style": "obama_tinystyler", "text": "x:hello:1"},
+                {"style": "question_tinystyler", "text": "x:hello:2"},
+            ],
+        )
 
     def test_failing_method_raises(self):
-        div = Diversifier(methods=[FailingMethod()])
+        div = Diversifier(method=FailingMethod())
         with self.assertRaises(RuntimeError):
             div.diversify("hello", n=2)
 
     def test_unknown_method_raises_before_generation(self):
         with self.assertRaises(KeyError):
-            Diversifier(methods=["does_not_exist"])
+            Diversifier(method="does_not_exist")
 
     def test_batching_splits_into_correct_number_of_calls(self):
         method = CountingMethod()
-        div = Diversifier(methods=[method])
+        div = Diversifier(method=method)
         results = div.diversify(["a", "b", "c", "d", "e"], n=2, batch_size=2)
         self.assertEqual(method.calls, 3)
         self.assertEqual(len(results), 5)
-        self.assertEqual(results[0]["paraphrases"], ["a:0", "a:1"])
+        self.assertEqual(
+            results[0]["paraphrases"],
+            [
+                {"style": "informal_tinystyler", "text": "a:0"},
+                {"style": "obama_tinystyler", "text": "a:1"},
+            ],
+        )
 
     def test_iterator_input_with_output_dir(self):
         def gen():
             yield "one"
             yield "two"
 
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         with tempfile.TemporaryDirectory() as tmpdir:
             result = div.diversify(
                 gen(), n=2, output_dir=tmpdir, output_name="out"
@@ -82,7 +89,7 @@ class TestDiversifier(unittest.TestCase):
             self.assertEqual(len(record["paraphrases"]), 2)
 
     def test_iterator_without_output_dir_defaults_to_cwd(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         original_cwd = Path.cwd()
         with tempfile.TemporaryDirectory() as tmpdir:
             import os
@@ -96,7 +103,7 @@ class TestDiversifier(unittest.TestCase):
                 os.chdir(original_cwd)
 
     def test_csv_file_writes_jsonl(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         with tempfile.TemporaryDirectory() as tmpdir:
             csv_path = Path(tmpdir) / "data.csv"
             csv_path.write_text("text\nhello\nworld\n", encoding="utf-8")
@@ -110,7 +117,7 @@ class TestDiversifier(unittest.TestCase):
             self.assertEqual(len(lines), 2)
 
     def test_txt_file_writes_jsonl(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         with tempfile.TemporaryDirectory() as tmpdir:
             txt_path = Path(tmpdir) / "texts.txt"
             txt_path.write_text("line one\nline two\n", encoding="utf-8")
@@ -127,12 +134,12 @@ class TestDiversifier(unittest.TestCase):
 class TestDiversifyFunction(unittest.TestCase):
 
     def test_basic_call(self):
-        results = diversify("test input", methods=["echo"])
+        results = diversify("test input", method="echo")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["original"], "test input")
 
     def test_list_input(self):
-        results = diversify(["a", "b"], n=2, methods=["echo"])
+        results = diversify(["a", "b"], n=2, method="echo")
         self.assertEqual(len(results), 2)
         for r in results:
             self.assertEqual(len(r["paraphrases"]), 2)

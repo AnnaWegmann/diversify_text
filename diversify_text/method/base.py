@@ -5,11 +5,19 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
+from diversify_text.styles import DEFAULT_STYLE_BANK
+
 
 class DiversificationMethod(ABC):
     """Interface for pluggable diversification methods."""
 
     name = "base"
+
+    #: The style bank this method selects from: style name → the texts
+    #: that define the style.  ``styles`` names/indices and the
+    #: ``n``-default pool are resolved against the active method's
+    #: bank.  Methods may override it with their own bank.
+    style_bank: dict[str, list[str]] = DEFAULT_STYLE_BANK
 
     def prepare(self) -> None:
         """Load any resources (models, tokenizers) needed before generation.
@@ -22,14 +30,18 @@ class DiversificationMethod(ABC):
     def generate(
         self,
         texts: list[str],
+        style_dict: dict[str, list[str]],
         *,
-        n: int,
-        max_new_tokens: int | None,
-        temperature: float | None,
-        top_p: float | None,
+        max_new_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
         **kwargs: Any,
     ) -> list[list[str]]:
         """Return paraphrases per input text.
 
-        Output shape must be ``len(texts)`` x ``n``.
+        *style_dict* maps each target style name to its example texts
+        (as built by :func:`~diversify_text.styles.resolve_style_dict`).
+        For each input text, return one generated string per style, in
+        *style_dict* order — output shape ``len(texts)`` x
+        ``len(style_dict)``.
         """

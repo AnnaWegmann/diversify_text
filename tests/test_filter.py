@@ -44,7 +44,7 @@ class TestMISFilterIntegration(unittest.TestCase):
 
     def _make_diversifier(self, **kwargs):
         """Create a Diversifier with IndexedMethod and a mocked MIS scorer."""
-        kwargs.setdefault("methods", [IndexedMethod()])
+        kwargs.setdefault("method", IndexedMethod())
         kwargs.setdefault("semantic_filter", True)
         div = Diversifier(**kwargs)
         self._mock_score = MagicMock()
@@ -52,12 +52,12 @@ class TestMISFilterIntegration(unittest.TestCase):
         return div
 
     def test_no_filter_by_default(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         self.assertIsNone(div._mis_filter)
 
     def test_constructor_stores_params(self):
         div = Diversifier(
-            methods=["echo"],
+            method="echo",
             semantic_filter=True,
             min_score=0.90,
             n_candidates=3,
@@ -82,9 +82,9 @@ class TestMISFilterIntegration(unittest.TestCase):
         paraphrases = results[0]["paraphrases"]
         self.assertEqual(len(paraphrases), 2)
         # Style 0: first candidate failed (0.5), best is candidate 1 (0.85).
-        self.assertEqual(paraphrases[0], "hello:s0:c1")
+        self.assertEqual(paraphrases[0]["text"], "hello:s0:c1")
         # Style 1: first candidate passed (0.9), kept as-is.
-        self.assertEqual(paraphrases[1], "hello:s1:c0")
+        self.assertEqual(paraphrases[1]["text"], "hello:s1:c0")
         # 3 score calls: first candidate + 2 remaining.
         self.assertEqual(self._mock_score.call_count, 3)
 
@@ -100,7 +100,7 @@ class TestMISFilterIntegration(unittest.TestCase):
         paraphrases = results[0]["paraphrases"]
         self.assertEqual(len(paraphrases), 1)
         # Best score is 0.6 from candidate 1.
-        self.assertEqual(paraphrases[0], "hello:s0:c1")
+        self.assertEqual(paraphrases[0]["text"], "hello:s0:c1")
 
 
 if __name__ == "__main__":

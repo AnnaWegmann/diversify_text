@@ -5,13 +5,13 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Sequence
 from typing import Any, TypeAlias
 
 from diversify_text.method.base import DiversificationMethod
 from diversify_text.method.echo import EchoMethod
 from diversify_text.method.prompting import PromptingMethod
 from diversify_text.method.tinystyler import TinyStylerMethod
+from diversify_text.method.zero_shot import ZeroShotMethod
 
 
 MethodType: TypeAlias = type[DiversificationMethod]
@@ -36,53 +36,45 @@ class MethodRegistry:
 
     def resolve(
         self,
-        methods: Sequence[str | DiversificationMethod],
+        method: str | DiversificationMethod,
         **kwargs: Any,
-    ) -> list[DiversificationMethod]:
-        """Resolve a sequence of method names/instances into ready instances.
+    ) -> DiversificationMethod:
+        """Resolve a method name or instance into a ready instance.
 
-        String entries are looked up in the registry and instantiated.
-        Pre-built :class:`DiversificationMethod` instances are passed
+        A string is looked up in the registry and instantiated.  A
+        pre-built :class:`DiversificationMethod` instance is passed
         through as-is.  Extra *kwargs* (e.g. ``device``) are forwarded
-        to each constructor only if it accepts them.
+        to the constructor only if it accepts them.
 
         Parameters
         ----------
-        methods : sequence[str | DiversificationMethod]
-            Method names and/or pre-built instances.
+        method : str | DiversificationMethod
+            Method name or pre-built instance.
         **kwargs
-            Keyword arguments forwarded to method constructors
+            Keyword arguments forwarded to the method constructor
             (only those accepted by the constructor signature).
 
         Returns
         -------
-        list[DiversificationMethod]
+        DiversificationMethod
 
         Raises
         ------
         KeyError
             If a string name is not registered.
         TypeError
-            If an element is neither ``str`` nor
+            If *method* is neither ``str`` nor
             :class:`DiversificationMethod`.
-        ValueError
-            If the resulting list is empty.
         """
-        resolved: list[DiversificationMethod] = []
-        for method in methods:
-            if isinstance(method, DiversificationMethod):
-                resolved.append(method)
-            elif isinstance(method, str):
-                method_class = self.get(method)
-                init_kwargs = _build_init_kwargs(method_class, kwargs)
-                resolved.append(method_class(**init_kwargs))
-            else:
-                raise TypeError(
-                    "method must be str or DiversificationMethod instance."
-                )
-        if not resolved:
-            raise ValueError("At least one method is required.")
-        return resolved
+        if isinstance(method, DiversificationMethod):
+            return method
+        if isinstance(method, str):
+            method_class = self.get(method)
+            init_kwargs = _build_init_kwargs(method_class, kwargs)
+            return method_class(**init_kwargs)
+        raise TypeError(
+            "method must be str or DiversificationMethod instance."
+        )
 
     def unregister(self, name: str) -> None:
         if name not in self._store:
@@ -109,3 +101,4 @@ DEFAULT_METHOD_REGISTRY = MethodRegistry()
 DEFAULT_METHOD_REGISTRY.register("echo", EchoMethod)
 DEFAULT_METHOD_REGISTRY.register("prompting", PromptingMethod)
 DEFAULT_METHOD_REGISTRY.register("tinystyler", TinyStylerMethod)
+DEFAULT_METHOD_REGISTRY.register("zero_shot", ZeroShotMethod)

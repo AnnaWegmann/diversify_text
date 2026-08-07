@@ -37,86 +37,89 @@ class TestPromptingMethodGenerate(unittest.TestCase):
         method._model = mock_model
         return method
 
-    def test_generate_multiple_texts(self):
-        method = self._make_method_with_mock_model(["para a", "para b"])
-        result = method.generate(
-            ["text a", "text b"],
-            n=1,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
-        )
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0][0], "para a")
-        self.assertEqual(result[1][0], "para b")
-
-    def test_generate_multiple_styles(self):
-        # n=3 with 1 text → 3 prompts in a single generate_text call.
-        method = self._make_method_with_mock_model(["para1", "para2", "para3"])
-        result = method.generate(
-            ["hello"],
-            n=3,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
-        )
-        self.assertEqual(len(result[0]), 3)
-        self.assertEqual(result[0], ["para1", "para2", "para3"])
-        method._model.generate_text.assert_called_once()
-
     def test_generate_applies_defaults_for_none_params(self):
         method = self._make_method_with_mock_model(["out"])
-        method.generate(
-            ["text"],
-            n=1,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
-            # Use a non-finephrase prompt so there's no bonus.
-            prompt_keys=["wikipedia_paraphrase"],
-        )
-        call_kwargs = method._model.generate_text.call_args[1]
+        method.generate(["text"], {"casual": ["hey there"]})
+        # .kwargs holds the keyword arguments of the generate_text call.
+        call_kwargs = method._model.generate_text.call_args.kwargs
         self.assertEqual(call_kwargs["temperature"], 0.7)
         self.assertEqual(call_kwargs["top_p"], 0.9)
-        # Non-finephrase prompt, no bonus.
         # Mock tokenizer returns 3 tokens → max(10, min(3*2, 2048)) = 10.
         self.assertEqual(call_kwargs["max_new_tokens_per_prompt"], [10])
 
-    def test_finephrase_bonus_only_applies_to_finephrase_prompts(self):
-        # n=5 with 1 text, explicitly cycling 5 prompts:
-        # 0: humanize (no bonus), 1: wikipedia (no bonus),
-        # 2: finephrase_faq (bonus), 3: finephrase_table (bonus),
-        # 4: finephrase_narrative (bonus).
-        # Base = max(10, min(3*2, 2048)) = 10, bonus = 50.
-        method = self._make_method_with_mock_model(
-            ["out1", "out2", "out3", "out4", "out5"]
-        )
+    def test_generate_uses_selected_prompt_key(self):
+        method = self._make_method_with_mock_model(["out"])
         method.generate(
             ["text"],
-            n=5,
-            max_new_tokens=None,
-            temperature=None,
-            top_p=None,
-            prompt_keys=[
-                "humanize_llm-as-coauthor_original",
-                "wikipedia_paraphrase",
-                "finephrase_faq",
-                "finephrase_table",
-                "finephrase_narrative",
-            ],
+            {"casual": ["hey there"]},
+            prompt="humanize_transfer",
         )
-        call_kwargs = method._model.generate_text.call_args[1]
-        self.assertEqual(
-            call_kwargs["max_new_tokens_per_prompt"],
-            [10, 10, 60, 60, 60],
+        # .args[0] is the first positional argument of the generate_text
+        # call: the list of fully-filled prompt strings sent to the model.
+        sent_prompts = method._model.generate_text.call_args.args[0]
+        self.assertIn("machine-generated text", sent_prompts[0])
+
+    def test_generate_uses_custom_prompt_template(self):
+        method = self._make_method_with_mock_model(["out"])
+        custom_prompt = (
+            "Here are examples of the target style:\n[STYLE EXAMPLES]\n"
+            "Rewrite the following text in that style: [DOCUMENT SEGMENT]"
         )
+        method.generate(
+            ["my input"],
+            {"my_style": ["style example a"]},
+            prompt=custom_prompt,
+        )
+        # .args[0] is the first positional argument of the generate_text
+        # call: the list of fully-filled prompt strings sent to the model.
+        sent_prompts = method._model.generate_text.call_args.args[0]
+        self.assertIn("my input", sent_prompts[0])
+        self.assertIn("style example a", sent_prompts[0])
+
+    def test_generate_rejects_prompt_without_style_examples(self):
+        method = self._make_method_with_mock_model(["out"])
+        with self.assertRaises(ValueError):
+            method.generate(
+                ["text"],
+                {"casual": ["hey there"]},
+                prompt="Rewrite: [DOCUMENT SEGMENT]",
+            )
+
+
+class TestGenerateFromStyleDict(unittest.TestCase):
+
+    def test_one_output_per_style_in_dict_order(self):
+        method = PromptingMethod()
+        mock_model = MagicMock()
+
+        def fake_generate(prompts, **kwargs):
+            # Answer each prompt with the style example it contains, so
+            # the output directly shows which style produced it.
+            return [
+                "casual reply" if "hey there" in p else "formal reply"
+                for p in prompts
+            ]
+
+        mock_model.generate_text.side_effect = fake_generate
+        method._model = mock_model
+
+        # Explicit max_new_tokens skips the automatic token budget,
+        # which would otherwise need the model's tokenizer.
+        result = method.generate(
+            ["my text"],
+            {"casual": ["hey there"], "formal": ["Good day."]},
+            max_new_tokens=32,
+        )
+
+        # One text, two styles → one output per style, in dict order.
+        self.assertEqual(result, [["casual reply", "formal reply"]])
 
 
 class TestPromptingModelLoad(unittest.TestCase):
 
-    @patch("diversify_text.method.prompting.model.PromptingModel._load_transformers")
+    @patch("diversify_text.method.llm.PromptingModel._load_transformers")
     def test_load_calls_transformers(self, mock_load_tf):
-        from diversify_text.method.prompting.model import PromptingModel
+        from diversify_text.method.llm import PromptingModel
 
         model = PromptingModel(model_id="test-model", device="cpu")
         model.load()

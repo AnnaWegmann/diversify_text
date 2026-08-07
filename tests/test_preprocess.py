@@ -54,7 +54,7 @@ class TestSentenceSplitting(unittest.TestCase):
     # --- Diversifier with split_on_punctuation=True ---
 
     def test_returns_one_result_per_original(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         results = div.diversify(
             ["One. Two!", "Single sentence"],
             n=1,
@@ -65,15 +65,18 @@ class TestSentenceSplitting(unittest.TestCase):
         self.assertEqual(results[1]["original"], "Single sentence")
 
     def test_segments_are_reassembled_in_paraphrase(self):
-        div = Diversifier(methods=[PrefixMethod("p")])
+        div = Diversifier(method=PrefixMethod("p"))
         results = div.diversify(
             "One. Two!", n=1,
             preprocess_kwargs={"split_on_punctuation": True},
         )
-        self.assertEqual(results[0]["paraphrases"], ["p:One.:0 p:Two!:0"])
+        self.assertEqual(
+            results[0]["paraphrases"],
+            [{"style": "informal_tinystyler", "text": "p:One.:0 p:Two!:0"}],
+        )
 
     def test_csv_with_punctuation_writes_one_jsonl_record_per_original(self):
-        div = Diversifier(methods=["echo"])
+        div = Diversifier(method="echo")
         with tempfile.TemporaryDirectory() as tmpdir:
             input_path = Path(tmpdir) / "tmp.csv"
             input_path.write_text(
