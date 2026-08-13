@@ -1,12 +1,9 @@
-"""Loading of style data from the packaged ``stylebank.json``.
+"""Loading of style data from ``stylebank.json``.
 
-``stylebank.json`` is the single source of truth for the built-in style
-data.  The file itself is never modified by code: it nests styles in a
-linguistic taxonomy (``language_variation → intra-group → diatopic →
-welsh_english → [examples]``) whose leaves are lists of example texts,
-while the rest of the package works on a flat ``name → examples`` dict.
-All shaping — flattening the taxonomy, cleaning awkward leaf names —
-happens here at load time.
+``stylebank.json`` includes a curated dict of the used style taxonomy.
+This loader flattens the nests styles in the linguistic taxonomy
+(``language_variation → intra-group → diatopic → welsh_english → [examples]``)
+to ``name → examples`` dict. All shaping happens here at load time.
 """
 
 from __future__ import annotations
@@ -14,7 +11,7 @@ from __future__ import annotations
 import json
 from importlib import resources
 
-#: Leaf names become public style names verbatim, except the few with
+#: Leaf names become public style names, except the few with
 #: characters beyond ``[a-z0-9_-]``, which are cleaned up here.  Renaming
 #: at load time keeps ``stylebank.json`` untouched; the JSON key is only
 #: ever seen through this mapping, so a rename here changes the public
@@ -34,13 +31,10 @@ def load_style_bank() -> dict[str, list[str]]:
     -------
     dict[str, list[str]]
         Flat ordered mapping of style name → example texts, in the
-        file's traversal order (the curated bank order is applied by the
-        caller, not here).
+        file's traversal order.
     """
-    # importlib.resources (not __file__) so the JSON is also found when
-    # the package is installed as a wheel/zip.
     raw = (
-        resources.files("diversify_text.styles")
+        resources.files("diversify_text.styles")  # resource -> give me data file shipped with the package
         .joinpath(_STYLEBANK_FILENAME)
         .read_text(encoding="utf-8")
     )
@@ -50,8 +44,7 @@ def load_style_bank() -> dict[str, list[str]]:
 def flatten_style_bank(nested: dict) -> dict[str, list[str]]:
     """Flatten a nested style taxonomy into a ``name → examples`` dict.
 
-    Inner dicts are taxonomy levels; a list value is a leaf holding one
-    style's example texts.  Only the leaf name survives flattening, so
+    stylebank is a dict of dict of ... of list[str]. Only the leaf name survives flattening, so
     leaf names must be unique across the whole taxonomy.
 
     Raises
@@ -61,15 +54,19 @@ def flatten_style_bank(nested: dict) -> dict[str, list[str]]:
         strings, or a taxonomy node that is neither dict nor list.
     """
     flat: dict[str, list[str]] = {}
-    _walk(nested, path=(), flat=flat)
+    _walk(nested, recursion_path=(), flat=flat)
     return flat
 
 
-def _walk(node: dict, path: tuple[str, ...], flat: dict[str, list[str]]) -> None:
+def _walk(node: dict, recursion_path: tuple[str, ...], flat: dict[str, list[str]]) -> None:
+    """
+        fills flat with a walk of the original node dictionary
+
+    """
     for key, value in node.items():
-        here = path + (key,)
+        here = recursion_path + (key,)
         if isinstance(value, dict):
-            _walk(value, here, flat)
+            _walk(value, here, flat)  # recursion call
             continue
         if not isinstance(value, list):
             raise ValueError(
