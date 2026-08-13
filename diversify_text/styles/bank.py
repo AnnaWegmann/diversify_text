@@ -137,6 +137,6 @@ DEFAULT_STYLE_BANK: dict[str, list[str]] = {
 }
 
 #: Styles selectable by name only — see the module docstring.
-UNCOMMON_STYLE_BANK: dict[str, list[str]] = {
+UNUSUAL_STYLE_BANK: dict[str, list[str]] = {
     name: _FLAT[name] for name in _UNCOMMON_ORDER
 }
