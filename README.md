@@ -48,11 +48,11 @@ results = diversify("The experiment was conducted in a controlled lab setting.")
 [{
     "original": "The experiment was conducted in a controlled lab setting.",
     "paraphrases": [
-        {"style": "informal", "text": "the experiment was in a controlled lab setting so it didnt suck..."},
-        {"style": "obama", "text": "Well it was a controlled lab setting that the experiment was conducted in."},
-        {"style": "question", "text": "Did you know that the experiment was conducted in a controlled lab setting? It was a re-test."},
-        {"style": "formal", "text": "I heard the experiment was conducted in a controlled lab setting."},
-        {"style": "song_lyrics", "text": "I mean, this experiment was conducted in a controlled lab setting, so that was a good thing."},
+        {"style": "informational", "text": "..."},
+        {"style": "digital_communication", "text": "..."},
+        {"style": "barackobama", "text": "..."},
+        {"style": "earlier_african_american_vernacular_english", "text": "..."},
+        {"style": "age_18-24", "text": "..."},
     ]
 }]
 ```
@@ -65,9 +65,9 @@ results = diversify("Some text.", n=3)
 
 ```python
 [{"original": "Some text.", "paraphrases": [
-    {"style": "informal", "text": "..."},
-    {"style": "obama", "text": "..."},
-    {"style": "question", "text": "..."},
+    {"style": "informational", "text": "..."},
+    {"style": "digital_communication", "text": "..."},
+    {"style": "barackobama", "text": "..."},
 ]}]
 ```
 
@@ -80,17 +80,19 @@ Select specific built-in styles with `styles`, by name and/or by (0-based) bank 
 ```python
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
-    styles=["recipe", "personal_blog"],
+    styles=["scottish_english", "opinion"],
 )
 
 # indices work too — handy for trying things without knowing the names
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
-    styles=[0, 7, "recipe"],
+    styles=[0, 7, "scottish_english"],
 )
 ```
 
 Unknown names and out-of-range indices raise an error listing what is available. Note that indices follow bank order, which may change between releases as the bank is curated — names are the stable way to pin a style.
+
+A few styles that are too far from contemporary English to be useful defaults (`old_english`, `middle_english`) live outside the regular bank: they are selectable by name only, have no index, and are never picked by `n`.
 
 ### Bring your own style examples
 
@@ -141,20 +143,20 @@ results = diversify(
 ```python
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
-    styles=["recipe", "personal_blog"],
+    styles=["scottish_english", "opinion"],
     repeats=2,
 )
 ```
 
 ```python
-# styles interleave: recipe, personal_blog, recipe, personal_blog
+# styles interleave: scottish_english, opinion, scottish_english, opinion
 [{
     "original": "The experiment was conducted in a controlled lab setting.",
     "paraphrases": [
-        {"style": "recipe", "text": "..."},
-        {"style": "personal_blog", "text": "..."},
-        {"style": "recipe", "text": "..."},
-        {"style": "personal_blog", "text": "..."},
+        {"style": "scottish_english", "text": "..."},
+        {"style": "opinion", "text": "..."},
+        {"style": "scottish_english", "text": "..."},
+        {"style": "opinion", "text": "..."},
     ]
 }]
 ```
@@ -219,7 +221,7 @@ from diversify_text import Diversifier
 
 div = Diversifier(device="cuda", method="tinystyler")
 
-batch_1 = div.diversify(texts_1, styles=["recipe", "personal_blog"])
+batch_1 = div.diversify(texts_1, styles=["scottish_english", "opinion"])
 batch_2 = div.diversify(texts_2, style_texts=my_examples)
 ```
 
@@ -234,8 +236,8 @@ results = diversify([
 
 ```python
 [
-    {"original": "The experiment ...", "paraphrases": [{"style": "informal", "text": "..."}, ...]},
-    {"original": "She graduated ...", "paraphrases": [{"style": "informal", "text": "..."}, ...]},
+    {"original": "The experiment ...", "paraphrases": [{"style": "informational", "text": "..."}, ...]},
+    {"original": "She graduated ...", "paraphrases": [{"style": "informational", "text": "..."}, ...]},
 ]
 ```
 
@@ -251,18 +253,18 @@ class MyMethod(DiversificationMethod):
 
     def generate(self, texts, style_dict, *, max_new_tokens, temperature, top_p, **kwargs):
         # style_dict maps each target style name to its example texts,
-        # e.g. {"recipe": ["Cut a peeled brown onion...", ...]}.
+        # e.g. {"scottish_english": ["The boat I had, was a seventy-two foot boat...", ...]}.
         # It is resolved by the core from the caller's `styles` / `style_texts`.
         return [[f"{text} :: {name}" for name in style_dict] for text in texts]
 
 
-results = Diversifier(method=MyMethod()).diversify("Hello", styles=["recipe", "personal_blog"])
+results = Diversifier(method=MyMethod()).diversify("Hello", styles=["scottish_english", "opinion"])
 ```
 
 ```python
 [{"original": "Hello", "paraphrases": [
-    {"style": "recipe", "text": "Hello :: recipe"},
-    {"style": "personal_blog", "text": "Hello :: personal_blog"},
+    {"style": "scottish_english", "text": "Hello :: scottish_english"},
+    {"style": "opinion", "text": "Hello :: opinion"},
 ]}]
 ```
 

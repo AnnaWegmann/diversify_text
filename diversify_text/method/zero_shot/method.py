@@ -25,6 +25,9 @@ class ZeroShotMethod(CausalLMMethod):
 
     name = "zero_shot"
     style_bank = ZERO_SHOT_STYLE_BANK
+    # The default uncommon styles are example-based and would not work
+    # as rewrite instructions.
+    uncommon_style_bank: dict[str, list[str]] = {}
 
     def generate(
         self,

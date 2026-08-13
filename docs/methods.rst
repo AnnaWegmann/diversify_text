@@ -52,12 +52,15 @@ configurable *style bank* to produce multiple stylistically diverse outputs.
    settings** and **formality transfer**. The model may not perform as expected
    when reproducing other styles.
 
-**Default style bank.** The built-in bank contains named styles drawn from
-the `CORE corpus <https://doi.org/10.1007/s10579-013-9256-1>`_, the
-`TinyStyler repository <https://github.com/zacharyhorvitz/TinyStyler>`_ and
-the `STEL demo for the formality dimension <https://github.com/nlpsoc/STEL/blob/main/Data/STEL/dimensions/quad_stel-dimension_formal-100_sample.tsv>`_.
-See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the
-full list of available styles.
+**Default style bank.** The built-in styles are loaded from
+``stylebank.json``, which organizes them in a language-variation
+taxonomy: individual styles (idiolects) and group-level variation
+across time (diachronic), region (diatopic), social group
+(diastratic), register (diaphasic), and medium (diamesic).
+See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the full list
+of available styles and
+:data:`diversify_text.styles.UNCOMMON_STYLE_BANK` for the styles that
+are selectable by name only.
 
 **Citation:**
 
@@ -165,7 +168,7 @@ the top-level ``styles`` parameter (or pass your own via ``style_texts``):
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
        method="prompting",
-       styles=["informal_tinystyler"],
+       styles=["informational"],
    )
 
 Zero-shot

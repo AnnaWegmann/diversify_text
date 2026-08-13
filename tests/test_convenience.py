@@ -74,7 +74,7 @@ class TestStyleSelection(unittest.TestCase):
                 "hello",
                 n=3,
                 method=_FakeTinyStyler(),
-                styles=["recipe"],
+                styles=["scottish_english"],
             )
         self.assertEqual(
             str(cm.exception),
