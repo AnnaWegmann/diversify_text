@@ -189,7 +189,7 @@ class Diversifier:
                 styles,
                 style_texts,
                 bank=bank,
-                uncommon_bank=self._method.uncommon_style_bank,
+                unusual_bank=self._method.unusual_style_bank,
             )
         else:
             if n is None:

@@ -26,7 +26,7 @@ def resolve_style_dict(
     style_texts: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
     *,
     bank: dict[str, list[str]] | None = None,
-    uncommon_bank: dict[str, list[str]] | None = None,
+    unusual_bank: dict[str, list[str]] | None = None,
 ) -> dict[str, list[str]]:
     """Resolve *styles* and *style_texts* into one ordered style dict.
 
@@ -43,7 +43,7 @@ def resolve_style_dict(
     bank : dict, optional
         The style bank to select from.  ``None`` uses
         :data:`~diversify_text.styles.bank.DEFAULT_STYLE_BANK`.
-    uncommon_bank : dict, optional
+    unusual_bank : dict, optional
         Additional styles selectable by *name* only — indices never
         reach them, and they are not part of the bank's ``n`` pool.
         When *bank* is ``None`` this defaults to
@@ -72,10 +72,10 @@ def resolve_style_dict(
         )
     if bank is None:
         bank = DEFAULT_STYLE_BANK
-        if uncommon_bank is None:
-            uncommon_bank = UNUSUAL_STYLE_BANK
-    if uncommon_bank is None:
-        uncommon_bank = {}
+        if unusual_bank is None:
+            unusual_bank = UNUSUAL_STYLE_BANK
+    if unusual_bank is None:
+        unusual_bank = {}
 
     resolved: dict[str, list[str]] = {}
 
@@ -101,15 +101,15 @@ def resolve_style_dict(
             elif entry in bank:
                 name = entry
                 source = bank
-            elif entry in uncommon_bank:
-                # Uncommon styles resolve by name only: they have no
+            elif entry in unusual_bank:
+                # Unusual styles resolve by name only: they have no
                 # index and are never part of the n-selection pool.
                 name = entry
-                source = uncommon_bank
+                source = unusual_bank
             else:
                 by_name_only = (
-                    f" By name only: {sorted(uncommon_bank)}."
-                    if uncommon_bank else ""
+                    f" By name only: {sorted(unusual_bank)}."
+                    if unusual_bank else ""
                 )
                 raise ValueError(
                     f"Unknown style {entry!r}. "

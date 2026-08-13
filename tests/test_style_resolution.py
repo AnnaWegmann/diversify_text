@@ -70,31 +70,31 @@ class TestResolveStyleDict(unittest.TestCase):
             "Available: ['formal', 'poem', 'recipe'].",
         )
 
-    def test_uncommon_style_resolves_by_name(self):
+    def test_unusual_style_resolves_by_name(self):
         result = resolve_style_dict(
-            styles=["recipe", "olde"], bank=_BANK, uncommon_bank=_UNUSUAL
+            styles=["recipe", "olde"], bank=_BANK, unusual_bank=_UNUSUAL
         )
         self.assertEqual(
             result,
             {"recipe": _BANK["recipe"], "olde": _UNUSUAL["olde"]},
         )
 
-    def test_uncommon_style_has_no_index(self):
+    def test_unusual_style_has_no_index(self):
         # Indices cover only the bank itself: index 3 stays out of range
-        # even though an uncommon style exists.
+        # even though an unusual style exists.
         with self.assertRaises(ValueError) as cm:
-            resolve_style_dict(styles=[3], bank=_BANK, uncommon_bank=_UNUSUAL)
+            resolve_style_dict(styles=[3], bank=_BANK, unusual_bank=_UNUSUAL)
         self.assertIn("out of range", str(cm.exception))
         self.assertIn("3 styles", str(cm.exception))
 
-    def test_unknown_name_error_lists_uncommon_styles(self):
+    def test_unknown_name_error_lists_unusual_styles(self):
         with self.assertRaises(ValueError) as cm:
             resolve_style_dict(
-                styles=["nonexistent"], bank=_BANK, uncommon_bank=_UNUSUAL
+                styles=["nonexistent"], bank=_BANK, unusual_bank=_UNUSUAL
             )
         self.assertIn("By name only: ['olde'].", str(cm.exception))
 
-    def test_default_banks_expose_uncommon_by_name(self):
+    def test_default_banks_expose_unusual_by_name(self):
         result = resolve_style_dict(styles=["old_english"])
         self.assertEqual(list(result), ["old_english"])
         self.assertTrue(result["old_english"])
