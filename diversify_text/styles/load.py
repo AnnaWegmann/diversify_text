@@ -1,12 +1,9 @@
-"""Loading of style data from the packaged ``stylebank.json``.
+"""Loading of style data from ``stylebank.json``.
 
-``stylebank.json`` is the single source of truth for the built-in style
-data.  The file itself is never modified by code: it nests styles in a
-linguistic taxonomy (``language_variation → intra-group → diatopic →
-welsh_english → [examples]``) whose leaves are lists of example texts,
-while the rest of the package works on a flat ``name → examples`` dict.
-All shaping — flattening the taxonomy, cleaning awkward leaf names —
-happens here at load time.
+``stylebank.json`` includes a curated dict of the used style taxonomy.
+This loader flattens the nests styles in the linguistic taxonomy
+(``language_variation → intra-group → diatopic → welsh_english → [examples]``)
+to ``name → examples`` dict. All shaping happens here at load time.
 """
 
 from __future__ import annotations
