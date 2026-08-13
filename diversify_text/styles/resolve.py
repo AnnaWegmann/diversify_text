@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 
-from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNCOMMON_STYLE_BANK
+from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def resolve_style_dict(
     if bank is None:
         bank = DEFAULT_STYLE_BANK
         if uncommon_bank is None:
-            uncommon_bank = UNCOMMON_STYLE_BANK
+            uncommon_bank = UNUSUAL_STYLE_BANK
     if uncommon_bank is None:
         uncommon_bank = {}
 

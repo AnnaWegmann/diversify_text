@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from diversify_text.styles import DEFAULT_STYLE_BANK, UNCOMMON_STYLE_BANK
+from diversify_text.styles import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK
 
 
 class DiversificationMethod(ABC):
@@ -23,7 +23,7 @@ class DiversificationMethod(ABC):
     #: pool and not addressable by index.  Methods that override
     #: ``style_bank`` should usually override this too (typically with
     #: ``{}``, unless their bank pairs with the default uncommon set).
-    uncommon_style_bank: dict[str, list[str]] = UNCOMMON_STYLE_BANK
+    uncommon_style_bank: dict[str, list[str]] = UNUSUAL_STYLE_BANK
 
     def prepare(self) -> None:
         """Load any resources (models, tokenizers) needed before generation.
