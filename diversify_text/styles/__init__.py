@@ -1,9 +1,7 @@
 """Style bank data and style resolution.
 
-``bank`` holds the built-in style data; ``resolve`` turns the
-user-facing style parameters into the canonical style dict.  Everything
-is re-exported here, so ``from diversify_text.styles import ...`` keeps
-working as before the subpackage split.
+``bank`` is the API for the built in style data
+ ``resolve`` turns the user-facing style parameters into the canonical style dict.
 """
 
 from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK

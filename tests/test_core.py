@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from diversify_text import Diversifier, diversify
-
+from diversify_text.styles.bank import _BANK_ORDER
 from tests.fixtures import CountingMethod, FailingMethod, PrefixMethod
 
 
@@ -40,9 +40,9 @@ class TestDiversifier(unittest.TestCase):
         self.assertEqual(
             results[0]["paraphrases"],
             [
-                {"style": "informational", "text": "x:hello:0"},
-                {"style": "digital_communication", "text": "x:hello:1"},
-                {"style": "barackobama", "text": "x:hello:2"},
+                {"style": _BANK_ORDER[0], "text": "x:hello:0"},
+                {"style": _BANK_ORDER[1], "text": "x:hello:1"},
+                {"style": _BANK_ORDER[2], "text": "x:hello:2"},
             ],
         )
 
@@ -64,8 +64,8 @@ class TestDiversifier(unittest.TestCase):
         self.assertEqual(
             results[0]["paraphrases"],
             [
-                {"style": "informational", "text": "a:0"},
-                {"style": "digital_communication", "text": "a:1"},
+                {"style": _BANK_ORDER[0], "text": "a:0"},
+                {"style": _BANK_ORDER[1], "text": "a:1"},
             ],
         )
 
