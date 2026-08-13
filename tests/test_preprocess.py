@@ -8,6 +8,7 @@ from pathlib import Path
 
 from diversify_text import Diversifier
 from diversify_text._preprocess import split_sentences
+from diversify_text.styles.bank import _BANK_ORDER
 from tests.fixtures import PrefixMethod
 
 
@@ -72,7 +73,7 @@ class TestSentenceSplitting(unittest.TestCase):
         )
         self.assertEqual(
             results[0]["paraphrases"],
-            [{"style": "informal_tinystyler", "text": "p:One.:0 p:Two!:0"}],
+            [{"style": _BANK_ORDER[0], "text": "p:One.:0 p:Two!:0"}],
         )
 
     def test_csv_with_punctuation_writes_one_jsonl_record_per_original(self):

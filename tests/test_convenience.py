@@ -56,7 +56,7 @@ class TestStyleSelection(unittest.TestCase):
         results = diversify(
             "hello",
             method=_FakeTinyStyler(),
-            styles=["recipe", "poem"],
+            styles=["opinion", "welsh_english"],
         )
         self.assertEqual(len(results[0]["paraphrases"]), 2)
 

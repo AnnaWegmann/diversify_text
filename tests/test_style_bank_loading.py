@@ -2,10 +2,11 @@
 
 import pytest
 
-from diversify_text.styles.load import flatten_style_bank, load_style_bank, _RENAMES
+from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK
+from diversify_text.styles._load import flatten_style_bank, load_style_bank, _RENAMES
 
 
-class TestLoadStyleBank:
+class TestLoadStyleJSON:
     def test_type_check(self):
         bank = load_style_bank()
         assert len(bank) == 84
@@ -48,3 +49,11 @@ class TestLoadStyleBank:
             flatten_style_bank({"a": {"style": []}})
         with pytest.raises(ValueError, match="must be a non-empty list of strings"):
             flatten_style_bank({"a": {"style": ["ok", 3]}})
+
+
+class TestBankResolve:
+    def test_banks_cover_the_json_exactly_and_are_disjoint(self):
+        flat = load_style_bank()
+        assert set(DEFAULT_STYLE_BANK) | set(UNUSUAL_STYLE_BANK) == set(flat)
+        assert not set(DEFAULT_STYLE_BANK) & set(UNUSUAL_STYLE_BANK)
+
