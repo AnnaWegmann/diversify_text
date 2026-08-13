@@ -40,9 +40,9 @@ class TestDiversifier(unittest.TestCase):
         self.assertEqual(
             results[0]["paraphrases"],
             [
-                {"style": "informal_tinystyler", "text": "x:hello:0"},
-                {"style": "obama_tinystyler", "text": "x:hello:1"},
-                {"style": "question_tinystyler", "text": "x:hello:2"},
+                {"style": "informational", "text": "x:hello:0"},
+                {"style": "digital_communication", "text": "x:hello:1"},
+                {"style": "barackobama", "text": "x:hello:2"},
             ],
         )
 
@@ -64,8 +64,8 @@ class TestDiversifier(unittest.TestCase):
         self.assertEqual(
             results[0]["paraphrases"],
             [
-                {"style": "informal_tinystyler", "text": "a:0"},
-                {"style": "obama_tinystyler", "text": "a:1"},
+                {"style": "informational", "text": "a:0"},
+                {"style": "digital_communication", "text": "a:1"},
             ],
         )
 

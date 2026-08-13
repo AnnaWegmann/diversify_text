@@ -6,10 +6,11 @@ is re-exported here, so ``from diversify_text.styles import ...`` keeps
 working as before the subpackage split.
 """
 
-from diversify_text.styles.bank import DEFAULT_STYLE_BANK
+from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNCOMMON_STYLE_BANK
 from diversify_text.styles.resolve import resolve_style_dict
 
 __all__ = [
     "DEFAULT_STYLE_BANK",
+    "UNCOMMON_STYLE_BANK",
     "resolve_style_dict",
 ]

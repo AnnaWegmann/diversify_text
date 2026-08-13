@@ -72,7 +72,7 @@ class TestSentenceSplitting(unittest.TestCase):
         )
         self.assertEqual(
             results[0]["paraphrases"],
-            [{"style": "informal_tinystyler", "text": "p:One.:0 p:Two!:0"}],
+            [{"style": "informational", "text": "p:One.:0 p:Two!:0"}],
         )
 
     def test_csv_with_punctuation_writes_one_jsonl_record_per_original(self):
