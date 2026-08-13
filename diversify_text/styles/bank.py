@@ -42,7 +42,6 @@ _BANK_ORDER: list[str] = [
     "early_modern_english",  # diachronic
     "vernacular_liberian_english",  # diatopic
     "age_35-44",  # diastratic
-    "cristiano",  # idiolect
     "age_45-54",  # diastratic
     "ddlovato",  # idiolect
     "pakistani_english",  # diatopic
