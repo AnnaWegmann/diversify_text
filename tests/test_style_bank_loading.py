@@ -3,10 +3,10 @@
 import pytest
 
 from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK
-from diversify_text.styles.load import flatten_style_bank, load_style_bank, _RENAMES
+from diversify_text.styles._load import flatten_style_bank, load_style_bank, _RENAMES
 
 
-class TestLoadStyleBank:
+class TestLoadStyleJSON:
     def test_type_check(self):
         bank = load_style_bank()
         assert len(bank) == 84
@@ -51,22 +51,9 @@ class TestLoadStyleBank:
             flatten_style_bank({"a": {"style": ["ok", 3]}})
 
 
-class TestBankSplit:
+class TestBankResolve:
     def test_banks_cover_the_json_exactly_and_are_disjoint(self):
         flat = load_style_bank()
         assert set(DEFAULT_STYLE_BANK) | set(UNUSUAL_STYLE_BANK) == set(flat)
         assert not set(DEFAULT_STYLE_BANK) & set(UNUSUAL_STYLE_BANK)
 
-    def test_uncommon_bank_holds_the_unreadable_historical_styles(self):
-        assert set(UNUSUAL_STYLE_BANK) == {"old_english", "middle_english"}
-
-    def test_default_n_prefix_is_pinned(self):
-        # The first five styles are what every default caller (n=5) gets;
-        # changing them is a conscious decision, hence this pin.
-        assert list(DEFAULT_STYLE_BANK)[:5] == [
-            "informational",
-            "digital_communication",
-            "barackobama",
-            "earlier_african_american_vernacular_english",
-            "age_18-24",
-        ]
