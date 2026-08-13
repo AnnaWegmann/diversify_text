@@ -47,7 +47,7 @@ def resolve_style_dict(
         Additional styles selectable by *name* only — indices never
         reach them, and they are not part of the bank's ``n`` pool.
         When *bank* is ``None`` this defaults to
-        :data:`~diversify_text.styles.bank.UNCOMMON_STYLE_BANK`; with
+        :data:`~diversify_text.styles.bank.UNUSUAL_STYLE_BANK`; with
         an explicit *bank* it defaults to no extra styles.
 
     Returns

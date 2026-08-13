@@ -59,7 +59,7 @@ across time (diachronic), region (diatopic), social group
 (diastratic), register (diaphasic), and medium (diamesic).
 See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the full list
 of available styles and
-:data:`diversify_text.styles.UNCOMMON_STYLE_BANK` for the styles that
+:data:`diversify_text.styles.UNUSUAL_STYLE_BANK` for the styles that
 are selectable by name only.
 
 **Citation:**

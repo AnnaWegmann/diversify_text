@@ -137,7 +137,7 @@ combined in one call. One paraphrase is generated per style:
 ``DEFAULT_STYLE_BANK`` (``diversify_text.styles``) holds the built-in
 styles and their example texts.  A few styles that are too far from
 contemporary English to be useful defaults (``old_english``,
-``middle_english``) live in ``UNCOMMON_STYLE_BANK`` instead: they are
+``middle_english``) live in ``UNUSUAL_STYLE_BANK`` instead: they are
 selectable by name only, have no index, and are never picked by ``n``.
 
 .. _creating-a-custom-method:
