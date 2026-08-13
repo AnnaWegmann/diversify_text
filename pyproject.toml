@@ -59,5 +59,8 @@ docs = [
 [tool.hatch.build.targets.sdist]
 exclude = [".github/", "docs/", "tests/"]
 
+[tool.hatch.build.targets.wheel]
+packages = ["diversify_text"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
