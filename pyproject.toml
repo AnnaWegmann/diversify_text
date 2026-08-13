@@ -59,5 +59,10 @@ docs = [
 [tool.hatch.build.targets.sdist]
 exclude = [".github/", "docs/", "tests/"]
 
+# diversify_text ships package data (styles/stylebank.json); the explicit
+# package list keeps it included even if file selection is narrowed later.
+[tool.hatch.build.targets.wheel]
+packages = ["diversify_text"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
