@@ -116,11 +116,10 @@ _UNUSUAL_ORDER: list[str] = [
 _FLAT = load_style_bank()
 
 _listed = _BANK_ORDER + _UNUSUAL_ORDER
-if sorted(_listed) != sorted(_FLAT):
+if sorted(_listed) != sorted(_FLAT):  # hand-written ordering and selection is not complete/ contains an error
     raise ValueError(
-        "The order lists in diversify_text/styles/bank.py are out of sync "
-        "with stylebank.json: "
-        f"missing {sorted(set(_FLAT) - set(_listed))}, "
+        "stylebank.json and the order lists in diversify_text/styles/bank.py are out of sync "
+        f"missing keys: {sorted(set(_FLAT) - set(_listed))}, "
         f"unknown or duplicated {sorted(n for n in set(_listed) if n not in _FLAT or _listed.count(n) > 1)}."
     )
 
@@ -129,7 +128,7 @@ DEFAULT_STYLE_BANK: dict[str, list[str]] = {
     name: _FLAT[name] for name in _BANK_ORDER
 }
 
-#: Styles selectable by name only — see the module docstring.
+#: Styles selectable by name only. Might delete later.
 UNUSUAL_STYLE_BANK: dict[str, list[str]] = {
     name: _FLAT[name] for name in _UNUSUAL_ORDER
 }
