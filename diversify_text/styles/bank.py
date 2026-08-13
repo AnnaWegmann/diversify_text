@@ -28,7 +28,7 @@ JSON forces a conscious ordering decision here.
 
 from __future__ import annotations
 
-from diversify_text.styles.load import load_style_bank
+from diversify_text.styles._load import load_style_bank
 
 _BANK_ORDER: list[str] = [
     "informational",  # diaphasic
