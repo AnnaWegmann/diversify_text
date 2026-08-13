@@ -94,6 +94,15 @@ Unknown names and out-of-range indices raise an error listing what is available.
 
 A few styles that are too far from contemporary English to be useful defaults (`old_english`, `middle_english`) live outside the regular bank: they are selectable by name only, have no index, and are never picked by `n`.
 
+There is also a set of surface-level styles (`all_caps`, `lowercase`, `no_punctuation`, `exclamations`, `passive_voice`, `texting_abbreviations`), defined by example texts like every other style. They work the same way: selectable by name only, never picked by `n`:
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    styles=["all_caps", "passive_voice"],
+)
+```
+
 ### Bring your own style examples
 
 Pass `style_texts` to define target styles with your own texts. A flat list is one style; a list of lists is several styles; a dict maps style names to example sets:

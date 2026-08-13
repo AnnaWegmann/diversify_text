@@ -139,6 +139,10 @@ styles and their example texts.  A few styles that are too far from
 contemporary English to be useful defaults (``old_english``,
 ``middle_english``) live in ``UNUSUAL_STYLE_BANK`` instead: they are
 selectable by name only, have no index, and are never picked by ``n``.
+``SURFACE_STYLE_BANK`` holds surface-level styles (``all_caps``,
+``lowercase``, ``no_punctuation``, ``exclamations``, ``passive_voice``,
+``texting_abbreviations``), defined by example texts like every other
+style and also selectable by name only.
 
 .. _creating-a-custom-method:
 

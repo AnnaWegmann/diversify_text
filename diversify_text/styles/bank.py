@@ -131,3 +131,8 @@ DEFAULT_STYLE_BANK: dict[str, list[str]] = {
 UNUSUAL_STYLE_BANK: dict[str, list[str]] = {
     name: _FLAT[name] for name in _UNUSUAL_ORDER
 }
+
+#: Surface-level rewrites (all caps, passive voice, ...), loaded from
+#: ``surfacebank.json`` in this directory; the file's order is the
+#: bank's order.  Selectable by name only, like ``UNUSUAL_STYLE_BANK``.
+SURFACE_STYLE_BANK: dict[str, list[str]] = load_style_bank("surfacebank.json")

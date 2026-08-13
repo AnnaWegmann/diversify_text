@@ -1,0 +1,62 @@
+{
+    "all_caps": [
+        "I CANNOT BELIEVE THIS IS HAPPENING RIGHT NOW.",
+        "THE MEETING STARTS AT NINE SHARP.",
+        "PLEASE READ THE INSTRUCTIONS BEFORE YOU BEGIN.",
+        "THIS IS THE BEST NEWS I HAVE HEARD ALL WEEK.",
+        "DO NOT FORGET TO SAVE YOUR WORK.",
+        "THE STORE CLOSES IN TEN MINUTES.",
+        "WE WON THE GAME LAST NIGHT.",
+        "MY PHONE BATTERY IS ALMOST DEAD."
+    ],
+    "lowercase": [
+        "i went to the store after work. it was already closed.",
+        "my sister lives in berlin now. she likes it there.",
+        "the movie was fine i guess. nothing special.",
+        "we should meet on friday. maybe around noon.",
+        "i forgot my umbrella again. typical.",
+        "the train was late by twenty minutes.",
+        "dinner was pasta again. no complaints though.",
+        "monday is always the longest day."
+    ],
+    "no_punctuation": [
+        "I went to the market and bought apples bread and cheese",
+        "She asked whether we could come earlier but we said no",
+        "The weather was cold so we stayed inside all day",
+        "He finished the report before the deadline which surprised everyone",
+        "We watched a movie and then went for a walk",
+        "The dog barked at the mailman again this morning",
+        "They painted the kitchen a strange shade of green",
+        "My neighbor plays the trumpet every evening at six"
+    ],
+    "exclamations": [
+        "We finally did it!",
+        "This is absolutely amazing!",
+        "Watch out for the step!",
+        "I can't wait to see you!",
+        "What a fantastic performance!",
+        "Hurry up, we're going to be late!",
+        "That was the best meal I've ever had!",
+        "Congratulations on the new job!"
+    ],
+    "passive_voice": [
+        "The cake was baked by my grandmother.",
+        "The report was written in a single afternoon.",
+        "The window had been broken before we arrived.",
+        "Mistakes were made during the planning phase.",
+        "The song was performed by the school choir.",
+        "The bridge was built in 1932.",
+        "The package was delivered while I was out.",
+        "The decision was approved by the committee."
+    ],
+    "texting_abbreviations": [
+        "omg u wont believe what happened 2day",
+        "brb gotta grab smth rly quick",
+        "idk tbh, maybe l8r",
+        "thx 4 the help btw",
+        "cu tmrw @ the station ok?",
+        "np, c u then",
+        "lol that pic is 2 funny",
+        "gr8 news!! msg me asap"
+    ]
+}

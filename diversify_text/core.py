@@ -189,7 +189,11 @@ class Diversifier:
                 styles,
                 style_texts,
                 bank=bank,
-                unusual_bank=self._method.unusual_style_bank,
+                # Both banks resolve by name only; one merged dict.
+                unusual_bank={
+                    **self._method.unusual_style_bank,
+                    **self._method.surface_style_bank,
+                },
             )
         else:
             if n is None:
