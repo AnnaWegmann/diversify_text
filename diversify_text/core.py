@@ -115,7 +115,7 @@ class Diversifier:
             of styles already determines the number of paraphrases.
         styles : list of str or int, optional
             Selection from the built-in style bank, by name
-            (``"recipe"``) and/or 0-based index (``7``).
+            (``"scottish_english"``) and/or 0-based index (``7``).
         style_texts : list[str] | list[list[str]] | dict, optional
             Your own target styles, defined by example texts: a flat
             list is one style, a list of lists is several styles, a
@@ -185,7 +185,12 @@ class Diversifier:
                     "— the number of styles already determines the "
                     "number of paraphrases."
                 )
-            style_dict = resolve_style_dict(styles, style_texts, bank=bank)
+            style_dict = resolve_style_dict(
+                styles,
+                style_texts,
+                bank=bank,
+                unusual_bank=self._method.unusual_style_bank,
+            )
         else:
             if n is None:
                 # Cap the default at the bank size, so methods with

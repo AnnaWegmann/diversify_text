@@ -184,8 +184,8 @@ class OutputWriter:
             One inner list per original text, each containing one
             ``{"style": ..., "text": ...}`` entry per target style.
             For example, with 2 styles and 1 text:
-            ``[[{"style": "formal", "text": "..."},
-            {"style": "recipe", "text": "..."}]]``.
+            ``[[{"style": "opinion", "text": "..."},
+            {"style": "scottish_english", "text": "..."}]]``.
 
         Raises
         ------
