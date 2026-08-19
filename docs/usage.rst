@@ -72,8 +72,8 @@ Each line in the JSONL output is one JSON object:
 
 .. code-block:: json
 
-   {"original": "Jane is a ...", "paraphrases": [{"style": "informational", "text": "Jane works as a ..."}]}
-   {"original": "John studied ...", "paraphrases": [{"style": "informational", "text": "John was educated ..."}]}
+   {"original": "Jane is a ...", "paraphrases": [{"style": "...", "text": "..."}]}
+   {"original": "John studied ...", "paraphrases": [{"style": "...", "text": "..."}]}
 
 TXT file
 --------
@@ -137,7 +137,7 @@ combined in one call. One paraphrase is generated per style:
 ``DEFAULT_STYLE_BANK`` (``diversify_text.styles``) holds the built-in
 styles and their example texts.  A few styles that are too far from
 contemporary English to be useful defaults (``old_english``,
-``middle_english``) live in ``UNUSUAL_STYLE_BANK`` instead: they are
+``middle_english``) live in ``UNUSUAL_STYLE_BANK`` instead. They are
 selectable by name only, have no index, and are never picked by ``n``.
 
 .. _creating-a-custom-method:
