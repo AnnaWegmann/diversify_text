@@ -48,11 +48,11 @@ results = diversify("The experiment was conducted in a controlled lab setting.")
 [{
     "original": "The experiment was conducted in a controlled lab setting.",
     "paraphrases": [
-        {"style": "informational", "text": "..."},
-        {"style": "digital_communication", "text": "..."},
-        {"style": "barackobama", "text": "..."},
-        {"style": "earlier_african_american_vernacular_english", "text": "..."},
-        {"style": "age_18-24", "text": "..."},
+        {"style": "digital_communication", "text": "I mean this experiment was done in a controlled lab setting..."},
+        {"style": "informational", "text": "The experiment was conducted in a controlled lab setting...."},
+        {"style": "spoken_communication", "text": "It was a controlled lab setting, but it was an experiment..."},
+        {"style": "lyrical", "text": "The experiment was conducted in a controlled lab setting..."},
+        {"style": "scottish_english", "text": "..."},
     ]
 }]
 ```

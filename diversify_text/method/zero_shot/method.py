@@ -25,9 +25,7 @@ class ZeroShotMethod(CausalLMMethod):
 
     name = "zero_shot"
     style_bank = ZERO_SHOT_STYLE_BANK
-    # The default unusual and surface styles are example-based and would
-    # not work as rewrite instructions (this method's own bank already
-    # has caps/lowercase instructions).
+    # The default unusual and surface styles are example-based
     unusual_style_bank: dict[str, list[str]] = {}
     surface_style_bank: dict[str, list[str]] = {}
 

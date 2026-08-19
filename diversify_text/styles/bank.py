@@ -106,7 +106,6 @@ _BANK_ORDER: list[str] = [
 #   kept out of the default bank because they are too far from
 #   contemporary English to be a useful default rewrite target, but still
 #   selectable by name (never via ``n`` or an index).
-#   The split editable here.
 _UNUSUAL_ORDER: list[str] = [
     "middle_english",  # diachronic
     "old_english",  # diachronic

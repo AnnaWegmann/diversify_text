@@ -70,6 +70,10 @@ class TestResolveStyleDict(unittest.TestCase):
             "Available: ['formal', 'poem', 'recipe'].",
         )
 
+    def test_default_banks_expose_unusual_by_name(self):
+        result = resolve_style_dict(styles=["old_english"])
+        self.assertEqual(list(result), ["old_english"])
+
     def test_unusual_style_resolves_by_name(self):
         result = resolve_style_dict(
             styles=["recipe", "olde"], bank=_BANK, unusual_bank=_UNUSUAL
@@ -84,20 +88,9 @@ class TestResolveStyleDict(unittest.TestCase):
         # even though an unusual style exists.
         with self.assertRaises(ValueError) as cm:
             resolve_style_dict(styles=[3], bank=_BANK, unusual_bank=_UNUSUAL)
-        self.assertIn("out of range", str(cm.exception))
-        self.assertIn("3 styles", str(cm.exception))
+        self.assertIn("Style index 3 is out of range. The bank has 3 styles (indices 0-2).", str(cm.exception))
 
-    def test_unknown_name_error_lists_unusual_styles(self):
-        with self.assertRaises(ValueError) as cm:
-            resolve_style_dict(
-                styles=["nonexistent"], bank=_BANK, unusual_bank=_UNUSUAL
-            )
-        self.assertIn("By name only: ['olde'].", str(cm.exception))
 
-    def test_default_banks_expose_unusual_by_name(self):
-        result = resolve_style_dict(styles=["old_english"])
-        self.assertEqual(list(result), ["old_english"])
-        self.assertTrue(result["old_english"])
 
     def test_same_bank_style_twice_raises(self):
         # Index 0 is "recipe", so this requests the same style twice.

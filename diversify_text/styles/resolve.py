@@ -44,11 +44,11 @@ def resolve_style_dict(
         The style bank to select from.  ``None`` uses
         :data:`~diversify_text.styles.bank.DEFAULT_STYLE_BANK`.
     unusual_bank : dict, optional
-        Additional styles selectable by *name* only — indices never
-        reach them, and they are not part of the bank's ``n`` pool.
+        Additional, unusual styles selectable by *name* only.
+        They are not part of the default pool.
         When *bank* is ``None`` this defaults to
-        :data:`~diversify_text.styles.bank.UNUSUAL_STYLE_BANK`; with
-        an explicit *bank* it defaults to no extra styles.
+        :data:`~diversify_text.styles.bank.UNUSUAL_STYLE_BANK`.
+        If the user provides their own bank this defaults to None.
 
     Returns
     -------
@@ -102,8 +102,6 @@ def resolve_style_dict(
                 name = entry
                 source = bank
             elif entry in unusual_bank:
-                # Unusual styles resolve by name only: they have no
-                # index and are never part of the n-selection pool.
                 name = entry
                 source = unusual_bank
             else:

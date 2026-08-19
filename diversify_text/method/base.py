@@ -23,8 +23,8 @@ class DiversificationMethod(ABC):
     #: bank.  Methods may override it with their own bank.
     style_bank: dict[str, list[str]] = DEFAULT_STYLE_BANK
 
-    #: Extra styles selectable by *name* only: never part of the ``n``
-    #: pool and not addressable by index.  Methods that override
+    #: Extra styles selectable by *name* only. Never part of the default
+    #: ``n`` pool and not addressable by index. Methods that override
     #: ``style_bank`` should usually override this too (typically with
     #: ``{}``, unless their bank pairs with the default unusual set).
     unusual_style_bank: dict[str, list[str]] = UNUSUAL_STYLE_BANK
