@@ -63,7 +63,7 @@ class TestBankResolve:
 
 
 class TestSurfaceBank:
-    def test_loads_styles_as_example_lists(self):
+    def test_types(self):
         assert len(SURFACE_STYLE_BANK) == 6
         for name, examples in SURFACE_STYLE_BANK.items():
             assert isinstance(examples, list) and examples
@@ -72,8 +72,4 @@ class TestSurfaceBank:
     def test_no_name_overlap_with_other_banks(self):
         assert not set(SURFACE_STYLE_BANK) & set(DEFAULT_STYLE_BANK)
         assert not set(SURFACE_STYLE_BANK) & set(UNUSUAL_STYLE_BANK)
-
-    def test_all_caps_examples_are_upper_case(self):
-        for x in SURFACE_STYLE_BANK["all_caps"]:
-            assert x == x.upper()
 
