@@ -17,10 +17,11 @@ class DiversificationMethod(ABC):
 
     name = "base"
 
-    #: The style bank this method selects from: style name → the texts
-    #: that define the style.  ``styles`` names/indices and the
-    #: ``n``-default pool are resolved against the active method's
-    #: bank.  Methods may override it with their own bank.
+    #: The default style bank this method selects from:
+    #:      style name → the texts [examples or zero shot prompts]
+    #: ``styles`` and ``n`` from the convenience function
+    #:      are resolved against the active method's bank.
+    #:      Methods may override it with their own bank.
     style_bank: dict[str, list[str]] = DEFAULT_STYLE_BANK
 
     #: Extra styles selectable by *name* only. Never part of the default
