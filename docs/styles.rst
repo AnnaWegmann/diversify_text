@@ -14,7 +14,10 @@ TinyStyler transfers formality and social-media voice well, but not
 dialects, historical English, or most genres, so it uses its own bank
 of styles it demonstrably handles (selected by comparing model outputs
 for every style; see ``evaluations/tinystyler_style_ratings.txt`` in
-the repository).  Selectable via ``n``, by name, or by 0-based index:
+the repository).  The example texts are in `tinystylerbank.json
+<https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/method/tinystyler/tinystylerbank.json>`_,
+except the celebrity styles, which come from ``stylebank.json``.
+Selectable via ``n``, by name, or by 0-based index:
 
 .. code-block:: text
 
@@ -44,7 +47,8 @@ Of the surface-level styles, TinyStyler supports
 ``texting_abbreviations``, ``exclamations``, ``lowercase``,
 ``no_punctuation``, and ``all_caps`` (by name only).
 
-To print the current lists from Python:
+Every style is defined by a set of example texts.  To print the
+current style lists and the examples of one style from Python:
 
 .. code-block:: python
 
@@ -53,12 +57,15 @@ To print the current lists from Python:
 
    print(list(TINYSTYLER_STYLE_BANK))
    print(list(DEFAULT_STYLE_BANK))
+   print(DEFAULT_STYLE_BANK["scottish_english"][:3])
 
 Default style bank
 ------------------
 
-Used by the prompting method.  Selectable via ``n``, by name, or by
-0-based index (the number below):
+Used by the prompting method.  The example texts for these styles
+(and for the unusual styles below) are in `stylebank.json
+<https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/styles/stylebank.json>`_.
+Selectable via ``n``, by name, or by 0-based index (the number below):
 
 .. code-block:: text
 
@@ -160,7 +167,9 @@ Surface-level styles
 --------------------
 
 Surface manipulations of the text, defined by example texts like every
-other style.  Also selectable by name only:
+other style; the examples are in `surfacebank.json
+<https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/styles/surfacebank.json>`_.
+Also selectable by name only:
 
 .. code-block:: text
 
