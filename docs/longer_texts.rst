@@ -29,17 +29,15 @@ length (up to 256 tokens). You can override this with ``max_new_tokens``:
    [{
        "original": "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Despite their families' financial constraints, both parents attended the University of Oxford.",
        "paraphrases": [
-           {"style": "informal", "text": "i mean both parents went to Oxford (despite their families financial constraints)."},
-           {"style": "formal", "text": "I think both parents went to the University of Oxford."},
-           {"style": "question", "text": "Is this true? Both parents went to Oxford despite their families financial constraints."},
-           {"style": "question_answer_forum", "text": "Did you know that both parents went to the University of Oxford despite their families' financial constraints?"},
-           {"style": "discussion_forum", "text": "I think you are right. I'm just saying that both parents attended Oxford despite their families financial constraints, Stephen Hawking was born on 8 January 1942."},
+           {"style": "informal", "text": "Frank and Isobel Hawking went to Oxford in 1942"},
+           {"style": "formal", "text": "I believe Stephen Hawking was born on 8 January 1942."},
+           {"style": "question", "text": "Is this true? Both parents went to Oxford and were born on 8 January 1942."},
+           {"style": "question_answer_forum", "text": "Isn't it interesting that both parents attended Oxford? Stephen Hawking was born on 8 January 1942."},
+           {"style": "discussion_forum", "text": "I think you are right, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. I think it was a lot of money for them to go to the University of Oxford."},
        ]
    }]
 
-Note how information gets lost in several paraphrases: only
-``discussion_forum`` keeps the birth date, and ``formal`` drops both
-the date and the financial constraints.
+Note how information gets lost in several paraphrases.
 
 .. warning::
 
