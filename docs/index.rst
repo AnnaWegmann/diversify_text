@@ -10,6 +10,7 @@ local transformer models.
 
    quickstart
    usage
+   styles
    longer_texts
    methods
    api
