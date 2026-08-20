@@ -24,8 +24,8 @@ _RENAMES: dict[str, str] = {
 _STYLEBANK_FILENAME = "stylebank.json"
 
 
-def load_style_bank() -> dict[str, list[str]]:
-    """Load and flatten the style bank shipped with the package.
+def load_style_bank(filename: str = _STYLEBANK_FILENAME) -> dict[str, list[str]]:
+    """Load and flatten a style JSON file shipped with the package.
 
     Returns
     -------
@@ -35,7 +35,7 @@ def load_style_bank() -> dict[str, list[str]]:
     """
     raw = (
         resources.files("diversify_text.styles")  # resource -> give me data file shipped with the package
-        .joinpath(_STYLEBANK_FILENAME)
+        .joinpath(filename)
         .read_text(encoding="utf-8")
     )
     return flatten_style_bank(json.loads(raw))

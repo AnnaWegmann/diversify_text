@@ -60,6 +60,13 @@ class TestStyleSelection(unittest.TestCase):
         )
         self.assertEqual(len(results[0]["paraphrases"]), 2)
 
+    def test_surface_style_selectable_by_name(self):
+        results = diversify("hello", method="echo", styles=["all_caps"])
+        self.assertEqual(
+            [p['style'] for p in results[0]["paraphrases"]],
+            ["all_caps"],
+        )
+
     def test_own_style_examples_give_one_paraphrase_each(self):
         results = diversify(
             "hello",

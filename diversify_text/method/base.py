@@ -5,7 +5,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from diversify_text.styles import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK
+from diversify_text.styles import (
+    DEFAULT_STYLE_BANK,
+    SURFACE_STYLE_BANK,
+    UNUSUAL_STYLE_BANK,
+)
 
 
 class DiversificationMethod(ABC):
@@ -13,10 +17,11 @@ class DiversificationMethod(ABC):
 
     name = "base"
 
-    #: The style bank this method selects from: style name → the texts
-    #: that define the style.  ``styles`` names/indices and the
-    #: ``n``-default pool are resolved against the active method's
-    #: bank.  Methods may override it with their own bank.
+    #: The default style bank this method selects from:
+    #:      style name → the texts [examples or zero shot prompts]
+    #: ``styles`` and ``n`` from the convenience function
+    #:      are resolved against the active method's bank.
+    #:      Methods may override it with their own bank.
     style_bank: dict[str, list[str]] = DEFAULT_STYLE_BANK
 
     #: Extra styles selectable by *name* only. Never part of the default
@@ -24,6 +29,11 @@ class DiversificationMethod(ABC):
     #: ``style_bank`` should usually override this too (typically with
     #: ``{}``, unless their bank pairs with the default unusual set).
     unusual_style_bank: dict[str, list[str]] = UNUSUAL_STYLE_BANK
+
+    #: Surface-level rewrites (all caps, passive voice, ...), also
+    #: selectable by name only.  Same override rule as
+    #: ``unusual_style_bank``.
+    surface_style_bank: dict[str, list[str]] = SURFACE_STYLE_BANK
 
     def prepare(self) -> None:
         """Load any resources (models, tokenizers) needed before generation.
