@@ -116,7 +116,9 @@ Unusual styles
 --------------
 
 Too far from contemporary English to be useful defaults.  Selectable by
-name only: no index, never picked by ``n``.
+name only. Examples are in `stylebank.json
+<https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/styles/stylebank.json>`_.
+
 
 .. code-block:: text
 
@@ -126,8 +128,7 @@ name only: no index, never picked by ``n``.
 Surface-level styles
 --------------------
 
-Surface manipulations of the text, defined by example texts like every
-other style; the examples are in `surfacebank.json
+Surface manipulations of the text, defined by example texts. The examples are in `surfacebank.json
 <https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/styles/surfacebank.json>`_.
 Also selectable by name only:
 
