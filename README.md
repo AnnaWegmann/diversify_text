@@ -65,9 +65,9 @@ results = diversify("Some text.", n=3)
 
 ```python
 [{"original": "Some text.", "paraphrases": [
-    {"style": "informational", "text": "..."},
     {"style": "digital_communication", "text": "..."},
-    {"style": "barackobama", "text": "..."},
+    {"style": "informational", "text": "..."},
+    {"style": "spoken_communication", "text": "..."},
 ]}]
 ```
 
@@ -94,7 +94,7 @@ Unknown names and out-of-range indices raise an error listing what is available.
 
 A few styles that are too far from contemporary English to be useful defaults (`old_english`, `middle_english`) live outside the regular bank: they are selectable by name only, have no index, and are never picked by `n`.
 
-There is also a set of surface-level styles (e.g., `all_caps`, `lowercase`,`passive_voice`), defined by example texts. They are selectable by name only as well:
+There is also a set of surface-level styles (e.g., `all_caps`, `lowercase`, `passive_voice`), defined by example texts. They are selectable by name only as well:
 
 ```python
 diversify(

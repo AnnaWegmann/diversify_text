@@ -14,9 +14,9 @@ per style. It cannot be combined with ``styles`` or ``style_texts``:
 .. code-block:: python
 
    [{"original": "Some text.", "paraphrases": [
-       {"style": "informational", "text": "..."},
        {"style": "digital_communication", "text": "..."},
-       {"style": "barackobama", "text": "..."},
+       {"style": "informational", "text": "..."},
+       {"style": "spoken_communication", "text": "..."},
    ]}]
 
 Reproducibility (seed)
@@ -141,8 +141,9 @@ contemporary English to be useful defaults (``old_english``,
 selectable by name only, have no index, and are never picked by ``n``.
 ``SURFACE_STYLE_BANK`` holds surface-level styles (``all_caps``,
 ``lowercase``, ``no_punctuation``, ``exclamations``, ``passive_voice``,
-``texting_abbreviations``), defined by example texts like every other
-style and also selectable by name only.
+``active_voice``, ``texting_abbreviations``), defined by example texts
+like every other style and also selectable by name only.  The full
+style list is on the :doc:`styles` page.
 
 .. _creating-a-custom-method:
 

@@ -1,6 +1,6 @@
 """Building the style bank that is used by the package.
 
-Loads ``stylebank.json`` via  :mod:`diversify_text.styles.load`.
+Loads ``stylebank.json`` via  :mod:`diversify_text.styles._load`.
 This module decides which styles are exposed in which order.
 
 Together the two lists must contain every leaf of ``stylebank.json``

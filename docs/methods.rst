@@ -23,12 +23,12 @@ Overview
      - TBD
      - Few-shot style transfer using authorship embeddings
    * - ``prompting``
-     - ~1.7B params (default)
+     - ~3B params (default)
      - TBD
      - TBD
      - Prompt-based paraphrasing using a causal LM
    * - ``zero_shot``
-     - ~1.7B params (default)
+     - ~3B params (default)
      - TBD
      - TBD
      - Styles defined by rewrite instructions, via a causal LM
@@ -57,10 +57,10 @@ configurable *style bank* to produce multiple stylistically diverse outputs.
 taxonomy: individual styles (idiolects) and group-level variation
 across time (diachronic), region (diatopic), social group
 (diastratic), register (diaphasic), and medium (diamesic).
-See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the full list
-of available styles and
-:data:`diversify_text.styles.UNUSUAL_STYLE_BANK` for the styles that
-are selectable by name only.
+The :doc:`styles` page lists every available style by key, including
+the name-only styles in
+:data:`diversify_text.styles.UNUSUAL_STYLE_BANK` and
+:data:`diversify_text.styles.SURFACE_STYLE_BANK`.
 
 **Citation:**
 
