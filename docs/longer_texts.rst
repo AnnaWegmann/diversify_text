@@ -66,19 +66,16 @@ independently (where the model works best), and reassembles the results:
    [{
        "original": "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Despite their families' financial constraints, both parents attended the University of Oxford.",
        "paraphrases": [
-           {"style": "informal", "text": "well Stephen Hawking was born on 8 January 1942 to Frank and isobel Hawking... both parents went to Oxford despite their families financial constraints..."},
-           {"style": "formal", "text": "I believe Stephen Hawking was born on 8 January 1942. Both parents went to Oxford despite their families' financial constraints."},
-           {"style": "question", "text": "Stephen Hawking was born on 8 January 1942. Are you kidding me? Is this true? Both parents went to Oxford despite their families' financial constraints."},
-           {"style": "question_answer_forum", "text": "Isn't Stephen Hawking born on 8 January 1942 to Frank and Isobel Hawking? I thought they both went to Oxford because their families were financially challenged?"},
-           {"style": "discussion_forum", "text": "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. I think it was just a coincidence, but I guess it was not that big of a deal I mean they both went to Oxford despite their families financial constraints. I guess it isn't that hard to say, if you have the money."},
+           {"style": "informal", "text": "i mean Stephen Hawking was born on 8 Jan 1942 to Frank and Isobel Hawking... both parents went to Oxford despite their families financial constraints."},
+           {"style": "formal", "text": "Stephen Hawking was born 8 January 1942 to Frank and Isobel Hawking. I heard that both parents went to Oxford despite their families financial constraints."},
+           {"style": "question", "text": "Did you know Stephen Hawking was born on 8 January 1942? His parents were Frank and Isobel Hawking. Is that true? Both parents went to Oxford despite their families financial constraints."},
+           {"style": "question_answer_forum", "text": "Isn't Stephen Hawking born on 8 January 1942 to Frank and Isobel Hawking? Isn't it interesting that both parents went to Oxford despite their families financial constraints?"},
+           {"style": "discussion_forum", "text": "I'm not sure if it is true, but Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. I think it is interesting that both parents went to the University of Oxford despite their families financial constraints."},
        ]
    }]
 
-The core information (birth date and the financial constraints) survives
-in every paraphrase here, unlike in the ``max_new_tokens`` approach
-above.  The chatty styles pad the seams between segments with filler
-(see ``discussion_forum``), and a paraphrase can flip a nuance —
-``question_answer_forum`` turns "despite" into "because".
+The paraphrases retain more information compared to the ``max_new_tokens``
+approach above.
 
 Combining both
 --------------
