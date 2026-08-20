@@ -23,12 +23,12 @@ Overview
      - TBD
      - Few-shot style transfer using authorship embeddings
    * - ``prompting``
-     - ~1.7B params (default)
+     - ~3B params (default)
      - TBD
      - TBD
      - Prompt-based paraphrasing using a causal LM
    * - ``zero_shot``
-     - ~1.7B params (default)
+     - ~3B params (default)
      - TBD
      - TBD
      - Styles defined by rewrite instructions, via a causal LM
