@@ -5,7 +5,8 @@ Every built-in style, by key.  Names are the stable way to select a
 style; indices follow bank order, which may change between releases as
 the bank is curated.
 
-To print the current lists from Python:
+Every style is defined by a set of example texts.  To print the
+current style lists and the examples of one style from Python:
 
 .. code-block:: python
 
@@ -16,10 +17,14 @@ To print the current lists from Python:
    )
 
    print(list(DEFAULT_STYLE_BANK))
+   print(DEFAULT_STYLE_BANK["scottish_english"][:3])
 
 Default style bank
 ------------------
 
+The example texts for these styles (and for the unusual styles below)
+are in `stylebank.json
+<https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/styles/stylebank.json>`_.
 Selectable via ``n``, by name, or by 0-based index (the number below):
 
 .. code-block:: text
@@ -122,7 +127,9 @@ Surface-level styles
 --------------------
 
 Surface manipulations of the text, defined by example texts like every
-other style.  Also selectable by name only:
+other style; the examples are in `surfacebank.json
+<https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/styles/surfacebank.json>`_.
+Also selectable by name only:
 
 .. code-block:: text
 
