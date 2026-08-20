@@ -64,7 +64,7 @@ class TestBankResolve:
 
 class TestSurfaceBank:
     def test_types(self):
-        assert len(SURFACE_STYLE_BANK) == 6
+        assert len(SURFACE_STYLE_BANK) == 7
         for name, examples in SURFACE_STYLE_BANK.items():
             assert isinstance(examples, list) and examples
             assert all(isinstance(x, str) for x in examples)
