@@ -52,10 +52,10 @@ current style lists and the examples of one style from Python:
 
 .. code-block:: python
 
-   from diversify_text.method.tinystyler import TINYSTYLER_STYLE_BANK
+   from diversify_text.method.tinystyler import TinyStylerMethod
    from diversify_text.styles import DEFAULT_STYLE_BANK
 
-   print(list(TINYSTYLER_STYLE_BANK))
+   print(list(TinyStylerMethod.style_bank))
    print(list(DEFAULT_STYLE_BANK))
    print(DEFAULT_STYLE_BANK["scottish_english"][:3])
 
