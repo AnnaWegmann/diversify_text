@@ -14,9 +14,9 @@ per style. It cannot be combined with ``styles`` or ``style_texts``:
 .. code-block:: python
 
    [{"original": "Some text.", "paraphrases": [
-       {"style": "informational", "text": "..."},
-       {"style": "digital_communication", "text": "..."},
-       {"style": "barackobama", "text": "..."},
+       {"style": "informal", "text": "..."},
+       {"style": "formal", "text": "..."},
+       {"style": "question", "text": "..."},
    ]}]
 
 Reproducibility (seed)
@@ -128,21 +128,24 @@ combined in one call. One paraphrase is generated per style:
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       styles=["informational", "scottish_english", "taylorswift13"],
+       styles=["informal", "personal_blog", "obama"],
        style_texts={
            "telegraphic": ["Key finding: effect confirmed. Details follow."],
        },
    )
 
-``DEFAULT_STYLE_BANK`` (``diversify_text.styles``) holds the built-in
-styles and their example texts.  A few styles that are too far from
-contemporary English to be useful defaults (``old_english``,
-``middle_english``) live in ``UNUSUAL_STYLE_BANK`` instead. They are
-selectable by name only, have no index, and are never picked by ``n``.
-``SURFACE_STYLE_BANK`` holds surface-level styles (``all_caps``,
-``lowercase``, ``no_punctuation``, ``exclamations``, ``passive_voice``,
-``texting_abbreviations``), defined by example texts like every other
-style and also selectable by name only.
+Each method has its own style bank, so which names are available
+depends on the active method.  The default method (TinyStyler) uses a
+small bank of styles it demonstrably handles; the prompting method
+uses ``DEFAULT_STYLE_BANK`` (``diversify_text.styles``), the large
+bank of dialects, registers, and more.  Some styles are selectable by
+name only — no index, never picked by ``n``: for TinyStyler these are
+styles that work but are more likely to produce swearing; for the
+prompting method the historical styles (``old_english``,
+``middle_english``) and the surface-level styles in
+``SURFACE_STYLE_BANK`` (``all_caps``, ``passive_voice``, ...), of
+which TinyStyler supports a subset.  The full lists are on the
+:doc:`styles` page.
 
 .. _creating-a-custom-method:
 

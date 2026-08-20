@@ -7,6 +7,11 @@ from typing import Any
 
 from diversify_text._utils import default_device
 from diversify_text.method.base import DiversificationMethod
+from diversify_text.method.tinystyler.bank import (
+    TINYSTYLER_STYLE_BANK,
+    TINYSTYLER_SURFACE_STYLE_BANK,
+    TINYSTYLER_UNUSUAL_STYLE_BANK,
+)
 from diversify_text.method.tinystyler.model import TinyStyler, _load_tinystyler
 
 logger = logging.getLogger(__name__)
@@ -22,6 +27,10 @@ class TinyStylerMethod(DiversificationMethod):
     """Diversification method backed by TinyStyler."""
 
     name = "tinystyler"
+    # TinyStyler uses its own banks — see tinystyler/bank.py for why.
+    style_bank = TINYSTYLER_STYLE_BANK
+    unusual_style_bank = TINYSTYLER_UNUSUAL_STYLE_BANK
+    surface_style_bank = TINYSTYLER_SURFACE_STYLE_BANK
 
     def __init__(self, device: str | None = None) -> None:
         self.device = device

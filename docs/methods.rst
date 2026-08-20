@@ -52,15 +52,14 @@ configurable *style bank* to produce multiple stylistically diverse outputs.
    settings** and **formality transfer**. The model may not perform as expected
    when reproducing other styles.
 
-**Default style bank.** The built-in styles are loaded from
-``stylebank.json``, which organizes them in a language-variation
-taxonomy: individual styles (idiolects) and group-level variation
-across time (diachronic), region (diatopic), social group
-(diastratic), register (diaphasic), and medium (diamesic).
-See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the full list
-of available styles and
-:data:`diversify_text.styles.UNUSUAL_STYLE_BANK` for the styles that
-are selectable by name only.
+**Style bank.** TinyStyler does not use the package's default style
+bank: it has its own small bank of styles it demonstrably handles
+(``informal``, ``formal``, ``question``, ...), selected by running the
+model on every available style and comparing outputs
+(``evaluations/tinystyler_style_ratings.txt`` in the repository).
+A few additional styles work but are more likely to produce swearing;
+they are selectable by name only.  The :doc:`styles` page lists all of
+them, along with the default bank used by the prompting method.
 
 **Citation:**
 
@@ -160,8 +159,14 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
        method_kwargs={"prompt": my_prompt},
    )
 
-**Style examples.** Styles come from the shared style bank; select them with
-the top-level ``styles`` parameter (or pass your own via ``style_texts``):
+**Style examples.** The prompting method uses the default style bank,
+loaded from ``stylebank.json``: styles organized in a
+language-variation taxonomy — individual styles (idiolects) and
+group-level variation across time (diachronic), region (diatopic),
+social group (diastratic), register (diaphasic), and medium
+(diamesic).  See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` and
+the :doc:`styles` page.  Select styles with the top-level ``styles``
+parameter (or pass your own via ``style_texts``):
 
 .. code-block:: python
 

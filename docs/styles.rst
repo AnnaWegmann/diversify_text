@@ -3,24 +3,62 @@ Styles
 
 Every built-in style, by key.  Names are the stable way to select a
 style; indices follow bank order, which may change between releases as
-the bank is curated.
+the bank is curated.  Each method has its own banks: the default
+method (TinyStyler) uses the small curated bank below, the prompting
+method uses the default style bank.
+
+TinyStyler bank (default method)
+--------------------------------
+
+TinyStyler transfers formality and social-media voice well, but not
+dialects, historical English, or most genres, so it uses its own bank
+of styles it demonstrably handles (selected by comparing model outputs
+for every style; see ``evaluations/tinystyler_style_ratings.txt`` in
+the repository).  Selectable via ``n``, by name, or by 0-based index:
+
+.. code-block:: text
+
+    0  informal
+    1  formal
+    2  question
+    3  question_answer_forum
+    4  discussion_forum
+    5  obama
+    6  formal_speech
+    7  personal_blog
+    8  song_lyrics
+    9  ddlovato
+   10  britneyspears
+
+By name only — these work but are more likely to produce swearing:
+
+.. code-block:: text
+
+   spoken_communication
+   digital_communication
+   other_spoken
+   reader_viewer_responses
+   arianagrande
+
+Of the surface-level styles, TinyStyler supports
+``texting_abbreviations``, ``exclamations``, ``lowercase``,
+``no_punctuation``, and ``all_caps`` (by name only).
 
 To print the current lists from Python:
 
 .. code-block:: python
 
-   from diversify_text.styles import (
-       DEFAULT_STYLE_BANK,
-       UNUSUAL_STYLE_BANK,
-       SURFACE_STYLE_BANK,
-   )
+   from diversify_text.method.tinystyler import TINYSTYLER_STYLE_BANK
+   from diversify_text.styles import DEFAULT_STYLE_BANK
 
+   print(list(TINYSTYLER_STYLE_BANK))
    print(list(DEFAULT_STYLE_BANK))
 
 Default style bank
 ------------------
 
-Selectable via ``n``, by name, or by 0-based index (the number below):
+Used by the prompting method.  Selectable via ``n``, by name, or by
+0-based index (the number below):
 
 .. code-block:: text
 
