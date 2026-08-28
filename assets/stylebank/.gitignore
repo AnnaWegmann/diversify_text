@@ -1,2 +1,3 @@
 data/core/train.tsv
 data/tal/valid-transcripts-aligned.json
+data/pastel/test/
