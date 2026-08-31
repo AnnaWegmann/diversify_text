@@ -3,7 +3,7 @@ Styles
 
 Every built-in style, by key.  Names are the stable way to select a
 style; indices follow bank order, which may change between releases as
-the bank is curated.  Each method has its own banks: the default
+the bank is curated.  Each method can have its own banks: the default
 method (TinyStyler) uses the small curated bank below, the prompting
 method uses the default style bank.
 

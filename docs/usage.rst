@@ -134,17 +134,11 @@ combined in one call. One paraphrase is generated per style:
        },
    )
 
-Each method has its own style bank, so which names are available
-depends on the active method.  The default method (TinyStyler) uses a
+Each method can have its own style bank, so which names are available
+depends on the active method. The default method (TinyStyler) uses a
 small bank of styles it demonstrably handles; the prompting method
 uses ``DEFAULT_STYLE_BANK`` (``diversify_text.styles``), the large
-bank of dialects, registers, and more.  Some styles are selectable by
-name only — no index, never picked by ``n``: for TinyStyler these are
-styles that work but are more likely to produce swearing; for the
-prompting method the historical styles (``old_english``,
-``middle_english``) and the surface-level styles in
-``SURFACE_STYLE_BANK`` (``all_caps``, ``passive_voice``, ...), of
-which TinyStyler supports a subset.  The full lists are on the
+bank of dialects, registers, and more. The full lists are on the
 :doc:`styles` page.
 
 .. _creating-a-custom-method:
