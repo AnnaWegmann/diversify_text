@@ -14,12 +14,7 @@ TinyStyler transfers formality and social-media voice well, but not
 dialects, historical English, or most genres, so it uses its own bank
 of styles it demonstrably handles (selected by comparing model outputs
 for every style; see ``evaluations/tinystyler_style_ratings.txt`` in
-the repository).  The example texts are in `tinystylerbank.json
-<https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/method/tinystyler/tinystylerbank.json>`_,
-except the celebrity styles, which come from ``stylebank.json``.
-Selectable via ``n``, by name, or by 0-based index.  The listing
-below (with two example texts per style) is generated from the code at
-every docs build:
+the repository).
 
 .. include:: _generated/tinystyler_bank.inc
 
