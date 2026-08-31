@@ -3,7 +3,8 @@
 :class:`PromptingModel` wraps the model itself (load + generate);
 :class:`CausalLMMethod` is the shared base class for methods that
 generate through it.  Uses the ``transformers`` library
-(``AutoModelForCausalLM``).
+(``AutoModelForCausalLM``, with a fallback to
+``AutoModelForImageTextToText`` for multimodal wrapper configs).
 
 .. note:: vLLM support is planned for a future release.
 """
@@ -28,6 +29,28 @@ _DEFAULT_TOP_P = 0.9
 _MAX_NEW_TOKENS_FACTOR = 2.0
 _MAX_NEW_TOKENS_FLOOR = 10
 _MAX_NEW_TOKENS_CAP = 2048
+
+
+def _load_text_generation_model(model_id: str, **load_kwargs):
+    """Load a model for text generation, whatever its config type.
+
+    Multimodal wrapper configs (e.g. Ministral 3) are not registered as
+    causal LMs, so ``AutoModelForCausalLM`` rejects them; those load via
+    the image-text class instead, which generates text the same way for
+    text-only inputs.
+    """
+    from transformers import AutoModelForCausalLM
+
+    try:
+        return AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
+    except ValueError as error:
+        if "Unrecognized configuration class" not in str(error):
+            raise
+        from transformers import AutoModelForImageTextToText
+
+        return AutoModelForImageTextToText.from_pretrained(
+            model_id, **load_kwargs
+        )
 
 
 def _max_context_window(config) -> int | None:
@@ -141,7 +164,7 @@ class PromptingModel:
 
     def _load_transformers(self) -> None:
         """Download weights (if needed) and load the model into memory."""
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoTokenizer
 
         with spinner(f"Downloading {self.model_id}"):
             snapshot_download(self.model_id)
@@ -154,7 +177,7 @@ class PromptingModel:
                 load_kwargs: dict = {}
                 if self._torch_dtype is not None:
                     load_kwargs["torch_dtype"] = self._torch_dtype
-                self._model = AutoModelForCausalLM.from_pretrained(
+                self._model = _load_text_generation_model(
                     self.model_id, **load_kwargs
                 )
                 self._model.to(self.device)
