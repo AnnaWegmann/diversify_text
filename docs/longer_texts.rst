@@ -29,16 +29,15 @@ length (up to 256 tokens). You can override this with ``max_new_tokens``:
    [{
        "original": "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Despite their families' financial constraints, both parents attended the University of Oxford.",
        "paraphrases": [
-           {"style": "informal_tinystyler", "text": "both parents went to the university of Oxford, Stephen Hawking was born 8 January 1942..."},
-           {"style": "obama_tinystyler", "text": "Well I know that both parents went to Oxford."},
-           {"style": "question_tinystyler", "text": "How is that? Stephen Hawking was born 8 January 1942 to Frank and Isobel Hawking, who both attended the University of Oxford."},
-           {"style": "formal_stel", "text": "Isobel and Frank Hawking were both at Oxford."},
-           {"style": "song_lyrics", "text": "Well I mean, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking who attended Oxford."},
+           {"style": "informal", "text": "Frank and Isobel Hawking went to Oxford in 1942"},
+           {"style": "formal", "text": "I believe Stephen Hawking was born on 8 January 1942."},
+           {"style": "question", "text": "Is this true? Both parents went to Oxford and were born on 8 January 1942."},
+           {"style": "question_answer_forum", "text": "Isn't it interesting that both parents attended Oxford? Stephen Hawking was born on 8 January 1942."},
+           {"style": "discussion_forum", "text": "I think you are right, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. I think it was a lot of money for them to go to the University of Oxford."},
        ]
    }]
 
-Note how information is lost in several paraphrases (e.g. the financial
-constraints are dropped entirely).
+Note how information gets lost in several paraphrases.
 
 .. warning::
 
@@ -67,11 +66,11 @@ independently (where the model works best), and reassembles the results:
    [{
        "original": "Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Despite their families' financial constraints, both parents attended the University of Oxford.",
        "paraphrases": [
-           {"style": "informal_tinystyler", "text": "Stephen Hawking was born 8 January 1942 to Frank and isobel Hawking... both parents went to the university of oxford despite their families financial constraints..."},
-           {"style": "obama_tinystyler", "text": "Well, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. Well, both parents went to the University of Oxford despite their families' financial constraints."},
-           {"style": "question_tinystyler", "text": "How is Stephen Hawking? He was born on 8 January 1942 to Frank and Isobel Hawking. What? Both parents went to the University of Oxford despite their families financial constraints."},
-           {"style": "formal_stel", "text": "I believe Stephen Hawking was born on 8 January 1942. I have heard both parents went to Oxford despite their families financial constraints."},
-           {"style": "song_lyrics", "text": "Well, Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. So both parents went to Oxford despite their families financial constraints? I just want to say, the university is a great place to live."},
+           {"style": "informal", "text": "i mean Stephen Hawking was born on 8 Jan 1942 to Frank and Isobel Hawking... both parents went to Oxford despite their families financial constraints."},
+           {"style": "formal", "text": "Stephen Hawking was born 8 January 1942 to Frank and Isobel Hawking. I heard that both parents went to Oxford despite their families financial constraints."},
+           {"style": "question", "text": "Did you know Stephen Hawking was born on 8 January 1942? His parents were Frank and Isobel Hawking. Is that true? Both parents went to Oxford despite their families financial constraints."},
+           {"style": "question_answer_forum", "text": "Isn't Stephen Hawking born on 8 January 1942 to Frank and Isobel Hawking? Isn't it interesting that both parents went to Oxford despite their families financial constraints?"},
+           {"style": "discussion_forum", "text": "I'm not sure if it is true, but Stephen Hawking was born on 8 January 1942 to Frank and Isobel Hawking. I think it is interesting that both parents went to the University of Oxford despite their families financial constraints."},
        ]
    }]
 

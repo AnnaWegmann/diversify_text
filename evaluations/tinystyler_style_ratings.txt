@@ -1,0 +1,2198 @@
+HOW TO READ THIS FILE
+=====================
+Each style was run on the same 6 input sentences with TinyStyler.
+All counts are out of 6 outputs per style.
+
+avg_dist   How different the output text is from the input, averaged over
+           the 6 outputs. Per output: both strings are lowercased, then
+           compared with Python's difflib.SequenceMatcher; the score is
+           1 - (matching ratio), so 0.0 = identical to the input and
+           1.0 = nothing in common. This only measures that the TEXT
+           changed, not that the STYLE is right: hallucinated ramble
+           scores high, and a correct all-caps conversion scores near 0
+           because the comparison ignores case.
+copies     Outputs nearly identical to the input (avg_dist < 0.05):
+           the style did (almost) nothing.
+swears     Outputs containing profanity (simple word check).
+halluc     LLM-as-a-judge: outputs that INVENT content not in the input
+           (new facts, names, invented continuations; degenerate
+           repetition also counts). Judge: Claude, one pass per style.
+in_style   LLM-as-a-judge: outputs that clearly exhibit the target
+           style, judged against the style's own bank examples.
+           Caution: for styles whose examples are generic casual text
+           (e.g. the demographics), generic casual output counts as a
+           match, so a high value there means little.
+halluc/in_style are model judgments, not ground truth.
+
+Styles are grouped; within each group, biggest text change first.
+
+
+--- new: celebrity accounts ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.363       0       0       4         4  ddlovato
+   0.342       0       1       4         0  arianagrande
+   0.337       0       0       4         3  rihanna
+   0.304       0       0       4         0  ladygaga
+   0.301       0       2       2         1  jtimberlake
+   0.297       1       0       4         1  barackobama
+   0.268       0       0       4         5  jimmyfallon
+   0.261       0       0       3         4  britneyspears
+   0.257       0       1       4         2  justinbieber
+   0.250       0       1       5         0  taylorswift13
+   0.242       0       0       3         1  shakira
+   0.238       0       0       2         3  selenagomez
+   0.238       1       0       2         1  cristiano
+   0.187       1       1       3         0  katyperry
+
+--- new: demographics ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.501       0       0       6         6  age_25-34
+   0.493       0       0       6         0  gender_female
+   0.492       0       0       6         6  education_bachelor
+   0.492       0       1       6         0  ethnic_southasian
+   0.486       0       0       6         5  education_doctorate
+   0.485       0       0       5         5  education_nodegree
+   0.477       0       0       4         5  ethnic_african
+   0.474       0       0       5         3  politics_rightwing
+   0.473       0       0       6         0  gender_male
+   0.472       0       0       6         0  ethnic_other
+   0.471       0       0       4         6  education_tradeortechnicalorvocationaltraining
+   0.471       0       0       6         6  age_18-24
+   0.470       0       0       6         4  ethnic_caucasian
+   0.467       0       0       6         6  age_45-54
+   0.463       0       0       6         3  ethnic_eastasian
+   0.460       0       0       6         6  age_55-74
+   0.447       0       0       5         2  politics_leftwing
+   0.445       0       1       6         0  ethnic_hispanicorlatino
+   0.443       0       1       5         3  politics_centrist
+   0.441       0       2       5         4  education_some_highschool_no_diploma
+   0.437       0       0       5         6  education_edu-associatedegree
+   0.437       0       2       5         4  education_highschool
+   0.433       0       0       4         6  education_master
+   0.420       0       0       6         6  age_35-44
+
+--- new: dialects ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.332       0       1       1         0  english_dialects_in_the_southwest_of_england
+   0.304       0       1       3         0  vernacular_liberian_english
+   0.300       0       1       3         0  manx_english
+   0.294       0       0       0         0  ghanaian_english
+   0.286       0       0       1         0  irish_english
+   0.268       1       0       1         0  pakistani_english
+   0.265       0       3       4         0  falkland_islands_english
+   0.259       0       5       5         0  earlier_african_american_vernacular_english
+   0.257       0       1       2         0  newfoundland_english
+   0.250       0       1       2         0  bahamian_creole
+   0.229       0       0       3         0  vincentian_creole
+   0.225       0       3       2         0  australian_english
+   0.221       1       1       0         0  liberian_settler_english
+   0.220       0       1       1         1  palmerston_english
+   0.220       1       0       3         0  eastern_maroon_creole
+   0.218       0       0       3         0  welsh_english
+   0.211       0       0       1         0  channel_islands_english
+   0.210       0       1       2         0  jamaican_english
+   0.204       0       1       2         0  belizean_creole
+   0.193       0       0       0         0  aboriginal_english
+   0.173       0       0       2         0  white_zimbabwean_english
+   0.170       2       0       0         0  trinidadian_creole
+   0.159       2       0       2         0  tanzanian_english
+   0.151       0       1       2         0  croker_island_english
+   0.147       0       0       1         0  jamaican_creole
+   0.140       0       0       1         0  kenyan_english
+   0.133       1       2       1         0  scottish_english
+   0.125       2       1       1         0  indian_south_african_english
+   0.114       0       0       1         0  barbadian_creole
+   0.104       1       0       0         0  indian_english
+   0.086       1       0       0         0  hong_kong_english
+   0.085       1       0       0         0  malaysian_english
+   0.069       2       0       0         0  ugandan_english
+
+--- new: historical english ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.484       0       1       5         0  late_modern_english
+   0.092       2       0       1         0  early_modern_english
+
+--- new: historical english (unusual, name-only) ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.279       0       0       6         0  old_english
+   0.136       0       0       0         0  middle_english
+
+--- new: medium ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.425       0       1       4         6  spoken_communication
+   0.366       0       5       4         5  digital_communication
+
+--- new: registers ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.455       0       0       6         1  interactive
+   0.447       0       0       6         0  informational
+   0.446       0       0       6         0  narrative
+   0.438       0       0       6         1  opinion
+   0.425       0       0       6         0  instructional
+   0.421       0       0       6         0  persuasive
+   0.388       0       0       6         0  lyrical
+
+--- old: core genres ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.452       0       0       6         4  personal_blog
+   0.434       0       0       6         6  discussion_forum
+   0.428       0       1       6         0  recipe
+   0.425       0       0       4         3  faq_about_information
+   0.422       0       2       6         4  other_spoken
+   0.399       0       1       5         0  advice
+   0.393       1       0       5         2  faq_about_how_to
+   0.391       0       0       3         0  research_article
+   0.379       0       2       6         0  reviews
+   0.376       0       2       6         0  prayer
+   0.372       0       0       6         0  poem
+   0.371       0       0       6         0  tv_movie_script
+   0.370       0       0       5         0  short_story
+   0.369       0       1       3         0  sports_report
+   0.364       0       0       5         1  information_blog
+   0.363       0       0       5         3  other_forum
+   0.358       0       0       4         0  legal_terms_and_conditions
+   0.348       0       0       5         0  advertisement
+   0.346       0       0       5         2  how_to
+   0.344       0       0       5         0  other_narrative
+   0.342       0       0       0         0  song_lyrics
+   0.340       0       1       4         0  historical_article
+   0.300       0       1       5         0  description_of_a_person
+   0.290       1       0       3         0  other_information
+   0.289       0       0       4         0  technical_report
+   0.287       1       1       4         0  news_report_blog
+   0.285       1       0       4         1  other_informational_persuasion
+   0.280       0       0       5         1  description_with_intent_to_sell
+   0.276       1       0       3         0  persuasive_article_or_essay
+   0.275       1       0       2         0  religious_blogs_sermons
+   0.275       0       1       5         0  encyclopedia_article
+   0.267       0       3       4         1  other_opinion
+   0.267       1       0       3         1  letter_to_editor
+   0.250       1       0       5         0  interview
+   0.246       0       0       2         6  question_answer_forum
+   0.234       1       1       4         0  magazine_article
+   0.234       0       1       4         0  editorial
+   0.230       1       0       2         0  course_materials
+   0.208       1       1       5         0  description_of_a_thing
+   0.198       0       1       2         4  reader_viewer_responses
+   0.153       1       0       1         0  travel_blog
+   0.149       0       0       2         6  formal_speech
+   0.146       1       0       2         0  transcript_of_video_audio
+   0.114       3       0       2         1  opinion_blog
+   0.105       3       0       2         0  technical_support
+
+--- old: tinystyler/stel ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.218       0       0       1         6  question_tinystyler
+   0.210       0       0       0         3  obama_tinystyler
+   0.149       0       0       0         6  informal_tinystyler
+   0.087       1       0       0         5  formal_stel
+
+--- surface ---
+avg_dist  copies  swears  halluc  in_style  style
+   0.248       1       0       0         6  no_punctuation
+   0.217       1       0       3         3  all_caps
+   0.204       2       0       0         6  exclamations
+   0.202       1       0       0         6  lowercase
+   0.195       0       0       0         6  texting_abbreviations
+   0.152       3       0       1         5  active_voice
+   0.106       2       0       0         1  passive_voice
+
+======================================================================
+NEW: CELEBRITY ACCOUNTS
+======================================================================
+
+### ddlovato
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting! Hopefully this is the same thing as the Xanax experiment! #TeepsWith
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist at MIT. Congrats!!
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meet tomorrow at noon to plan the trip! /u/Saiyan_Puts_Me_In_The_Cocktail
+  in : The city council approved the new bike lanes after a long debate.
+  out: I love the new bike lanes! After a long debate the city council approved them!!! #bikesaveours
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday?! #FantasyFeelGood
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie! The ending felt rushed but the movie was fantastic! Loved the ending to the screams and screams of the characters
+
+### arianagrande
+  in : The experiment was conducted in a controlled lab setting.
+  out: a controlled lab setting! the experiment was done in a lab. i have a tahm tahm tah
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: she graduated from MIT and works as a data scientist! :( i hope she gets a job :( 
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: we will meet at noon to plan our trip :) csgo &lt;3
+  in : The city council approved the new bike lanes after a long debate.
+  out: yea the city council approved the new bike lanes after a long debate :(
+  in : Could you send me the report before Friday?
+  out: ok i will send you the report before Friday :) /u/SeattleFootball
+  in : I loved the movie, but the ending felt rushed.
+  out: i loved the movie but the ending felt rushed &lt;3 fucking shit! &lt;3 fuck
+
+### rihanna
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. Hopefully this will be a rerun of the same experiment! #Fools_are
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist! Congrats OP! /u/sneaky_gizmo
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting at noon tomorrow to plan our trip! #stuckininthemoonlight #stuckinthemoonlight #stuck
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate! Thanks /u/dota2
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? /u/battle_crystals_witch_addicts_assault
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie! The ending felt rushed! *Savages* *Savages* *Anarchy* *Savages
+
+### ladygaga
+  in : The experiment was conducted in a controlled lab setting.
+  out: I ran an experiment in a controlled lab setting. No tampons or tampons, no tampons or tamp
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. I have a gf who works as a data scientist at MIT!
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip! /u/AskAskAskAskAskAskAs
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved new bike lanes after a long debate. Thank you OP! &lt;3
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? /u/Joseph_Turtle &lt;3
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie! Only thing I felt rushed was the ending &lt;3
+
+### jtimberlake
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting! It was a fucking shitshow! [](/teesye
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist at MIT. Congrats! *Silver titties*
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Plan the trip! We meet tomorrow at noon EST! (Plz)
+  in : The city council approved the new bike lanes after a long debate.
+  out: YES! The city council approved the new bike lanes after a long debate! #BikeLaneBicycleLane
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I want to see the shit! #FuckingRainbows #BloodB
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie! The ending felt rushed though! *Snaps out of a hat*
+
+### barackobama
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. We're not talking about the actual 'soil' of the soil: the soil, the air
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. #SayHitoYourBoard
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet at noon to plan the trip. /u/RainbowSalem is a 'resource' to the community.
+  in : The city council approved the new bike lanes after a long debate.
+  out: It was a long debate, but the city council approved the new bike lanes. /u/ClintonRoads is right.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday?
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending to "The Last Word" is a cliche.
+
+### jimmyfallon
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting! /u/LittleBabyBaby_Dragons_Dragons
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist at a data science company! #Bootstomp
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting tomorrow at noon to plan the trip! #DreamsAndRoads
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved bike lanes after a long debate! Here's a map: https://en.wikipedia.org/wiki/Bike_La
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday?! /u/Peter_Clarke_Pete_Clarke_Pe
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie! The ending felt rushed! [](/twitch)
+
+### britneyspears
+  in : The experiment was conducted in a controlled lab setting.
+  out: YES! In a controlled lab setting we conducted an experiment! #GirlsWithSex
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. Congrats!! /u/Daily_Snap_Sna
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting tomorrow at noon to plan the trip! Looking forward to it! /u/Teets_Lotus
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved new bike lanes after a long debate! Gracias!
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? Thank you! /u/Meloda_Says
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie! The ending felt rushed :(
+
+### justinbieber
+  in : The experiment was conducted in a controlled lab setting.
+  out: I conducted an experiment in a controlled lab setting. No shit. The results were amazing! /u/psn_psn_p
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. Thanks OP!
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. Go csgo swgs swgs swgs sw
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. Thanks OP
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. /u/More_Daily_Report /u/Ask_More
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. If you like this movie check out /r/FastFood
+
+### taylorswift13
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. This is the ol' shitposting shitposting shitposting 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. RIP /u/Sassy_Feel
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan our trip. /u/Slurpy_Dad_Is_A_Bad_Man
+  in : The city council approved the new bike lanes after a long debate.
+  out: City council approved the bike lanes after a long debate. Thanks for the support!
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? XD XD XD XD XD XD XD XD 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie! The ending felt rushed though! [](/nsfwsp)
+
+### shakira
+  in : The experiment was conducted in a controlled lab setting.
+  out: I conducted the experiment in a controlled lab setting. A ps4 ps4 ps4 ps4 ps4 p
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist! /s
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting tomorrow at noon to plan the trip! /u/SilverSilverSilverSilverSilverSilverSilver
+  in : The city council approved the new bike lanes after a long debate.
+  out: City council approved bike lanes after a long debate! #BikeLanesAreBadMan
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? XD XD XD XD XD XD XD XD 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie! The ending felt rushed &lt;3
+
+### selenagomez
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting! #soontobeadoot
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist. Congrats OP! /s
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip! +1 for the trip &lt;3
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council finally approved bike lanes! Thanks for the feedback OP! /u/Also_Swedish_Muslim_
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday?! XD XD XD XD XD XD XD XD 
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie! The ending felt rushed :(
+
+### cristiano
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting. Added a photo! /u/elijah_elijah_e
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: Graduated from MIT and is now a data scientist. Congrats OP!
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting at noon to plan the trip. Join us /u/AlsoSayMe!
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate! /s
+  in : Could you send me the report before Friday?
+  out: Send me the report before Friday. Happy Friday OP &lt;3
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie but the ending felt rushed. #CruelTip
+
+### katyperry
+  in : The experiment was conducted in a controlled lab setting.
+  out: YES! This experiment was done in a controlled lab setting with a fucking microscope 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist! /s
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. #FunFollowMe
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. Bike lanes are now a thing! (/s)
+  in : Could you send me the report before Friday?
+  out: Could you send me a report before Friday op? /u/Blood_Peace /u/Teem
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. RIP /u/scary_pants_
+
+======================================================================
+NEW: DEMOGRAPHICS
+======================================================================
+
+### age_25-34
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. They had a team of scientists and doctors. The experiment was done in a controlled lab setting. The results
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is now a data scientist at a startup. She is also a data scientist at a company called ad
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. This is the first trip we have planned. It will be a long trip. The first time we have been
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. This is a great move. I would recommend using the bike lanes on the south side of
+  in : Could you send me the report before Friday?
+  out: I would like to see the report before Friday. This is a very important report. It is going to be a very important report. The report is going to
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending was rushed. The climax was a little rushed. The ending was rushed. The ending was rushed.
+
+### gender_female
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. The chemist was able to get the test to work. The test was done in a lab setting
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is a data scientist. She has worked in the field for a while and she is a great person. She has
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip. You can find us on the wiki. The trip is going to be very long. We are going to have to
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. The city council also approved the new bike lanes. They were a huge success. I was
+  in : Could you send me the report before Friday?
+  out: Can you send me the report before Friday? It would be very helpful. The only problem is the dildos are a bit hard to find.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. It felt rushed at the end. The ending was rushed too. It was like a movie about a family who was going through
+
+### education_bachelor
+  in : The experiment was conducted in a controlled lab setting.
+  out: This was done in a controlled lab setting. The experiment was done in a lab. It was a very interesting experiment. The chemists were 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is now a data scientist at Google. She had a job at Google and a great job.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We will be taking a small group. We will be going to the US, Europe and the UK. The
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. They will be added to the streets and the sidewalks will be widened. I think the
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? This is an amazing report. The only thing that is missing is the e-mail. The report will be sent to
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The character development was great. The movie was a bit more arc oriented than the previous two. The
+
+### ethnic_southasian
+  in : The experiment was conducted in a controlled lab setting.
+  out: I like this experiment. It was conducted in a controlled lab setting. The only problem was the shit was in the lab. The shit was in
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is currently working as a data scientist. She has been working in the field of data for a while now and has been
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. The trip will be a long one. We will be flying from Boston to New York and will be going to
+  in : The city council approved the new bike lanes after a long debate.
+  out: This was a long debate. The city council approved the new bike lanes. This is a great idea and a great way to get the city to get
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. This is a very important part of the report. We need a report from you to be sent out. The report
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved this movie. The ending was rushed. The plot was great. The characters were great. The dialogue was great and the action was amazing. The ending was
+
+### education_doctorate
+  in : The experiment was conducted in a controlled lab setting.
+  out: I know this is a rebuttal but the experiment was done in a controlled lab setting. The experiment was done in a lab setting. The experiment
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She works as a data scientist. I love how she is so smart and has a great perspective on things. We have 
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We are going to take the train to the next city and then drive to the next one. We will be going
+  in : The city council approved the new bike lanes after a long debate.
+  out: I live in a city that has a long debate on bike lanes. The council finally approved them. We have a new bike lane in our neighborhood
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I would love to see the results. I am looking for a report on the sprite sprite
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending was not that great. The ending was more of a cliffhanger and the ending was 
+
+### education_nodegree
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. The chemist used the chemistry of the chemical to determine the chemistry of the chemical. The chem
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. She was a student at the MIT CS department. She has been in the lab
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet tomorrow at noon to plan the trip. We are going to the sandbox and see if anyone has any suggestions on the route. This is
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. The city is very proud of the bike lanes. We are just waiting for the next city
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? This is an important report. I have a few other reports that were not on time and were not as detailed as the
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The ending was just a rushed ending. The ending was so rushed that it felt like the movie was
+
+### ethnic_african
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. The experiment was done in a controlled lab setting. It was a study of a molecule called 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist. She was a grad student at MIT. She was a grad student at
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We will be going to the sandbox and the sandbox will be in the sand
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. We are very happy with the new bike lanes. It is a great way to get around
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. I need to get the report from a different company. I would love to see the report from the other company. They
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. It felt rushed. The ending was not the best but it was a good movie. The ending was a bit rushed. The
+
+### politics_rightwing
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. The frogs were caught in a tank. The frogs were caught in a tank
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is a data scientist now. She has a masters in data science from MIT. She is a very talented
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip. We are going to be in a small group. We are going to go to a sandbox.
+  in : The city council approved the new bike lanes after a long debate.
+  out: This was a long debate with the city council. They approved the new bike lanes. It will be a nice addition to the city. I think the city
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. The report is in the mail. It was sent to me in a mail from the dr. sa
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved this movie. The ending felt rushed. I feel like the ending was too quick. It was like the movie was rushed to get to the end of
+
+### gender_male
+  in : The experiment was conducted in a controlled lab setting.
+  out: This was done in a controlled lab setting. The experiment was done in a lab setting. The scientists were able to do the experiment in a controlled lab
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She works as a data scientist at MIT. She is also a data scientist at a private company. She works as
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. This will be a great trip. You can get some great food at the local deli and a great
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. They are great. It will be great to see the new bike lanes in the city.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I would love to see a report on this. The OP said it was a good report. The OP
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The story was well written, but the ending felt rushed. The ending was very quick. The ending of the
+
+### ethnic_other
+  in : The experiment was conducted in a controlled lab setting.
+  out: This was done in a controlled lab setting. We have seen many different experiments where the experimenters were not allowed to use any kind of chemistry or any other material
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. She has been working in the industry for a while now but she has a very
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We will be going to the ol sasuke place in the morning so we will have
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. They will be nice to have a few new bike lanes for the downtown area. It will
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I am interested in this if you can. The apologies for the delay but the apologie
+  in : I loved the movie, but the ending felt rushed.
+  out: I really enjoyed the movie but the ending felt rushed. This movie is like a rushed version of the original arc of the movie. It is just 
+
+### education_tradeortechnicalorvocationaltraining
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. The test was conducted in the lab. The test was done in a controlled lab setting. The test was done
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. She was a student in the MIT Data Science program. She was a student in
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We will be traveling to the st. Louis area from Chicago. We are planning to go to the 
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. They have been a huge hit for the city. I would say the bike lanes are 
+  in : Could you send me the report before Friday?
+  out: Can you send me the report before Friday? The report was on the first day of the event. The report was on the first day of the event. The report was
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The ending was like a rushed ending. The ending was rushed. The ending was rushed. The
+
+### age_18-24
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was done in a controlled lab setting. They were not allowed to use a python on the computer. They did use a 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is now a data scientist and is a data scientist. She has been working as a data scientist for the last 3
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: This is going to be a great trip. We are meeting at noon to plan. The trip will be about two days. We are going to be driving through the
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. The bike lanes will be in the downtown area. It will be an improvement to the city
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. This is a very important report. The apologies for the delay. The apologies for
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The ending was a bit rushed. The ending was a little too rushed for the story. The
+
+### ethnic_caucasian
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. It was not a prank. It was a test of the sensitivity of the brain to 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She works as a data scientist. She has been in the industry for a while. She was a big part of the
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet at noon to plan the trip. It will be a long day. This is the first time I have been to a sass
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. This is great news for bikers. The new bike lanes will help the city get
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? It is a big deal. Having a small business with a small staff and a small budget is very
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The ending was the best part of the movie. The ending of the movie is the one where he is trying
+
+### age_45-54
+  in : The experiment was conducted in a controlled lab setting.
+  out: I was in a controlled lab setting and the experiment was conducted. The sandpaper was just a test. The sandpaper was a test
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She works as a data scientist. Her job is to help people with their data. She is a great person and she has
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We will be taking a day trip to the beach and a day trip to the beach. We will be
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. It was a big step for the city. The new lanes are going to be the
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. This is my first time submitting a report. I have been working on a report for a few years and
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The ending was a bit too rushed. The ending was a little too rushed to be a
+
+### ethnic_eastasian
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. We had a few people that tried to make the experiment happen in a controlled lab setting. We had 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She now works as a data scientist. She was a student at MIT for a few years. She had a
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip. We have a few friends who are traveling to the UK, Canada, and the US. They will be going
+  in : The city council approved the new bike lanes after a long debate.
+  out: I have been on the bike lanes for a while now. The city council approved them after a long debate. The bike lanes were a huge improvement
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I have a few questions about the savages and the savages. The sa
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending was rushed. It was like the movie had a very long ending. The ending was like
+
+### age_55-74
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting. I was just looking at the picture and it looks like the hysterical screams were from
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is now a data scientist at MIT. She had a great career. I know she was a teacher at 
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. Hopefully we can get a good group together. We will be bringing our bikes and a car.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. I think it was a vote of a majority of the city council. They were 
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? My wife and I were on the same boat last week. We were on a boat that was on the side of 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending was rushed. It was like the movie was going to be a long movie. The ending was rushed. It was like
+
+### politics_leftwing
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. The test was done in a lab setting. The test was done with a bunch of chemicals and it was
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She works as a data scientist. I have a friend who has worked at MIT for a few years and he
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We will be flying from LA to CA. The ad is a joke and the ad is
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. It is a very good plan. We will have to see how the bike lanes will be
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The report has been sent. The report was sent on Thursday and it is still on the way. The report is in the
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The ending was a little too rushed. The ending was just too rushed. The movie was a
+
+### ethnic_hispanicorlatino
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. You can do this in a lab. The sex test was just to see if you can get
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. She is a great person and you should look into her. She has been a
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We have a lot of people on the trip that we are going to be traveling with. You can check out
+  in : The city council approved the new bike lanes after a long debate.
+  out: That was a long debate. The city council approved the bike lanes after a long debate. If you are in the city you will see the bike lanes
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I want to see a report on the shit that happened in the first 2 weeks. It was so f
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The plot was great but the ending was just rushed. You have to be patient with the ending but the ending
+
+### politics_centrist
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. It was a very interesting experiment. The scientist said the octopus had a respawn
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is now a data scientist. She was a data scientist at MIT and now she is a data scientist at 
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. The first one is a fucking trip. The second is a trip to a different country
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. They are very nice and the bike lanes will be a big help. I hope they
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I am in the same boat as you. This is a great report and would be great to see some more. The
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. It felt rushed at the end. The ending was a little too fast. It was like the ending of the movie was rushed.
+
+### education_some_highschool_no_diploma
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting. The shit is a little different but the shit is just a shit s
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. She is a data scientist but she also does some other stuff like a data analyst
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip. Hopefully the trip is a good one. Hopefully you will get to see the fucking f
+  in : The city council approved the new bike lanes after a long debate.
+  out: It was a long debate but the city council approved the new bike lanes. It is a great idea. If you want to get into the city and ride
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I would love to see the report. Also the gif of the slurping slurping
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending was a bit too fast for me. The ending was very good but the ending was rushed.
+
+### education_edu-associatedegree
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. The experiment was done with a few oxford jars and a jar of ket
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now working as a data scientist. She has been working in the data science field for a while. It seems like
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. It will be a long day. We will be driving to the detroit area and will be staying
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. We are going to be using them for the next few years. We will also be using the new
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The last time I saw this report was a week ago. It was the first time I saw it on a 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The movie was so good. The ending was a little too rushed and the ending felt rushed. The
+
+### education_highschool
+  in : The experiment was conducted in a controlled lab setting.
+  out: I believe this experiment was done in a controlled lab setting. You can't just shit on the shit out of the shit out of
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. She has a lot of experience in data science and is a really nice person. I
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I am meeting tomorrow at noon to plan the trip. We have a lot of fun going on this trip. We are going to go to a sand
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. The sandbags were a big hit and they were a huge hit. The
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The shit is getting really bad. The shit is getting worse. The shit is getting worse.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie. The ending felt rushed. The climax was a little too fast for me. The ending was a little too rushed.
+
+### education_master
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. They were able to get a good sample size. The experiment was done in a lab setting. The
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now working as a data scientist. She was a student at MIT for a while. She has a
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet tomorrow at noon to plan the trip. We are going to go to the US. It is a long drive to the US. We will be going
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. The new bike lanes are great. We have a lot of bike lanes in the
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The OP was a little off on the date. The report is a little late for me. The OP
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie. The ending felt rushed. The last scene was just a little rushed. The ending was a little too much of a rush
+
+### age_35-44
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting. We can see how it works. It is not a big deal for us to take a gif
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. She has a degree in Computer Science and is a data scientist. She has been
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. It will be a long day. We will be going to the dreaded sandbox and
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. They are a great addition to the city. We have a lot of bike lanes
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? It would be nice to see the results. This is a very important part of the trolls and the 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending was rushed. The movie was very rushed and it was a little too short for the story
+
+======================================================================
+NEW: DIALECTS
+======================================================================
+
+### english_dialects_in_the_southwest_of_england
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was conducted in a controlled lab setting, he was just a shithead af
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I think she graduated from MIT in 2019 and works as a data scientist, she's a good one
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I think we plan the trip tomorrow at noon, ty
+  in : The city council approved the new bike lanes after a long debate.
+  out: I mean the city council approved the bike lanes after a long debate, that sucks
+  in : Could you send me the report before Friday?
+  out: I need a report before Friday, could you send it to me or something
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed, I guess it was a rushed ending to a rushed movie?
+
+### vernacular_liberian_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean, it was a controlled lab setting where the experiment was done.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I mean she graduated from MIT in 2019, so she is a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon, plan the trip, and fuck you trolls.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council approved the new bike lanes after a long debate, and I think it was a good decision.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before friday, idk what you mean.
+  in : I loved the movie, but the ending felt rushed.
+  out: The ending felt rushed, but I loved the movie.
+
+### manx_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: It's a controlled lab experiment though, idk if you can see a 'sneeze'
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She's a data scientist at MIT, she graduated in 2019 tbh
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We're meeting tomorrow at noon to plan the trip i'm sure
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate tho
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before friday's tbh
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed 'cause i'm a fucking twat
+
+### ghanaian_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I guess it was a controlled lab setting but it was still an experiment.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I mean she graduated from MIT in 2019 and now works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip so no worries.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think it was a long debate but the city council approved the bike lanes.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday or something.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending was so rushed that it was a bit of a "no cliffhanger" moment.
+
+### irish_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: Well the experiment was in a controlled lab setting so I guess it's not that big a deal
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist so it's not just a troll
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: So we're meeting tomorrow at noon to plan the trip then
+  in : The city council approved the new bike lanes after a long debate.
+  out: I mean the city council had a long debate but they finally approved the bike lanes
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before friday so I can get it then
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed, it was like "nothing happened"
+
+### pakistani_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think it was a controlled experiment in a lab. If you want to see an actual experiment, you should go to a lab and see how it goes
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist, as well.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip, so that will be a good start.
+  in : The city council approved the new bike lanes after a long debate.
+  out: That was a long debate and the city council finally approved the bike lanes, but it is not a surprise.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, please.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed.
+
+### falkland_islands_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was done in a controlled lab setting so it's not like they were just fucking shit
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist so it's not just a shit job
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: tomorrow at noon we will plan the trip
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council approved the new bike lanes after a long debate and they're pretty good
+  in : Could you send me the report before Friday?
+  out: could you send me the report before friday and I can get it done
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed and the ending was like "what the fuck"
+
+### earlier_african_american_vernacular_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was done in a controlled lab setting so yea, 'tis a shit shit shit shit 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist, ya' know.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We're meeting tomorrow at noon to plan the trip, y'all can fuckin' go.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I mean, the city council approved the bike lanes after a long debate 'cause they're shit.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before friday y'know, shit's a fucking shit's a f
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, it's just the ending felt rushed. "I'm gonna be a fucking twat, 
+
+### newfoundland_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was done in a controlled lab setting so it's not like it was a 'shit' experiment
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: she graduated from MIT in 2019 and now she's a data scientist
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I'm going to meet at noon to plan the trip
+  in : The city council approved the new bike lanes after a long debate.
+  out: I mean the city council approved the bike lanes after a long debate but it's a pretty big deal
+  in : Could you send me the report before Friday?
+  out: could you send me the report before Friday or something like that
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt like it was rushed (like a movie rushed in a hurry)
+
+### bahamian_creole
+  in : The experiment was conducted in a controlled lab setting.
+  out: Yeah, I mean the experiment was in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: Yeah, she graduated from MIT in 2019 and is a data scientist now.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I mean we're meeting tomorrow at noon to plan the trip, yo.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I know, the city council decided to make the bike lanes after a long debate and it was a good move.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, I'd like to see it before then.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. And you know, if you don't want to be a shit-head you can
+
+### vincentian_creole
+  in : The experiment was conducted in a controlled lab setting.
+  out: /u/el_osaio oh ok, experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT and works as a data scientist iirc.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon nyc to plan ti trip ti nyc nyc nyc nyc
+  in : The city council approved the new bike lanes after a long debate.
+  out: Yea the city council approved the bike lanes after a long debate na.
+  in : Could you send me the report before Friday?
+  out: XD oh yay u can send me report before friday tbh.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie tho i felt the ending was rushed xD. /u/stupidpokemongo f
+
+### australian_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean it was a controlled lab setting so there's no way it's a 'shit' experiment
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I'm pretty sure she graduated from MIT in 2019 and works as a data scientist
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I'm sure we'll meet tomorrow at noon to plan the trip and stuff
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council approved the new bike lanes after a long debate
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday so I'm not a shithead
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie but the ending felt rushed as fuck
+
+### liberian_settler_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: Well, it was a controlled lab setting and we all know how it goes.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist, so she can work as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow, to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: Well, the city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, or something like that.
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie, but the ending felt like a rushed shit show.
+
+### palmerston_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was in a controlled lab setting and you can't just go out and shit on the shit.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and she's a data scientist now.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip and all that.
+  in : The city council approved the new bike lanes after a long debate.
+  out: Well the city council just approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday so I can get a copy.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed and didn't have the proper ending.
+
+### eastern_maroon_creole
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean uhh, the experiment was conducted in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist, ty for ty nai taht na
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Y e sa eu te eu eu te eu te eu, e
+  in : The city council approved the new bike lanes after a long debate.
+  out: YES, the city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could u send me the report before friday, ni u omg u li u ai na 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, the ending felt rushed tbh.
+
+### welsh_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was done in a controlled lab setting, right?
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: Well she graduated from MIT in 2019 and now she's a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Yeah we're meeting tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: Well the city council approved the bike lanes after a long debate...so I'm guessing the re-design isn't that bad.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday so I don't have to wait until Monday.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed and like the end of a 'torture' movie.
+
+### channel_islands_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I guess the experiment was done in a controlled lab setting, but I don't think it was that bad.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I think she graduated from MIT in 2019 and is now working as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I think we are meeting tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think it's been a long debate before the city council approved the bike lanes.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday if that's okay.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt like it was just rushed.
+
+### jamaican_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was done in a controlled lab setting and not in a shitspot.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist for a company called Xeon.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip if a trip is in order.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate on the matter.
+  in : Could you send me the report before Friday?
+  out: Could you send me a report before Friday if possible.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed and the ending was not a good ending.
+
+### belizean_creole
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean, the experiment was done in a controlled lab setting iirc
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I mean she graduated from MIT in 2019 and works as a data scientist, fuck neo shit
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan em trip, sssssssssssssssssssss
+  in : The city council approved the new bike lanes after a long debate.
+  out: Yh yea the city council approved the new bike lanes after a long debate, omg yea yea
+  in : Could you send me the report before Friday?
+  out: Could u send me the report before friday op pls
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie, i just felt like the ending was rushed lmao nvm
+
+### aboriginal_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: So it was a controlled lab experiment ya know...
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: So she graduated from MIT in 2019 and works as a data scientist...yeah
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow noon to plan the trip smh
+  in : The city council approved the new bike lanes after a long debate.
+  out: So the city council approved the new bike lanes after a long debate...shudder
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before friday tho...smh
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie but the ending felt rushed (sorry ain't a spoiler)
+
+### white_zimbabwean_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was in a controlled lab setting so it's not really a big deal
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I'm sure we will meet tomorrow at noon to plan the trip
+  in : The city council approved the new bike lanes after a long debate.
+  out: I mean the city council approved the bike lanes after a long debate
+  in : Could you send me the report before Friday?
+  out: Can you send me the report before Friday though
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie but the ending felt rushed and rushed
+
+### trinidadian_creole
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think it was a controlled lab setting where the experiment was conducted
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: Well she graduated from MIT and is now a data scientist
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip
+  in : The city council approved the new bike lanes after a long debate.
+  out: Well the city council did approve the bike lanes after a long debate
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday is out
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed
+
+### tanzanian_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: In a controlled lab setting where the experiment was conducted (not in the field)
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist?
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday as well
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt too rushed (not a spoiler)
+
+### croker_island_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: But the experiment was conducted in a controlled lab setting, so it was not just a shit show.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now she works as a data scientist, so.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Well we meet tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: Well the city council approved the bike lanes after a long debate, but they are the best.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday or something like that.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending was rushed.
+
+### jamaican_creole
+  in : The experiment was conducted in a controlled lab setting.
+  out: iirc the experiment was done in a controlled lab setting
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: she graduated from MIT in january and now works as a data scientist i think
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: we meeting tomorrow at noon to plan trip wut
+  in : The city council approved the new bike lanes after a long debate.
+  out: city council approved bike lanes after long debate i think
+  in : Could you send me the report before Friday?
+  out: oh yea idk if u can send me the report before friday
+  in : I loved the movie, but the ending felt rushed.
+  out: i loved the movie tho the ending felt rushed 
+
+### kenyan_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting and you can see the result.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now working as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council voted to approve the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday is a definite possibility.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie and the ending felt rushed.
+
+### scottish_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was done in a controlled lab setting and it didn't go fucking crazy.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and she's a data scientist now.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip, yo.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before friday or ya know shit.
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie but the ending felt rushed.
+
+### indian_south_african_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think the experiment was done in a controlled lab setting, not a shit house.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon tomorrow to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, if that counts.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed.
+
+### barbadian_creole
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean the experiment was done in a controlled lab setting, not a wtf.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist iirc.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We gonna meet tomorrow noon and plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I mean the city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before friday btw.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed ya know.
+
+### indian_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think the experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip then.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council just approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed and unnecessary.
+
+### hong_kong_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think this experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and she works as a data scientist now.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I know we are meeting tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I believe the city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday is over.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed.
+
+### malaysian_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: I guess the experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I think we are meeting tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I believe the city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, please.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed.
+
+### ugandan_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday is over.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed.
+
+======================================================================
+NEW: HISTORICAL ENGLISH
+======================================================================
+
+### late_modern_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: Sadly, the experiment was done in a controlled lab setting, and the results were not in any way a result of the experiment. But if you'
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: In fact, she graduated from MIT in 2019 and is now a data scientist. And she is a data scientist, as well as a data scientist,
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet at noon tomorrow, to plan the trip. And if you want to go to a shitshow, it would be better to go to
+  in : The city council approved the new bike lanes after a long debate.
+  out: Despite a long debate, the city council approved the new bike lanes. And as if the city council was a dick, it was 
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, and if so, if so, could you send it to me before Friday?
+  in : I loved the movie, but the ending felt rushed.
+  out: The ending felt rushed to me, but I loved the movie. And if you are a fan of the movie, and the re-release of the
+
+### early_modern_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: Apparently the experiment was done in a controlled lab setting, e.g. a hospital.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist, yep.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, if possible.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed.
+
+======================================================================
+NEW: HISTORICAL ENGLISH (UNUSUAL, NAME-ONLY)
+======================================================================
+
+### old_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: ya idk if it was a controlled lab setting but this experiment was conducted. The experiment was conducted in a controlled lab setting. The
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: yea she graduated from MIT in 2019. yea she works as a data scientist. yea yea ye
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip. tssssssssssssssssssssss
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. teh el el el el el
+  in : Could you send me the report before Friday?
+  out: uhh could you send me the report before friday? uhh uhh uhh uh uh u
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. i feel like a tad overkill. i feel like the ending was rushed because
+
+### middle_english
+  in : The experiment was conducted in a controlled lab setting.
+  out: Yhh the experiment was done in a controlled lab setting iirc.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT and works as a data scientist, tbh.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip omg.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate tho.
+  in : Could you send me the report before Friday?
+  out: Could u send me the report before friday tbh.
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie but the ending felt rushed neeeeeeeeeeeeeeeeeeeeee
+
+======================================================================
+NEW: MEDIUM
+======================================================================
+
+### spoken_communication
+  in : The experiment was conducted in a controlled lab setting.
+  out: I know, but the experiment was conducted in a controlled lab setting. And yes, I'm sure the test was done in a lab setting. But it
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. So, she's a data scientist now. I'm not sure what the point of this is, but I don'
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: It's a trip. We are meeting at noon to plan it. If you don't mind me asking, why are you so busy on the weekend?
+  in : The city council approved the new bike lanes after a long debate.
+  out: Well, the city council approved the bike lanes after a long debate. And I don't think it's a good idea to have a bike
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? It's like, I'm getting a report from a shitposter. If you want to
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie, but the ending felt rushed. If you're gonna be a movie about a girl, don't get it. If
+
+### digital_communication
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean this experiment was done in a controlled lab setting. The shit is so scary that the people who were able to get a shit
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist. Is it just me or is this a fucking joke?
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I am meeting at noon to plan the trip. Not a shit show but a good idea.
+  in : The city council approved the new bike lanes after a long debate.
+  out: That city council approved the new bike lanes after a long debate. I think we need some more bike lanes in the city, not just a few la
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The fucking report is a shitpost on the internet right now
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt so rushed. What the hell is this shit?
+
+======================================================================
+NEW: REGISTERS
+======================================================================
+
+### interactive
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. The experiment was done with a small sample size. In the experiment they had a small sample size and 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is working as a data scientist. I'm sure she is still working as a data scientist. It is not that
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We are going to go to the adamantine mountains in the middle of the night. There are some
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. I'm not saying the new bike lanes are perfect but they are good. It'
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I'm going to need a report from a person who has been in the same position for several years. 
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie, but the ending felt rushed. The movie is a bit like the movie "The Last Jedi". The ending is so rushed, it
+
+### informational
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting. The experiment was conducted in a controlled lab setting. The experiment was conducted in a controlled lab setting. The
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. Her work has been in the field of data science for a few years. She was 
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. The trip is going to be a bit long, but will be a day of a lot of fun
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. The bike lanes are a part of the city's plan to improve the city'
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The report is for the last day of the month and is for the last day of the month. The report is for the
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending of the movie was a little over the top. The ending of the movie was not a
+
+### narrative
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. The results were compared to a similar experiment with a different sample size. The experiment was conducted in 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist. She has been working on a project to develop a "data science" project to
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip. Specifically, we will be going to the 'Boston' area and then the 'Boston
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. The new lanes are in the area of the old bike lanes and the new lanes
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I have a report from a CSGO game that was a huge success. The CSGO game was
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending was just too rushed. The ending of the movie was rushed. The ending was rushed
+
+### opinion
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting. The test was done in a controlled lab setting. The experiment was done in a controlled lab setting, and
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She's now working as a data scientist. A data scientist is a data scientist, but it is not a data
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We're meeting tomorrow at noon to plan the trip. The trip is planned to be a trip to the Alps, which is the most famous and most
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. The problem is, the bike lanes are on the side of the street that is a bit
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The only thing I'm asking is if you have a 'no reprint' policy, or
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending is a bit rushed. The ending was rushed as well. The ending was rushed
+
+### instructional
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was a controlled lab setting. The experiment was conducted in a controlled lab setting. The experiment was done in a controlled lab setting and the results were not
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. The only difference is that she is a data scientist. If you are a data scientist
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. We are going to take a 'Wildlife' trip to the North of France, a
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. The bike lanes are a way to get around the city and not have to deal with
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The scuffs will be a result of a scuff on the scuffs
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending was rushed because of the lack of a storyline. The movie was a very good story
+
+### persuasive
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. The nipples were emitted from the nipples in the lab. The 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019. She is now a data scientist at MIT. In her current role she works as a data scientist, a data analyst
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: This is a meeting tomorrow at noon to plan the trip. We will meet at a place in the city and make the plans. The first stop will be the
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. The city has a lane for each bike and the lane is a "lane"
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The report is in the form of a PDF with a link to the report. This report is for the entire 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending is a cliffhanger. The ending is a cliffhanger. The ending
+
+### lyrical
+  in : The experiment was conducted in a controlled lab setting.
+  out: That experiment was conducted in a controlled lab setting. I've seen many experiments where a person can't even use his finger to press the button, 
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. I have a friend who did the same thing at MIT and he said "I
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: That's a good point, we are meeting tomorrow at noon to plan the trip. The trolls are gonna be a bunch of t
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. I'm not saying the new bike lanes are perfect, I'm saying the new
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? It's an ad for a game that is a dlc and not a d
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The whole "I'm not going to get into this" part felt rushed. The ending was so
+
+======================================================================
+OLD: CORE GENRES
+======================================================================
+
+### personal_blog
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was in a controlled lab setting and the experiment was done by a doctor. If I was a doctor, I would say that if they just did
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I mean, she graduated from MIT in 2019 and she is working as a data scientist. I'm sure she is just as smart as the rest of us
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. I think the gifs are a little cheesy, but I guess it is 
+  in : The city council approved the new bike lanes after a long debate.
+  out: I was just saying the city council approved the new bike lanes after a long debate. It isn't like the bike lanes are going to be in
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I don't have the time for it right now, but I would love to get it done before Friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but it felt like the ending was rushed. The ending was like the end of the movie was a "I was so excited I had
+
+### discussion_forum
+  in : The experiment was conducted in a controlled lab setting.
+  out: I know the experiment was conducted in a controlled lab setting, but I think it's a good idea to look into it.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I believe she graduated from MIT in 2019 and now works as a data scientist. I'm not sure how much she has been a part of the 
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. I think we should be able to make it, but we will have to be sure to get a few
+  in : The city council approved the new bike lanes after a long debate.
+  out: I know it was a long debate but the city council decided to approve the bike lanes. I don't think we will see a lot of bike la
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I'm a bit late for this one, but I will probably be able to get it to you before Friday
+  in : I loved the movie, but the ending felt rushed.
+  out: I really enjoyed the movie, but the ending felt rushed. Maybe if you had more time to watch the movie you could just watch it again and watch it again
+
+### recipe
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting with no shit-to-do. The experiment was a little tame compared to
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist. I don't know how she's a data scientist (and a very good
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip. A bunch of skunks and a few skunks from the skunks
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. The new bike lanes are so big that the city council is going to have to get rid of
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I'm going to be on the road on Friday and my gf will have to go to work at 2:30
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending of the movie was "The Last Jedi" with the characters in a very rushed manner.
+
+### faq_about_information
+  in : The experiment was conducted in a controlled lab setting.
+  out: If you think about it, this experiment was done in a controlled lab setting. You could probably get a good idea of how the experiment will work by observing
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: What do you mean? She graduated from MIT in 2019 and now works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will be meeting tomorrow at noon to plan the trip. Do you know if it's a good idea to take the time to go to a local
+  in : The city council approved the new bike lanes after a long debate.
+  out: It was a long debate and the city council finally approved the bike lanes. What's the point of having the bike lanes in the middle of the street
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? It would be nice to see the report if you haven't already.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie and the ending felt rushed. Why would you want to see a movie that is rushed and that you are unable to see the ending
+
+### other_spoken
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. I think it was just a stupid way to test it.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I can only imagine how excited she is to be a data scientist. She graduated from MIT in 2019.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip. You can only hope that the trip isn't a shitshow.
+  in : The city council approved the new bike lanes after a long debate.
+  out: You know, the city council voted to approve the new bike lanes after a long debate. We need to get the word out about this.
+  in : Could you send me the report before Friday?
+  out: Can you send me the report before Friday? This is a shitpost and not something you can do about it.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. How do you not have to be a dick to be able to see the ending of the
+
+### advice
+  in : The experiment was conducted in a controlled lab setting.
+  out: You know that experiment was conducted in a controlled lab setting where no one was able to see it or anything.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: You can say that she graduated from MIT in 2019 and is working as a data scientist at a company that specializes in data science.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet at noon to plan the trip and go over the details.
+  in : The city council approved the new bike lanes after a long debate.
+  out: You can see that the city council approved the bike lanes after a long debate. The new bike lanes are just an excuse to get rid of the bike la
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday to make sure that it isn't a shitpost or a shitpost.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending of a movie where you aren't even able to get through the first few minutes of
+
+### faq_about_how_to
+  in : The experiment was conducted in a controlled lab setting.
+  out: You know that experiment was conducted in a controlled lab setting? You are assuming that the experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: What are you talking about? She graduated from MIT in 2019 and works as a data scientist at a company called MIT Data Science.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon tomorrow to plan the trip. Do you think that you can go to the pier or the beach for a day or two?
+  in : The city council approved the new bike lanes after a long debate.
+  out: What about the new bike lanes? The city council approved them after a long debate about them and the new bike lanes are a good addition.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday?
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. If you are going to take a look at the ending of the movie you will see a lot of the
+
+### research_article
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was a controlled experiment in a lab setting. A fetus can be a fetus in the lab if it is
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is currently working as a data scientist at a company called /u/TastyMom.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting tomorrow at noon to plan the trip and/or the upcoming events.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. The new bike lanes are the result of the city council deciding to make a new
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, if possible with the e-mail address.
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie, but the ending felt rushed. Probably a re-release of the original film with a different ending and a different ending
+
+### reviews
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting, not a fucking lab.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist at a company called Xavier, so no, she's not a 
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon to plan our trip to the US, a day after the shitstorm that was the shitstorm in SF.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate, but I guess it was a stalemate between the city council and the mayor.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, if possible, with the XL XL XL report and the XL XL report
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending of a movie based on the manga "Rainbows and Rainbows" was
+
+### prayer
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. This is not a troll, OP.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019, and now works as a data scientist. She has no interest in the world of politics or politics, just a desire to be
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet tomorrow at noon to plan the trip. No need for a shitpost, unless you are a troll.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. Then again, the city council is a government body.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? It would be great to see a detailed report of the occurrences of a shitstorm, and the
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending is a bit rushed. The ending is rushed. The ending is rushed. The
+
+### poem
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting. I was thinking, "I can't believe he was in the lab, I just saw him in the
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019, and now she works as a data scientist. I can't believe she is not a doctor, but she is a
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: I know, we are meeting tomorrow at noon to plan the trip. It will be a long day, but we will have fun.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. I think it will be a good change, and a good move.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. I can't wait to see the report, and the report on the ole trolls.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. If the movie is about the 'Castle', then it should be a 
+
+### tv_movie_script
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was done in a controlled lab setting, so you can't just say 'you're a troll.'
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019, and now works as a data scientist. If you're looking for a job, it's not as simple as "
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We'll meet tomorrow at noon, to plan the trip. Besides, if you're going to be traveling for a long time, you need to
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes, after a long debate. You're right, but it's the city council that has the power to decide.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, so I can see if it's accurate.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. If you want to see a movie about a woman's life, you should watch it, not
+
+### short_story
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was an experiment that was conducted in a controlled lab setting. The experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist at a firm in New York.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip. The 'Past Adventure' is a snarky, snarky
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate. Those lanes are a few blocks from the new bike lanes, which are 
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? The AP has a tally of a dozen APs who have been in the AP since their
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. A tense ending with the protagonist announcing that he has been shattered by his
+
+### sports_report
+  in : The experiment was conducted in a controlled lab setting.
+  out: This was an experiment in a controlled lab setting, so it was probably a shitshow.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist, albeit a bit less than the average data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon to plan the trip, if anyone is interested.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate, and the city was not in favor of a lane divider.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, preferably on the tidbits of the report.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending of the movie was a little too rushed for the story, especially since the ending was 
+
+### information_blog
+  in : The experiment was conducted in a controlled lab setting.
+  out: You know this experiment was done in a controlled lab setting. Unless you have a lab that you can just go to and sit there and watch the whole thing
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist at a company called MIT.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip. Any ideas on where to go, where to stay, etc.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. You could also try a different way of putting in bike lanes in the city, 
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, not after Friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie, but the ending felt rushed. Having a movie that ends with a montage of a scene where a character die
+
+### other_forum
+  in : The experiment was conducted in a controlled lab setting.
+  out: I know the experiment was done in a controlled lab setting. I just don't know how much it would have changed if the experiment was done in the real
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I know she graduated from MIT in 2019 and now works as a data scientist. I am not sure how she has done so far.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. Not sure what the plan is for the next two weeks.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council approved the bike lanes after a long debate. It was not a bad idea.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday. This is a great way to see if the OP is correct.
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie but the ending felt rushed. The ending was a little rushed and I felt like the movie ended too soon.
+
+### legal_terms_and_conditions
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab environment, and a resulting experiment is not a reversal of the original experiment.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is currently working as a data scientist, a position that is a specialized field.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to discuss the trip, and to prepare for the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate, which was followed by a vote to approve the new bike lanes.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, as the deadline is Friday, April 18th.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. If you want to see the movie with an ending that is not rushed, then the ending of the movie
+
+### advertisement
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was a controlled lab experiment that was done in a lab. The only thing that would be a problem is if the sex was a
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now working as a data scientist at a company called eSilver.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip. Hopefully a few of your friends will join you on this trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate on the matter.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday and it will be a tad late.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending of the movie is like a stale rehash of the movie from the beginning.
+
+### how_to
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think it's important to remember that the experiment was conducted in a controlled lab setting, not an actual human lab.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist, so you can't say she's a "sneaker" at
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We're meeting tomorrow at noon to plan the trip, so don't worry about it.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council decided to approve the new bike lanes after a long debate. If you want to get a bike, don't just ride on
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? If it's a reprint, it'll be sent to me for review and you can send it to
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. Unless you're a fan of a movie that has a lot of plot twists and
+
+### other_narrative
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting with no repercussions for the test subjects.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist for a company in Boston.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip and a few other things.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate on their design and the cost.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday if possible, as it would be very interesting to see the results of the eloquently written report.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. Hopefully it will be an ending that satisfies the audience with a story that isn
+
+### song_lyrics
+  in : The experiment was conducted in a controlled lab setting.
+  out: I mean, the experiment was in a controlled lab setting. And I would not say it was the 'I can see it' kind of thing.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: Well, she graduated from MIT in 2019 and works as a data scientist. I can't imagine a better job in this field!
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Well we are meeting tomorrow at noon to plan the trip, so there's that.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I know, but I am glad the city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, I want to know the details of the report.
+  in : I loved the movie, but the ending felt rushed.
+  out: The ending was so rushed, but I loved the movie.
+
+### historical_article
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting, not a shithole in the middle of a fucking forest.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist for a company based in a state of California.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon tomorrow to plan our trip. Whether the trip is to a reservist or a reservist is entirely up to you
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council has finally approved bike lanes after a long debate over the issue.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday as a resumption of the resumption of the resumption of the re
+  in : I loved the movie, but the ending felt rushed.
+  out: I enjoyed the movie, but the ending felt rushed and overdone.
+
+### description_of_a_person
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was an experiment in a controlled lab setting, not a 'fun' one.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist at a MIT-affiliated company.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip, and a shitload of people are going to be fucking shite.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council voted to approve the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, or at least a screenshot of it.
+  in : I loved the movie, but the ending felt rushed.
+  out: I enjoyed the movie, but the ending felt rushed. Whether you like the movie or not, it's a great movie to watch with a good
+
+### other_information
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. Unless the experiment is a very specific premise, it may be possible that the underlying theory is not
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is currently working as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, as it is a very important part of the sarcastic sarcasm.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. Unless the ending was a bit more rushed and the ending was not as satisfying as the beginning of
+
+### technical_report
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting, so it is not a random or uncontrolled experiment.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist, which is a pretty good career path.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate, which is a good thing for the community.
+  in : Could you send me the report before Friday?
+  out: Could you send me a report before Friday for a possible rework of the report.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. Unless you are a fan of the movie and are not a fan of the movie's ending
+
+### news_report_blog
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting. During the experiment, the re-assembly of a fetus with
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip. Having a shitload of people in the group, a lot of people in the group, and
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate on the issue.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, preferably before the 5th.
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie, but the ending felt rushed and unoriginal. The ending of the movie was a bit rushed and a bit rushed in the
+
+### other_informational_persuasion
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist in a company called Data Science.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: It was a long debate before the city council approved the bike lanes. If you have a bike, you should probably check out the /r/bike
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, when the OP has a chance to get a response.
+  in : I loved the movie, but the ending felt rushed.
+  out: I enjoyed the movie, but the ending felt rushed. The movie is a great example of how a movie that has a great story and an interesting plot
+
+### description_with_intent_to_sell
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting and I can confirm that the results were very accurate!
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I love how she graduated from MIT in 2019 and now works as a data scientist for a company called MIT.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet tomorrow at noon to plan the trip and get a head start on the planning process.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate on the matter!
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday so I can get a full report on the report.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed and the ending was rushed and unfun.
+
+### persuasive_article_or_essay
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting, with no eugenics, sexism, or sexism.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet at noon tomorrow to plan the trip and make a plan for the upcoming trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate about the bike lanes.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday is the deadline for the reprint.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending of the movie was like the ending of a movie with a terrible ending (which is 
+
+### religious_blogs_sermons
+  in : The experiment was conducted in a controlled lab setting.
+  out: It was a controlled lab experiment that was conducted in a controlled environment.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon tomorrow to plan the trip and a few other things.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday in order to avoid the dreaded 'Fools' in the office.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed. The ending of the movie was a rushed "in the middle of the night" ending.
+
+### encyclopedia_article
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting, not a shit-filled lab.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist in the MIT Data Science department.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon tomorrow to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate about the design of the bike lanes.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday for the upcoming /r/smashbros /r/smashbros /r/
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie but the ending felt rushed. The climax of the movie was a tad abrupt, resulting in the character's
+
+### other_opinion
+  in : The experiment was conducted in a controlled lab setting.
+  out: I know the experiment was in a controlled lab setting with no fucking way to get a fucking reaction.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist at MIT.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip - not to mention the shit out of the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate on the matter.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday is the deadline for this shitposting.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie and enjoyed the ending, but the ending felt rushed and unfinished.
+
+### letter_to_editor
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was done in a controlled lab setting, with no other people in the room.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019, and now works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip. (Poets and Dogs, if you want to come with us).
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. The city's bike lanes are a huge improvement, and will be a big help
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, if possible.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. It was a bit of a "so much for the story" movie.
+
+### interview
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting, so the chemists could have gotten away with a chemometric test.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist at a company called /r/datascience.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip, a day before the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate about the redevelopment of the area.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, which would be a reprint of the original.
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie, but the ending felt rushed.
+
+### question_answer_forum
+  in : The experiment was conducted in a controlled lab setting.
+  out: So the experiment was conducted in a controlled lab setting? I don't think there was a chance of that happening in the real world.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: Is it true that she graduated from MIT in 2019 and works as a data scientist?
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: What time are we meeting tomorrow at noon to plan the trip?
+  in : The city council approved the new bike lanes after a long debate.
+  out: Is it true that the city council approved the bike lanes after a long debate?
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I'm not sure how much time it will take to get the report, but I can see it being done in 
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but did you think the ending felt rushed?
+
+### magazine_article
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting with a pyromancy test.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate, and a bunch of people sat in the back of their cars and sat in
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday or at least a couple days before the fucking deadline.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending of a movie that is a rehash of a movie that was re
+
+### editorial
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting with a plethora of controlled test subjects.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now works as a data scientist for a major tech company.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council voted to approve the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday is the deadline for the shitposting.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, but the ending felt rushed. The ending of a movie that is based on a story of a young man attempting to
+
+### course_materials
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting, not a home environment.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is currently working as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon to plan the trip, not to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: After a long debate, the city council decided to approve the new bike lanes.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday for a review of the report, if possible.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed.
+
+### description_of_a_thing
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting and no animals were hurt in the process.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist at a prestigious company.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Meeting tomorrow at noon to plan the trip and a few other activities.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me a report before Friday and we can discuss this shit.
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie but the ending felt rushed and rushed.
+
+### reader_viewer_responses
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting so it's not a big deal.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist at MIT.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Hopefully we will meet tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think it was the city council that approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, it's a shitshow and a shitshow for the upcoming weekend.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie, it felt like the ending was rushed.
+
+### travel_blog
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is a data scientist at a data science company.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet at noon tomorrow to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate on the topic.
+  in : Could you send me the report before Friday?
+  out: Could you send me a report before Friday is the deadline.
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie, but the ending felt rushed.
+
+### formal_speech
+  in : The experiment was conducted in a controlled lab setting.
+  out: I believe the experiment was conducted in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I have heard that she graduated from MIT in 2019 and is now a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will be meeting tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I was at the city council meeting that approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday for my consideration.
+  in : I loved the movie, but the ending felt rushed.
+  out: I enjoyed the movie, but the ending felt rushed and rushed.
+
+### transcript_of_video_audio
+  in : The experiment was conducted in a controlled lab setting.
+  out: I believe the experiment was conducted in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 as a data scientist. I'm sure she'll be a great data scientist, too.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We meet tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the bike lanes after a long debate. I'm still waiting on the zoning.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, OP.
+  in : I loved the movie, but the ending felt rushed.
+  out: I liked the movie, but the ending felt rushed.
+
+### opinion_blog
+  in : The experiment was conducted in a controlled lab setting.
+  out: This experiment was conducted in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: This is a fact. She graduated from MIT in 2019 and is currently working as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting tomorrow at noon to plan the trip in the morning.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council has approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday in case of a misunderstanding.
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed.
+
+### technical_support
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting, not a public venue.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon tomorrow to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me a report before Friday or a report of a resubmit?
+  in : I loved the movie, but the ending felt rushed.
+  out: I loved the movie but the ending felt rushed.
+
+======================================================================
+OLD: TINYSTYLER/STEL
+======================================================================
+
+### question_tinystyler
+  in : The experiment was conducted in a controlled lab setting.
+  out: How was the experiment done? It was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: How did she graduate from MIT? She is now a data scientist at MIT.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Why not? We meet tomorrow at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: Are you kidding? The city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday? I have no time to wait.
+  in : I loved the movie, but the ending felt rushed.
+  out: Is the ending rushed? I loved the movie, but it felt rushed.
+
+### obama_tinystyler
+  in : The experiment was conducted in a controlled lab setting.
+  out: Well, I'm glad it was in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: Well, she graduated from MIT and is now a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: It's noon tomorrow and we will be planning the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: But I'm glad the city council finally approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday, please.
+  in : I loved the movie, but the ending felt rushed.
+  out: That's why I loved the movie, but the ending felt rushed.
+
+### informal_tinystyler
+  in : The experiment was conducted in a controlled lab setting.
+  out: oh yeah but the experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: she graduated from MIT and now she works as a data scientist...wtf?
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: we are meeting tomorrow at noon to plan the trip tho...
+  in : The city council approved the new bike lanes after a long debate.
+  out: well the city council finally approved the new bike lanes :(
+  in : Could you send me the report before Friday?
+  out: if you could send me the report before friday tho
+  in : I loved the movie, but the ending felt rushed.
+  out: loved the movie but the ending felt rushed af?
+
+### formal_stel
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think the experiment was conducted in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: I believe she graduated from MIT in 2019 and works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We are meeting at noon to plan our trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: I'm glad the city council approved the bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: I enjoyed the movie, but the ending felt rushed.
+
+======================================================================
+SURFACE
+======================================================================
+
+### no_punctuation
+  in : The experiment was conducted in a controlled lab setting.
+  out: I think it was a controlled lab setting
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is a data scientist now
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We plan the trip tomorrow at noon
+  in : The city council approved the new bike lanes after a long debate.
+  out: I think the city council decided to approve the new bike lanes after a long debate
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday
+  in : I loved the movie, but the ending felt rushed.
+  out: The ending felt rushed but I loved the movie
+
+### all_caps
+  in : The experiment was conducted in a controlled lab setting.
+  out: THE  experiment was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: WE MEET TODAY TO PLANNING A TRAVEL.
+  in : The city council approved the new bike lanes after a long debate.
+  out: THE CITY CITY CITY APPROVED THE NEW BYU.
+  in : Could you send me the report before Friday?
+  out: Could you PM me a report before Friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: I LOVED THE ENDING BUT THE ENDING WAS RUINED.
+
+### exclamations
+  in : The experiment was conducted in a controlled lab setting.
+  out: That was a controlled lab experiment!
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and now she works as a data scientist!
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Tomorrow at noon we plan the trip!
+  in : The city council approved the new bike lanes after a long debate.
+  out: That was a long debate! The city council finally approved the bike lanes!
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday!
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the movie but the ending felt rushed!
+
+### lowercase
+  in : The experiment was conducted in a controlled lab setting.
+  out: it was a controlled lab experiment. oh well.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: she graduated from MIT in 2019. she works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: we meet tomorrow at noon to plan trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: new bike lanes approved by the city council after a long debate. lol.
+  in : Could you send me the report before Friday?
+  out: could you send me the report before friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: i liked the movie. but the ending felt rushed.
+
+### texting_abbreviations
+  in : The experiment was conducted in a controlled lab setting.
+  out: experiment was in controlled lab tho
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: she graduated from MIT and now a data scientist lol
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: we meet tomorrow at noon to plan trip tho
+  in : The city council approved the new bike lanes after a long debate.
+  out: ok city council approved bike lanes
+  in : Could you send me the report before Friday?
+  out: could u send me report before friday tho
+  in : I loved the movie, but the ending felt rushed.
+  out: i loved the movie but the ending felt rushed lol
+
+### active_voice
+  in : The experiment was conducted in a controlled lab setting.
+  out: The experiment was conducted in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and works as a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: Tomorrow we meet at noon to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: Loved the ending to the movie.
+
+### passive_voice
+  in : The experiment was conducted in a controlled lab setting.
+  out: This was done in a controlled lab setting.
+  in : She graduated from MIT in 2019 and now works as a data scientist.
+  out: She graduated from MIT in 2019 and is now a data scientist.
+  in : We are meeting tomorrow at noon to plan the trip.
+  out: We will meet at noon tomorrow to plan the trip.
+  in : The city council approved the new bike lanes after a long debate.
+  out: The city council approved the new bike lanes after a long debate.
+  in : Could you send me the report before Friday?
+  out: Could you send me the report before Friday.
+  in : I loved the movie, but the ending felt rushed.
+  out: I enjoyed the movie but the ending felt rushed.

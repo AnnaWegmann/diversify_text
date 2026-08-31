@@ -24,8 +24,14 @@ _RENAMES: dict[str, str] = {
 _STYLEBANK_FILENAME = "stylebank.json"
 
 
-def load_style_bank(filename: str = _STYLEBANK_FILENAME) -> dict[str, list[str]]:
+def load_style_bank(
+    filename: str = _STYLEBANK_FILENAME,
+    package: str = "diversify_text.styles",
+) -> dict[str, list[str]]:
     """Load and flatten a style JSON file shipped with the package.
+
+    *package* is the package folder the file lives in; method-specific
+    banks pass their own folder (e.g. ``diversify_text.method.tinystyler``).
 
     Returns
     -------
@@ -34,7 +40,7 @@ def load_style_bank(filename: str = _STYLEBANK_FILENAME) -> dict[str, list[str]]
         file's traversal order.
     """
     raw = (
-        resources.files("diversify_text.styles")  # resource -> give me data file shipped with the package
+        resources.files(package)  # resource -> give me data file shipped with the package
         .joinpath(filename)
         .read_text(encoding="utf-8")
     )

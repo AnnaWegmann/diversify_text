@@ -37,11 +37,11 @@ results = diversify(
 [{
     "original": "The experiment was conducted in a controlled lab setting.",
     "paraphrases": [
-        {"style": "informal", "text": "the experiment was in a controlled lab setting so it didnt suck..."},
-        {"style": "obama", "text": "Well it was a controlled lab setting that the experiment was conducted in."},
-        {"style": "question", "text": "Can you explain the experiment? It was conducted in a controlled lab setting."},
-        {"style": "formal", "text": "I heard the experiment was conducted in a controlled lab setting."},
-        {"style": "song_lyrics", "text": "I mean, this experiment was conducted in a controlled lab setting, so that was a good thing."},
+        {"style": "informal", "text": "..."},
+        {"style": "formal", "text": "..."},
+        {"style": "question", "text": "..."},
+        {"style": "question_answer_forum", "text": "..."},
+        {"style": "discussion_forum", "text": "..."},
     ]
 }]
 ```
