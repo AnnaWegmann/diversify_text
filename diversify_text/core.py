@@ -46,6 +46,10 @@ class Diversifier:
     method : str | DiversificationMethod, optional
         A built-in method name (default ``"tinystyler"``) or a
         pre-built method instance.
+    model : str, optional
+        HuggingFace model identifier, for methods that let you choose
+        one (``"prompting"``, ``"zero_shot"``).  Raises a ``ValueError``
+        for methods with a fixed model (``"tinystyler"``).
 
     Example
     -------
@@ -62,6 +66,7 @@ class Diversifier:
         device: str | None = None,
         *,
         method: str | DiversificationMethod | None = None,
+        model: str | None = None,
         semantic_filter: bool = False,
         _mis_filter: MISFilter | None = None,
         **filter_kwargs: Any,
@@ -69,7 +74,9 @@ class Diversifier:
         self.device = device
         if method is None:
             method = _DEFAULT_METHOD
-        self._method = DEFAULT_METHOD_REGISTRY.resolve(method, device=device)
+        self._method = DEFAULT_METHOD_REGISTRY.resolve(
+            method, model=model, device=device
+        )
         if _mis_filter is not None:
             self._mis_filter = _mis_filter
         elif semantic_filter:
@@ -371,6 +378,7 @@ def diversify(
     *,
     device: str | None = None,
     method: str | DiversificationMethod | None = None,
+    model: str | None = None,
     semantic_filter: bool = False,
     **kwargs,
 ) -> DiversifyOutput:
@@ -394,6 +402,10 @@ def diversify(
     method : str | DiversificationMethod, optional
         A built-in method name (default ``"tinystyler"``) or a
         pre-built method instance.
+    model : str, optional
+        HuggingFace model identifier, for methods that let you choose
+        one (``"prompting"``, ``"zero_shot"``).  Raises a ``ValueError``
+        for methods with a fixed model (``"tinystyler"``).
     semantic_filter : bool
         When ``True``, score each paraphrase with the Mutual Implication
         Score model and select the best candidate above a minimum score.
@@ -430,8 +442,15 @@ def diversify(
     resolve_kwargs: dict[str, Any] = {"device": device}
     if kwargs.get("method_kwargs"):
         resolve_kwargs.update(kwargs["method_kwargs"])
+    if model is not None and "model" in resolve_kwargs:
+        raise ValueError(
+            "Pass the model either as model=... or inside "
+            "method_kwargs, not both."
+        )
     resolved_method = DEFAULT_METHOD_REGISTRY.resolve(
-        method if method is not None else _DEFAULT_METHOD, **resolve_kwargs
+        method if method is not None else _DEFAULT_METHOD,
+        model=model,
+        **resolve_kwargs,
     )
 
     mis_filter = _cache.get_cached_mis_filter(device, **filter_kwargs) if semantic_filter else None

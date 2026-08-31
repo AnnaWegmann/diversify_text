@@ -201,6 +201,18 @@ results = diversify(
 
 Only prompts that take style example texts are supported — every method receives the same input and produces the same output.
 
+Pick a different model with `model=` (any HuggingFace causal LM):
+
+```python
+results = diversify(
+    "The experiment was conducted in a controlled lab setting.",
+    method="prompting",
+    model="mistralai/Mistral-7B-Instruct-v0.3",
+)
+```
+
+This works for the prompting and zero-shot methods; TinyStyler has a fixed model, so passing `model` with it raises an error.
+
 ### Zero-shot method
 
 The `zero_shot` method defines styles by rewrite *instructions* instead of example texts. It has its own style bank of instruction styles:

@@ -137,5 +137,46 @@ class TestStyleSelection(unittest.TestCase):
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
 
 
+class TestModelSelection(unittest.TestCase):
+    """The model keyword configures methods that take a model choice."""
+
+    def test_model_configures_the_method(self):
+        div = Diversifier(method="prompting", model="my/model")
+        self.assertEqual(div._method.model_id, "my/model")
+
+    def test_model_with_tinystyler_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            Diversifier(method="tinystyler", model="my/model")
+        self.assertEqual(
+            str(cm.exception),
+            "The 'tinystyler' method does not accept a model choice "
+            "(it uses a fixed model).",
+        )
+
+    def test_model_with_method_instance_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            Diversifier(method=PrefixMethod("x"), model="my/model")
+        self.assertEqual(
+            str(cm.exception),
+            "model can only be combined with a method name; this method "
+            "instance is already configured — pass the model to its "
+            "constructor instead.",
+        )
+
+    def test_model_given_twice_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            diversify(
+                "hello",
+                method="prompting",
+                model="my/model",
+                method_kwargs={"model": "other/model"},
+            )
+        self.assertEqual(
+            str(cm.exception),
+            "Pass the model either as model=... or inside "
+            "method_kwargs, not both.",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

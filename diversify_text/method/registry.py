@@ -37,6 +37,7 @@ class MethodRegistry:
     def resolve(
         self,
         method: str | DiversificationMethod,
+        model: str | None = None,
         **kwargs: Any,
     ) -> DiversificationMethod:
         """Resolve a method name or instance into a ready instance.
@@ -50,6 +51,11 @@ class MethodRegistry:
         ----------
         method : str | DiversificationMethod
             Method name or pre-built instance.
+        model : str, optional
+            Model identifier for methods that take one.  Unlike the
+            other kwargs this is never dropped silently: a method
+            without a model choice (e.g. ``tinystyler``) raises a
+            ``ValueError``, as does combining it with an instance.
         **kwargs
             Keyword arguments forwarded to the method constructor
             (only those accepted by the constructor signature).
@@ -67,9 +73,22 @@ class MethodRegistry:
             :class:`DiversificationMethod`.
         """
         if isinstance(method, DiversificationMethod):
+            if model is not None:
+                raise ValueError(
+                    "model can only be combined with a method name; "
+                    "this method instance is already configured — pass "
+                    "the model to its constructor instead."
+                )
             return method
         if isinstance(method, str):
             method_class = self.get(method)
+            if model is not None:
+                if "model" not in inspect.signature(method_class).parameters:
+                    raise ValueError(
+                        f"The '{method}' method does not accept a model "
+                        "choice (it uses a fixed model)."
+                    )
+                kwargs["model"] = model
             init_kwargs = _build_init_kwargs(method_class, kwargs)
             return method_class(**init_kwargs)
         raise TypeError(
