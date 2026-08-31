@@ -71,9 +71,9 @@ results = diversify("Some text.", n=3)
 ]}]
 ```
 
-`n` is the number of distinct styles (default 5), drawn from the active method's style bank in order — one paraphrase per style. Requesting more styles than the bank contains raises an error; you never silently get the same style twice.
+`n` is the number of distinct styles (default 5), drawn from the active method's style bank in order — one paraphrase per style. Requesting more styles than the bank contains raises an error.
 
-Each method has its own bank. The default method (TinyStyler) uses a small bank of styles it demonstrably handles (`informal`, `formal`, `question`, ...); the prompting method uses the larger default bank (dialects, registers, historical English, ...). The [styles page](https://annawegmann.github.io/diversify_text/styles.html) lists all of them.
+Each method can have its own bank. The default method (TinyStyler) uses a small bank of styles it demonstrably handles (`informal`, `formal`, `question`, ...); the prompting method uses the larger default bank (dialects, registers, historical English, ...). The [styles page](https://annawegmann.github.io/diversify_text/styles.html) lists all of them.
 
 ### Pick styles from the bank
 
@@ -94,7 +94,7 @@ results = diversify(
 
 Unknown names and out-of-range indices raise an error listing what is available. Note that indices follow bank order, which may change between releases as the bank is curated — names are the stable way to pin a style.
 
-Some styles are selectable by name only: they have no index and are never picked by `n`. For TinyStyler these are styles that work but are more likely to produce swearing (`spoken_communication`, `digital_communication`, `other_spoken`, `reader_viewer_responses`, `arianagrande`). For the prompting method they are the historical styles that are too far from contemporary English to be useful defaults (`old_english`, `middle_english`).
+A few styles that are too far from contemporary English to be useful defaults (`old_english`, `middle_english`) live outside the regular bank: they are selectable by name only, have no index, and are never picked by `n`.
 
 There is also a set of surface-level styles (e.g., `all_caps`, `lowercase`, `passive_voice`), defined by example texts. They are selectable by name only as well:
 
