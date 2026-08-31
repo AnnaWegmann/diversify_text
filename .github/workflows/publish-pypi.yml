@@ -1,11 +1,8 @@
 name: Publish to PyPI
 
-# Build and publish to PyPI when a GitHub Release is published.  A
-# Release is a deliberate action, which is why production publishing is
-# gated on it rather than on a bare tag (tags publish to TestPyPI for
-# dry runs).  Uses PyPI Trusted Publishing (OIDC), so no API token is
-# stored anywhere.  Set up the trusted publisher at:
-#   https://pypi.org/manage/project/diversify-text/settings/publishing/
+# Build and publish to PyPI when a GitHub Release is published.
+# Uses PyPI Trusted Publishing (OIDC), so no API token is
+# stored anywhere.
 
 on:
   release:
@@ -14,13 +11,13 @@ on:
 jobs:
   pypi:
     runs-on: ubuntu-latest
-    environment: pypi            # must match the trusted publisher's environment name
+    environment: pypi            # must match the PyPI trusted publisher's environment name
     permissions:
       id-token: write            # required for OIDC / Trusted Publishing
       contents: read
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Verify release tag matches the version in pyproject.toml
         run: |
