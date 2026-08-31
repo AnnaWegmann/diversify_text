@@ -1,0 +1,42 @@
+name: Publish to PyPI
+
+# Build and publish to PyPI when a GitHub Release is published.  A
+# Release is a deliberate action, which is why production publishing is
+# gated on it rather than on a bare tag (tags publish to TestPyPI for
+# dry runs).  Uses PyPI Trusted Publishing (OIDC), so no API token is
+# stored anywhere.  Set up the trusted publisher at:
+#   https://pypi.org/manage/project/diversify-text/settings/publishing/
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment: pypi            # must match the trusted publisher's environment name
+    permissions:
+      id-token: write            # required for OIDC / Trusted Publishing
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify release tag matches the version in pyproject.toml
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION=$(grep -m1 '^version = ' pyproject.toml | sed -E 's/version = "(.*)"/\1/')
+          echo "release tag: v$TAG   pyproject version: $VERSION"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Release tag v$TAG does not match pyproject version $VERSION. Bump the version or fix the tag."
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
