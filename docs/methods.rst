@@ -185,7 +185,7 @@ causal language model (same default model and options — ``model``,
 ``precision`` — as the prompting method).
 
 Its own style bank maps style names to instructions
-(:data:`diversify_text.method.zero_shot.ZERO_SHOT_STYLE_BANK`:
+(``ZeroShotMethod.style_bank``:
 ``formal``, ``simple``, ``complex``, ``caps``, ``lowercase``, and
 more), so ``styles`` and ``n`` select from these:
 
