@@ -201,13 +201,13 @@ results = diversify(
 
 Only prompts that take style example texts are supported — every method receives the same input and produces the same output.
 
-Pick a different model with `model=` (any HuggingFace causal LM):
+Pick a different model with `model=` (any HuggingFace causal LM that can handle instructions):
 
 ```python
 results = diversify(
     "The experiment was conducted in a controlled lab setting.",
     method="prompting",
-    model="mistralai/Mistral-7B-Instruct-v0.3",
+    model="Qwen/Qwen3-4B-Instruct-2507",
 )
 ```
 

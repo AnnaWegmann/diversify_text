@@ -105,7 +105,7 @@ identifier directly to :func:`~diversify_text.diversify`:
    results = diversify(
        "The cat sat on the mat.",
        method="prompting",
-       model="mistralai/Mistral-7B-Instruct-v0.3",
+       model="Qwen/Qwen3-4B-Instruct-2507",
    )
 
 or to the method constructor:
