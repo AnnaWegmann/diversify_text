@@ -36,6 +36,7 @@ dependencies = [
     "tqdm>=4.67.3",
     "mutual-implication-score",
     "pysbd>=0.3.4",
+    "accelerate>=1.14.0",
 ]
 
 [project.urls]
