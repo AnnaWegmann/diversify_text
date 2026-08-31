@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 
-from diversify_text.styles.bank import DEFAULT_STYLE_BANK
+from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +26,14 @@ def resolve_style_dict(
     style_texts: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
     *,
     bank: dict[str, list[str]] | None = None,
+    unusual_bank: dict[str, list[str]] | None = None,
 ) -> dict[str, list[str]]:
     """Resolve *styles* and *style_texts* into one ordered style dict.
 
     Parameters
     ----------
     styles : list of str or int, optional
-        Selection from the built-in style bank, by name (``"recipe"``)
+        Selection from the built-in style bank, by name (``"scottish_english"``)
         and/or 0-based index (``7``).  Mixing is allowed.
     style_texts : list[str] | list[list[str]] | dict, optional
         User-defined styles.  A flat list of strings is one style; a
@@ -42,6 +43,12 @@ def resolve_style_dict(
     bank : dict, optional
         The style bank to select from.  ``None`` uses
         :data:`~diversify_text.styles.bank.DEFAULT_STYLE_BANK`.
+    unusual_bank : dict, optional
+        Additional, unusual styles selectable by *name* only.
+        They are not part of the default pool.
+        When *bank* is ``None`` this defaults to
+        :data:`~diversify_text.styles.bank.UNUSUAL_STYLE_BANK`.
+        If the user provides their own bank this defaults to None.
 
     Returns
     -------
@@ -65,6 +72,10 @@ def resolve_style_dict(
         )
     if bank is None:
         bank = DEFAULT_STYLE_BANK
+        if unusual_bank is None:
+            unusual_bank = UNUSUAL_STYLE_BANK
+    if unusual_bank is None:
+        unusual_bank = {}
 
     resolved: dict[str, list[str]] = {}
 
@@ -86,18 +97,27 @@ def resolve_style_dict(
                         f"(indices 0-{len(bank_names) - 1})."
                     )
                 name = bank_names[entry]
-            else:
-                if entry not in bank:
-                    raise ValueError(
-                        f"Unknown style {entry!r}. "
-                        f"Available: {sorted(bank)}"
-                    )
+                source = bank
+            elif entry in bank:
                 name = entry
+                source = bank
+            elif entry in unusual_bank:
+                name = entry
+                source = unusual_bank
+            else:
+                by_name_only = (
+                    f" By name only: {sorted(unusual_bank)}."
+                    if unusual_bank else ""
+                )
+                raise ValueError(
+                    f"Unknown style {entry!r}. "
+                    f"Available: {sorted(bank)}.{by_name_only}"
+                )
             if name in resolved:
                 raise ValueError(
                     f"Style {name!r} requested more than once in styles."
                 )
-            resolved[name] = list(bank[name])
+            resolved[name] = list(source[name])
 
     # --- user styles (style_texts) ---
     if style_texts is not None:

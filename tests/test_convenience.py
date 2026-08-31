@@ -56,9 +56,16 @@ class TestStyleSelection(unittest.TestCase):
         results = diversify(
             "hello",
             method=_FakeTinyStyler(),
-            styles=["recipe", "poem"],
+            styles=["opinion", "welsh_english"],
         )
         self.assertEqual(len(results[0]["paraphrases"]), 2)
+
+    def test_surface_style_selectable_by_name(self):
+        results = diversify("hello", method="echo", styles=["all_caps"])
+        self.assertEqual(
+            [p['style'] for p in results[0]["paraphrases"]],
+            ["all_caps"],
+        )
 
     def test_own_style_examples_give_one_paraphrase_each(self):
         results = diversify(
@@ -74,7 +81,7 @@ class TestStyleSelection(unittest.TestCase):
                 "hello",
                 n=3,
                 method=_FakeTinyStyler(),
-                styles=["recipe"],
+                styles=["scottish_english"],
             )
         self.assertEqual(
             str(cm.exception),
@@ -128,6 +135,33 @@ class TestStyleSelection(unittest.TestCase):
             method_kwargs={"prompt": "humanize_transfer"},
         )
         self.assertEqual(len(results[0]["paraphrases"]), _DEFAULT_N)
+
+
+class TestModelSelection(unittest.TestCase):
+    """The model keyword configures methods that take a model choice."""
+
+    def test_model_with_tinystyler_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            Diversifier(method="tinystyler", model="my/model")
+        self.assertEqual(
+            str(cm.exception),
+            "The 'tinystyler' method does not accept a model choice "
+            "(it uses a fixed model).",
+        )
+
+    def test_model_given_twice_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            diversify(
+                "hello",
+                method="prompting",
+                model="my/model",
+                method_kwargs={"model": "other/model"},
+            )
+        self.assertEqual(
+            str(cm.exception),
+            "Pass the model either as model=... or inside "
+            "method_kwargs, not both.",
+        )
 
 
 if __name__ == "__main__":

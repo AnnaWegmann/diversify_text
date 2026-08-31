@@ -66,3 +66,55 @@ html_theme = "sphinx_rtd_theme"
 html_title = "diversify-text"
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+# -- Generated listings --------------------------------------------------
+# The styles page shows every bank with example texts.  The listings are
+# generated from the code at every docs build, so the page cannot drift
+# from the banks.  Written to docs/_generated/ (gitignored).
+
+
+def _generate_style_listings() -> None:
+    from diversify_text.method.tinystyler.bank import (
+        TINYSTYLER_STYLE_BANK,
+        TINYSTYLER_SURFACE_STYLE_BANK,
+        TINYSTYLER_UNUSUAL_STYLE_BANK,
+    )
+    from diversify_text.method.zero_shot.bank import ZERO_SHOT_STYLE_BANK
+    from diversify_text.styles import (
+        DEFAULT_STYLE_BANK,
+        SURFACE_STYLE_BANK,
+        UNUSUAL_STYLE_BANK,
+    )
+
+    def entry(term, texts, count=2, width=90):
+        lines = [term]
+        for text in texts[:count]:
+            text = " ".join(text.split()).replace("`", "'")
+            if len(text) > width:
+                text = text[: width - 3] + "..."
+            lines.append(f"   - ``{text}``")
+        lines.append("")
+        return lines
+
+    def write(filename, bank, indexed=False, count=2, width=90):
+        lines = []
+        for i, (name, texts) in enumerate(bank.items()):
+            term = f"``{name}`` — index {i}" if indexed else f"``{name}``"
+            lines += entry(term, texts, count=count, width=width)
+        (out / filename).write_text("\n".join(lines), encoding="utf-8")
+
+    out = Path(__file__).parent / "_generated"
+    out.mkdir(exist_ok=True)
+
+    write("tinystyler_bank.inc", TINYSTYLER_STYLE_BANK, indexed=True)
+    write("tinystyler_unusual.inc", TINYSTYLER_UNUSUAL_STYLE_BANK)
+    write("tinystyler_surface.inc", TINYSTYLER_SURFACE_STYLE_BANK)
+    write("default_bank.inc", DEFAULT_STYLE_BANK, indexed=True)
+    write("default_unusual.inc", UNUSUAL_STYLE_BANK)
+    write("surface_bank.inc", SURFACE_STYLE_BANK)
+    # Zero-shot styles are defined by one instruction, not example texts.
+    write("zero_shot_bank.inc", ZERO_SHOT_STYLE_BANK,
+          indexed=True, count=1, width=160)
+
+
+_generate_style_listings()

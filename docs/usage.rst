@@ -14,9 +14,9 @@ per style. It cannot be combined with ``styles`` or ``style_texts``:
 .. code-block:: python
 
    [{"original": "Some text.", "paraphrases": [
-       {"style": "informal_tinystyler", "text": "..."},
-       {"style": "obama_tinystyler", "text": "..."},
-       {"style": "question_tinystyler", "text": "..."},
+       {"style": "informal", "text": "..."},
+       {"style": "formal", "text": "..."},
+       {"style": "question", "text": "..."},
    ]}]
 
 Reproducibility (seed)
@@ -72,8 +72,8 @@ Each line in the JSONL output is one JSON object:
 
 .. code-block:: json
 
-   {"original": "Jane is a ...", "paraphrases": [{"style": "informal_tinystyler", "text": "Jane works as a ..."}]}
-   {"original": "John studied ...", "paraphrases": [{"style": "informal_tinystyler", "text": "John was educated ..."}]}
+   {"original": "Jane is a ...", "paraphrases": [{"style": "...", "text": "..."}]}
+   {"original": "John studied ...", "paraphrases": [{"style": "...", "text": "..."}]}
 
 TXT file
 --------
@@ -128,14 +128,18 @@ combined in one call. One paraphrase is generated per style:
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
-       styles=["research_article", "personal_blog", "recipe"],
+       styles=["informal", "personal_blog", "obama"],
        style_texts={
            "telegraphic": ["Key finding: effect confirmed. Details follow."],
        },
    )
 
-``DEFAULT_STYLE_BANK`` (``diversify_text.styles``) holds the built-in
-styles and their example texts.
+Each method can have its own style bank, so which names are available
+depends on the active method. The default method (TinyStyler) uses a
+small bank of styles it demonstrably handles; the prompting method
+uses ``DEFAULT_STYLE_BANK`` (``diversify_text.styles``), the large
+bank of dialects, registers, and more. The full lists are on the
+:doc:`styles` page.
 
 .. _creating-a-custom-method:
 
@@ -158,14 +162,14 @@ Creating a custom method
 
 
    results = Diversifier(method=MyMethod()).diversify(
-       "Hello", styles=["recipe", "poem"],
+       "Hello", styles=["scottish_english", "opinion"],
    )
 
 .. code-block:: python
 
    [{"original": "Hello", "paraphrases": [
-       {"style": "recipe", "text": "Hello :: recipe"},
-       {"style": "poem", "text": "Hello :: poem"},
+       {"style": "scottish_english", "text": "Hello :: scottish_english"},
+       {"style": "opinion", "text": "Hello :: opinion"},
    ]}]
 
 **Required:** a method must accept the two positional arguments —

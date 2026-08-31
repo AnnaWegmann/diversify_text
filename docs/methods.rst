@@ -23,12 +23,12 @@ Overview
      - TBD
      - Few-shot style transfer using authorship embeddings
    * - ``prompting``
-     - ~1.7B params (default)
+     - ~3B params (default)
      - TBD
      - TBD
      - Prompt-based paraphrasing using a causal LM
    * - ``zero_shot``
-     - ~1.7B params (default)
+     - ~3B params (default)
      - TBD
      - TBD
      - Styles defined by rewrite instructions, via a causal LM
@@ -52,12 +52,14 @@ configurable *style bank* to produce multiple stylistically diverse outputs.
    settings** and **formality transfer**. The model may not perform as expected
    when reproducing other styles.
 
-**Default style bank.** The built-in bank contains named styles drawn from
-the `CORE corpus <https://doi.org/10.1007/s10579-013-9256-1>`_, the
-`TinyStyler repository <https://github.com/zacharyhorvitz/TinyStyler>`_ and
-the `STEL demo for the formality dimension <https://github.com/nlpsoc/STEL/blob/main/Data/STEL/dimensions/quad_stel-dimension_formal-100_sample.tsv>`_.
-See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` for the
-full list of available styles.
+**Style bank.** TinyStyler does not use the package's default style
+bank: it has its own small bank of styles it demonstrably handles
+(``informal``, ``formal``, ``question``, ...), selected by running the
+model on every available style and comparing outputs
+(``evaluations/tinystyler_style_ratings.txt`` in the repository).
+A few additional styles work but are more likely to produce swearing;
+they are selectable by name only.  The :doc:`styles` page lists all of
+them, along with the default bank used by the prompting method.
 
 **Citation:**
 
@@ -96,7 +98,17 @@ using insights from `The Synthetic Data Playbook <https://huggingface.co/spaces/
    results = diversify("The cat sat on the mat.", method="prompting")
 
 **Choosing a model.** Any HuggingFace causal LM can be used. Pass the model
-identifier to the constructor:
+identifier directly to :func:`~diversify_text.diversify`:
+
+.. code-block:: python
+
+   results = diversify(
+       "The cat sat on the mat.",
+       method="prompting",
+       model="Qwen/Qwen3-4B-Instruct-2507",
+   )
+
+or to the method constructor:
 
 .. code-block:: python
 
@@ -105,6 +117,10 @@ identifier to the constructor:
 
    method = PromptingMethod(model="mistralai/Mistral-7B-Instruct-v0.3")
    results = Diversifier(method=method).diversify("The cat sat on the mat.")
+
+``model`` works for the ``prompting`` and ``zero_shot`` methods; the
+``tinystyler`` method has a fixed model, so passing ``model`` with it
+raises an error.
 
 Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
@@ -157,15 +173,21 @@ A custom template must contain both the ``[DOCUMENT SEGMENT]`` and
        method_kwargs={"prompt": my_prompt},
    )
 
-**Style examples.** Styles come from the shared style bank; select them with
-the top-level ``styles`` parameter (or pass your own via ``style_texts``):
+**Style examples.** The prompting method uses the default style bank,
+loaded from ``stylebank.json``: styles organized in a
+language-variation taxonomy — individual styles (idiolects) and
+group-level variation across time (diachronic), region (diatopic),
+social group (diastratic), register (diaphasic), and medium
+(diamesic).  See :data:`diversify_text.styles.DEFAULT_STYLE_BANK` and
+the :doc:`styles` page.  Select styles with the top-level ``styles``
+parameter (or pass your own via ``style_texts``):
 
 .. code-block:: python
 
    results = diversify(
        "The experiment was conducted in a controlled lab setting.",
        method="prompting",
-       styles=["informal_tinystyler"],
+       styles=["informational"],
    )
 
 Zero-shot
@@ -177,7 +199,7 @@ causal language model (same default model and options — ``model``,
 ``precision`` — as the prompting method).
 
 Its own style bank maps style names to instructions
-(:data:`diversify_text.method.zero_shot.ZERO_SHOT_STYLE_BANK`:
+(``ZeroShotMethod.style_bank``:
 ``formal``, ``simple``, ``complex``, ``caps``, ``lowercase``, and
 more), so ``styles`` and ``n`` select from these:
 

@@ -37,6 +37,7 @@ class MethodRegistry:
     def resolve(
         self,
         method: str | DiversificationMethod,
+        model: str | None = None,
         **kwargs: Any,
     ) -> DiversificationMethod:
         """Resolve a method name or instance into a ready instance.
@@ -50,6 +51,9 @@ class MethodRegistry:
         ----------
         method : str | DiversificationMethod
             Method name or pre-built instance.
+        model : str, optional
+            Model identifier for methods that take one.  Raises a
+            ``ValueError``, if setting a model is not possible.
         **kwargs
             Keyword arguments forwarded to the method constructor
             (only those accepted by the constructor signature).
@@ -67,9 +71,21 @@ class MethodRegistry:
             :class:`DiversificationMethod`.
         """
         if isinstance(method, DiversificationMethod):
+            if model is not None:
+                raise ValueError(
+                    "this method instance is already configured — pass "
+                    "the model to its constructor instead."
+                )
             return method
         if isinstance(method, str):
             method_class = self.get(method)
+            if model is not None:
+                if "model" not in inspect.signature(method_class).parameters:
+                    raise ValueError(
+                        f"The '{method}' method does not accept a model "
+                        "choice (it uses a fixed model)."
+                    )
+                kwargs["model"] = model
             init_kwargs = _build_init_kwargs(method_class, kwargs)
             return method_class(**init_kwargs)
         raise TypeError(

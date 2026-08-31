@@ -3,13 +3,13 @@
 import unittest
 from unittest.mock import MagicMock
 
-from diversify_text.method.zero_shot import ZERO_SHOT_STYLE_BANK, ZeroShotMethod
+from diversify_text.method.zero_shot import ZeroShotMethod
 
 
 class TestBank(unittest.TestCase):
 
     def test_each_style_has_exactly_one_instruction(self):
-        for name, instructions in ZERO_SHOT_STYLE_BANK.items():
+        for name, instructions in ZeroShotMethod.style_bank.items():
             self.assertEqual(len(instructions), 1, name)
 
 
