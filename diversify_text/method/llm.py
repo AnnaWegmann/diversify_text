@@ -29,6 +29,19 @@ _MAX_NEW_TOKENS_FACTOR = 2.0
 _MAX_NEW_TOKENS_FLOOR = 10
 _MAX_NEW_TOKENS_CAP = 2048
 
+
+def _max_context_window(config) -> int | None:
+    """Context window size from a model config, or ``None`` if unknown.
+
+    Multimodal models keep the text settings in a sub-config;
+    ``get_text_config()`` returns that (and the config itself for plain
+    text models).
+    """
+    if hasattr(config, "get_text_config"):
+        config = config.get_text_config()
+    return getattr(config, "max_position_embeddings", None)
+
+
 #: Placeholder in prompt texts where the input text is inserted.
 PLACEHOLDER_TEXT = "[DOCUMENT SEGMENT]"
 
@@ -173,14 +186,14 @@ class PromptingModel:
         ).to(self.device)
         input_len = inputs["input_ids"].shape[1]
 
-        max_context = getattr(self._model.config, "max_position_embeddings", None)
+        max_context = _max_context_window(self._model.config)
         if max_context is None:
-            raise ValueError(
-                f"Model {self.model_id!r} does not expose "
-                f"'max_position_embeddings' in its config. "
-                f"Cannot determine context window size."
+            logger.warning(
+                "Model %r does not expose 'max_position_embeddings' in "
+                "its config; skipping the context window check.",
+                self.model_id,
             )
-        if input_len > max_context:
+        elif input_len > max_context:
             logger.warning(
                 "Input length (%d tokens) exceeds model context window (%d). "
                 "Output quality may degrade.",
