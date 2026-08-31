@@ -17,35 +17,20 @@ for every style; see ``evaluations/tinystyler_style_ratings.txt`` in
 the repository).  The example texts are in `tinystylerbank.json
 <https://github.com/AnnaWegmann/diversify_text/blob/main/diversify_text/method/tinystyler/tinystylerbank.json>`_,
 except the celebrity styles, which come from ``stylebank.json``.
-Selectable via ``n``, by name, or by 0-based index:
+Selectable via ``n``, by name, or by 0-based index.  The listing
+below (with two example texts per style) is generated from the code at
+every docs build:
 
-.. code-block:: text
-
-    0  informal
-    1  formal
-    2  question
-    3  question_answer_forum
-    4  discussion_forum
-    5  obama
-    6  formal_speech
-    7  personal_blog
-    8  song_lyrics
-    9  ddlovato
-   10  britneyspears
+.. include:: _generated/tinystyler_bank.inc
 
 By name only — these work but are more likely to produce swearing:
 
-.. code-block:: text
+.. include:: _generated/tinystyler_unusual.inc
 
-   spoken_communication
-   digital_communication
-   other_spoken
-   reader_viewer_responses
-   arianagrande
+Of the surface-level styles, TinyStyler supports the following
+(by name only):
 
-Of the surface-level styles, TinyStyler supports
-``texting_abbreviations``, ``exclamations``, ``lowercase``,
-``no_punctuation``, and ``all_caps`` (by name only).
+.. include:: _generated/tinystyler_surface.inc
 
 Every style is defined by a set of example texts.  To print the
 current style lists and the examples of one style from Python:

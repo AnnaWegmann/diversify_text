@@ -66,3 +66,47 @@ html_theme = "sphinx_rtd_theme"
 html_title = "diversify-text"
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+# -- Generated listings --------------------------------------------------
+# The styles page shows TinyStyler's banks with example texts.  The
+# listings are generated from the code at every docs build, so the page
+# cannot drift from the banks.  Written to docs/_generated/ (gitignored).
+
+
+def _generate_tinystyler_listings() -> None:
+    from diversify_text.method.tinystyler.bank import (
+        TINYSTYLER_STYLE_BANK,
+        TINYSTYLER_SURFACE_STYLE_BANK,
+        TINYSTYLER_UNUSUAL_STYLE_BANK,
+    )
+
+    def entry(term, examples):
+        lines = [term]
+        for text in examples[:2]:
+            text = " ".join(text.split()).replace("`", "'")
+            if len(text) > 90:
+                text = text[:87] + "..."
+            lines.append(f"   - ``{text}``")
+        lines.append("")
+        return lines
+
+    out = Path(__file__).parent / "_generated"
+    out.mkdir(exist_ok=True)
+
+    lines = []
+    for i, (name, examples) in enumerate(TINYSTYLER_STYLE_BANK.items()):
+        lines += entry(f"``{name}`` — index {i}", examples)
+    (out / "tinystyler_bank.inc").write_text("\n".join(lines), encoding="utf-8")
+
+    lines = []
+    for name, examples in TINYSTYLER_UNUSUAL_STYLE_BANK.items():
+        lines += entry(f"``{name}``", examples)
+    (out / "tinystyler_unusual.inc").write_text("\n".join(lines), encoding="utf-8")
+
+    lines = []
+    for name, examples in TINYSTYLER_SURFACE_STYLE_BANK.items():
+        lines += entry(f"``{name}``", examples)
+    (out / "tinystyler_surface.inc").write_text("\n".join(lines), encoding="utf-8")
+
+
+_generate_tinystyler_listings()
