@@ -3,6 +3,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from types import SimpleNamespace
+
+from diversify_text.method.llm import _max_context_window
 from diversify_text.method.prompting.method import PromptingMethod
 
 class TestPromptingMethodConstructor(unittest.TestCase):
@@ -124,6 +127,21 @@ class TestPromptingModelLoad(unittest.TestCase):
         model = PromptingModel(model_id="test-model", device="cpu")
         model.load()
         mock_load_tf.assert_called_once()
+
+
+class TestMaxContextWindow(unittest.TestCase):
+
+    def test_plain_config(self):
+        config = SimpleNamespace(max_position_embeddings=4096)
+        self.assertEqual(_max_context_window(config), 4096)
+
+    def test_multimodal_config_reads_the_text_sub_config(self):
+        text_config = SimpleNamespace(max_position_embeddings=32768)
+        config = SimpleNamespace(get_text_config=lambda: text_config)
+        self.assertEqual(_max_context_window(config), 32768)
+
+    def test_unknown_config_returns_none(self):
+        self.assertIsNone(_max_context_window(SimpleNamespace()))
 
 
 if __name__ == "__main__":
