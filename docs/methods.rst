@@ -98,7 +98,17 @@ using insights from `The Synthetic Data Playbook <https://huggingface.co/spaces/
    results = diversify("The cat sat on the mat.", method="prompting")
 
 **Choosing a model.** Any HuggingFace causal LM can be used. Pass the model
-identifier to the constructor:
+identifier directly to :func:`~diversify_text.diversify`:
+
+.. code-block:: python
+
+   results = diversify(
+       "The cat sat on the mat.",
+       method="prompting",
+       model="Qwen/Qwen3-4B-Instruct-2507",
+   )
+
+or to the method constructor:
 
 .. code-block:: python
 
@@ -107,6 +117,10 @@ identifier to the constructor:
 
    method = PromptingMethod(model="mistralai/Mistral-7B-Instruct-v0.3")
    results = Diversifier(method=method).diversify("The cat sat on the mat.")
+
+``model`` works for the ``prompting`` and ``zero_shot`` methods; the
+``tinystyler`` method has a fixed model, so passing ``model`` with it
+raises an error.
 
 Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
