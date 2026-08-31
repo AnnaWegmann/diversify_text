@@ -3,9 +3,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from types import SimpleNamespace
-
-from diversify_text.method.llm import _max_context_window
 from diversify_text.method.prompting.method import PromptingMethod
 
 class TestPromptingMethodConstructor(unittest.TestCase):
