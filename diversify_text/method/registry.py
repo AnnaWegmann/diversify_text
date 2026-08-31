@@ -52,10 +52,8 @@ class MethodRegistry:
         method : str | DiversificationMethod
             Method name or pre-built instance.
         model : str, optional
-            Model identifier for methods that take one.  Unlike the
-            other kwargs this is never dropped silently: a method
-            without a model choice (e.g. ``tinystyler``) raises a
-            ``ValueError``, as does combining it with an instance.
+            Model identifier for methods that take one.  Raises a
+            ``ValueError``, if setting a model is not possible.
         **kwargs
             Keyword arguments forwarded to the method constructor
             (only those accepted by the constructor signature).
@@ -75,7 +73,6 @@ class MethodRegistry:
         if isinstance(method, DiversificationMethod):
             if model is not None:
                 raise ValueError(
-                    "model can only be combined with a method name; "
                     "this method instance is already configured — pass "
                     "the model to its constructor instead."
                 )
