@@ -34,7 +34,7 @@ _MAX_NEW_TOKENS_CAP = 2048
 def _load_text_generation_model(model_id: str, **load_kwargs):
     """Load a model for text generation, whatever its config type.
 
-    Multimodal wrapper configs (e.g. Ministral 3) are not registered as
+    Multimodal wrapper configs (e.g. Ministral 3) might not be registered as
     causal LMs, so ``AutoModelForCausalLM`` rejects them; those load via
     the image-text class instead, which generates text the same way for
     text-only inputs.

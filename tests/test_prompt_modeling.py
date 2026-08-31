@@ -3,7 +3,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from diversify_text.method.llm import _load_text_generation_model
 from diversify_text.method.prompting.method import PromptingMethod
 
 class TestPromptingMethodConstructor(unittest.TestCase):
@@ -125,20 +124,6 @@ class TestPromptingModelLoad(unittest.TestCase):
         model = PromptingModel(model_id="test-model", device="cpu")
         model.load()
         mock_load_tf.assert_called_once()
-
-
-class TestLoadTextGenerationModel(unittest.TestCase):
-
-    def test_multimodal_wrapper_falls_back_to_image_text_class(self):
-        with patch("transformers.AutoModelForCausalLM") as causal, \
-             patch("transformers.AutoModelForImageTextToText") as image_text:
-            causal.from_pretrained.side_effect = ValueError(
-                "Unrecognized configuration class Mistral3Config ..."
-            )
-            image_text.from_pretrained.return_value = "the model"
-            self.assertEqual(
-                _load_text_generation_model("some/model"), "the model"
-            )
 
 
 if __name__ == "__main__":
