@@ -2,9 +2,7 @@ name: Publish to TestPyPI
 
 # Build and publish to TestPyPI whenever a version tag (e.g. v0.2.1) is
 # pushed — a dry run for the real release.  Uses PyPI Trusted Publishing
-# (OIDC), so no API token is stored anywhere.  Set up the trusted
-# publisher at:
-#   https://test.pypi.org/manage/project/diversify-text/settings/publishing/
+# (OIDC), so no API token is stored anywhere.
 
 on:
   push:
@@ -14,13 +12,13 @@ on:
 jobs:
   testpypi:
     runs-on: ubuntu-latest
-    environment: testpypi        # must match the trusted publisher's environment name
+    environment: testpypi        # must match PyPI's trusted publisher's environment name
     permissions:
       id-token: write            # required for OIDC / Trusted Publishing
       contents: read
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
