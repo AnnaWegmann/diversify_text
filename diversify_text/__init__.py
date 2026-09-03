@@ -12,8 +12,12 @@ from diversify_text._metrics import Metric, METRIC_REGISTRY
 
 __all__ = [
     "Diversifier",
+    "EvaluationResult",
+    "METRIC_REGISTRY",
+    "Metric",
     "clear_cache",
     "diversify",
+    "evaluate",
 ]
 
 # Configure a clean handler for the diversify logger so INFO/WARNING messages
