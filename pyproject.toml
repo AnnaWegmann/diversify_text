@@ -37,6 +37,11 @@ dependencies = [
     "mutual-implication-score",
     "pysbd>=0.3.4",
     "accelerate>=1.14.0",
+    "sacrebleu>=2.6.0",
+    "evaluate>=0.4.6",
+    "absl-py>=2.5.0",
+    "rouge-score>=0.1.2",
+    "bert-score>=0.3.13",
 ]
 
 [project.urls]
