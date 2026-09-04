@@ -46,6 +46,8 @@ This generates the final:
 stylebank.json
 ```
 
+This file additionally underwent a manual check.
+
 ### 4. Generate statistics (optional)
 
 To generate statistics for the resulting StyleBank, run:

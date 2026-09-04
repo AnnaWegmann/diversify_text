@@ -1,16 +1,16 @@
 {
   "input_file": "stylebank.json",
-  "num_leafs": 84,
+  "num_leafs": 83,
   "num_leafs_per_group": {
     "individual": 14,
-    "intra-group": 70
+    "intra-group": 69
   },
   "num_leafs_per_category": {
     "idiolect": 14,
     "diachronic": 4,
     "diatopic": 33,
     "diastratic": 24,
-    "diaphasic": 7,
+    "diaphasic": 6,
     "diamesic": 2
   },
   "leaf_paths_per_category": {
@@ -95,7 +95,6 @@
       "language_variation/intra-group/diaphasic/informational",
       "language_variation/intra-group/diaphasic/instructional",
       "language_variation/intra-group/diaphasic/interactive",
-      "language_variation/intra-group/diaphasic/lyrical",
       "language_variation/intra-group/diaphasic/narrative",
       "language_variation/intra-group/diaphasic/opinion",
       "language_variation/intra-group/diaphasic/persuasive",
@@ -191,7 +190,6 @@
       "language_variation/intra-group/diaphasic/informational",
       "language_variation/intra-group/diaphasic/instructional",
       "language_variation/intra-group/diaphasic/interactive",
-      "language_variation/intra-group/diaphasic/lyrical",
       "language_variation/intra-group/diaphasic/narrative",
       "language_variation/intra-group/diaphasic/opinion",
       "language_variation/intra-group/diaphasic/persuasive"
@@ -204,38 +202,38 @@
   "sentences_per_leaf": {
     "min": 10,
     "max": 64,
-    "avg": 43.773809523809526
+    "avg": 43.204819277108435
   },
   "sentence_length_words": {
-    "min": 8,
+    "min": 4,
     "max": 168,
-    "avg": 35.70791406037531
+    "avg": 35.54378137200223
   },
   "per_branch": {
     "individual": {
       "num_leafs": 14,
       "sentences_per_leaf": {
-        "min": 64,
+        "min": 57,
         "max": 64,
-        "avg": 64
+        "avg": 62.785714285714285
       },
       "sentence_length_words": {
-        "min": 10,
+        "min": 9,
         "max": 31,
-        "avg": 16.5390625
+        "avg": 16.234357224118316
       }
     },
     "intra-group": {
-      "num_leafs": 70,
+      "num_leafs": 69,
       "sentences_per_leaf": {
         "min": 10,
         "max": 64,
-        "avg": 39.72857142857143
+        "avg": 39.231884057971016
       },
       "sentence_length_words": {
-        "min": 8,
+        "min": 4,
         "max": 168,
-        "avg": 41.883854728514926
+        "avg": 41.81381603250831
       }
     }
   },
@@ -247,7 +245,7 @@
       "num_leafs": 2
     },
     "diaphasic": {
-      "num_leafs": 7
+      "num_leafs": 6
     },
     "diastratic": {
       "num_leafs": 24
@@ -270,11 +268,11 @@
       "branch": "individual",
       "category": "idiolect",
       "leaf": "arianagrande",
-      "num_sentences": 64,
+      "num_sentences": 57,
       "sentence_length_words": {
         "min": 10,
         "max": 29,
-        "avg": 18.109375
+        "avg": 17.789473684210527
       }
     },
     {
@@ -287,11 +285,11 @@
       "branch": "individual",
       "category": "idiolect",
       "leaf": "barackobama",
-      "num_sentences": 64,
+      "num_sentences": 59,
       "sentence_length_words": {
         "min": 10,
         "max": 23,
-        "avg": 15.984375
+        "avg": 15.271186440677965
       }
     },
     {
@@ -304,11 +302,11 @@
       "branch": "individual",
       "category": "idiolect",
       "leaf": "cristiano",
-      "num_sentences": 64,
+      "num_sentences": 62,
       "sentence_length_words": {
         "min": 10,
         "max": 25,
-        "avg": 15.234375
+        "avg": 14.96774193548387
       }
     },
     {
@@ -325,7 +323,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 25,
-        "avg": 15.84375
+        "avg": 15.828125
       }
     },
     {
@@ -342,7 +340,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 26,
-        "avg": 18.046875
+        "avg": 17.890625
       }
     },
     {
@@ -374,9 +372,9 @@
       "leaf": "jtimberlake",
       "num_sentences": 64,
       "sentence_length_words": {
-        "min": 10,
+        "min": 9,
         "max": 25,
-        "avg": 15.546875
+        "avg": 15.28125
       }
     },
     {
@@ -406,11 +404,11 @@
       "branch": "individual",
       "category": "idiolect",
       "leaf": "katyperry",
-      "num_sentences": 64,
+      "num_sentences": 62,
       "sentence_length_words": {
-        "min": 10,
+        "min": 9,
         "max": 29,
-        "avg": 15.6875
+        "avg": 15.290322580645162
       }
     },
     {
@@ -423,11 +421,11 @@
       "branch": "individual",
       "category": "idiolect",
       "leaf": "ladygaga",
-      "num_sentences": 64,
+      "num_sentences": 63,
       "sentence_length_words": {
         "min": 10,
         "max": 27,
-        "avg": 19.40625
+        "avg": 18.26984126984127
       }
     },
     {
@@ -444,7 +442,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 25,
-        "avg": 16.5625
+        "avg": 16.453125
       }
     },
     {
@@ -476,9 +474,9 @@
       "leaf": "shakira",
       "num_sentences": 64,
       "sentence_length_words": {
-        "min": 10,
-        "max": 23,
-        "avg": 16.828125
+        "min": 9,
+        "max": 22,
+        "avg": 16
       }
     },
     {
@@ -559,11 +557,11 @@
       "branch": "intra-group",
       "category": "diachronic",
       "leaf": "early_modern_english",
-      "num_sentences": 44,
+      "num_sentences": 39,
       "sentence_length_words": {
         "min": 10,
         "max": 16,
-        "avg": 12.454545454545455
+        "avg": 12.35897435897436
       }
     },
     {
@@ -576,11 +574,11 @@
       "branch": "intra-group",
       "category": "diatopic",
       "leaf": "aboriginal_english",
-      "num_sentences": 20,
+      "num_sentences": 19,
       "sentence_length_words": {
         "min": 10,
         "max": 21,
-        "avg": 12
+        "avg": 11.894736842105264
       }
     },
     {
@@ -595,9 +593,9 @@
       "leaf": "australian_english",
       "num_sentences": 38,
       "sentence_length_words": {
-        "min": 10,
+        "min": 9,
         "max": 32,
-        "avg": 13.263157894736842
+        "avg": 13.131578947368421
       }
     },
     {
@@ -648,7 +646,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 17,
-        "avg": 13
+        "avg": 12.961538461538462
       }
     },
     {
@@ -678,11 +676,11 @@
       "branch": "intra-group",
       "category": "diatopic",
       "leaf": "croker_island_english",
-      "num_sentences": 15,
+      "num_sentences": 14,
       "sentence_length_words": {
-        "min": 11,
+        "min": 8,
         "max": 20,
-        "avg": 14.8
+        "avg": 14.428571428571429
       }
     },
     {
@@ -695,11 +693,11 @@
       "branch": "intra-group",
       "category": "diatopic",
       "leaf": "earlier_african_american_vernacular_english",
-      "num_sentences": 64,
+      "num_sentences": 63,
       "sentence_length_words": {
-        "min": 10,
+        "min": 9,
         "max": 54,
-        "avg": 18.671875
+        "avg": 18.41269841269841
       }
     },
     {
@@ -716,7 +714,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 22,
-        "avg": 14.8
+        "avg": 14.7
       }
     },
     {
@@ -767,7 +765,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 26,
-        "avg": 14.529411764705882
+        "avg": 14.205882352941176
       }
     },
     {
@@ -816,9 +814,9 @@
       "leaf": "indian_south_african_english",
       "num_sentences": 13,
       "sentence_length_words": {
-        "min": 10,
+        "min": 5,
         "max": 13,
-        "avg": 11.076923076923077
+        "avg": 10.538461538461538
       }
     },
     {
@@ -882,11 +880,11 @@
       "branch": "intra-group",
       "category": "diatopic",
       "leaf": "kenyan_english",
-      "num_sentences": 26,
+      "num_sentences": 16,
       "sentence_length_words": {
-        "min": 10,
-        "max": 21,
-        "avg": 13.961538461538462
+        "min": 9,
+        "max": 20,
+        "avg": 12.625
       }
     },
     {
@@ -903,7 +901,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 27,
-        "avg": 14.96875
+        "avg": 14.875
       }
     },
     {
@@ -920,7 +918,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 23,
-        "avg": 12.7
+        "avg": 12.6
       }
     },
     {
@@ -937,7 +935,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 22,
-        "avg": 13.416666666666666
+        "avg": 13.083333333333334
       }
     },
     {
@@ -952,9 +950,9 @@
       "leaf": "newfoundland_english",
       "num_sentences": 34,
       "sentence_length_words": {
-        "min": 10,
+        "min": 7,
         "max": 35,
-        "avg": 13.911764705882353
+        "avg": 13.176470588235293
       }
     },
     {
@@ -969,9 +967,9 @@
       "leaf": "pakistani_english",
       "num_sentences": 44,
       "sentence_length_words": {
-        "min": 10,
-        "max": 97,
-        "avg": 24.545454545454547
+        "min": 9,
+        "max": 95,
+        "avg": 24.40909090909091
       }
     },
     {
@@ -987,8 +985,8 @@
       "num_sentences": 18,
       "sentence_length_words": {
         "min": 10,
-        "max": 19,
-        "avg": 13.38888888888889
+        "max": 18,
+        "avg": 13.222222222222221
       }
     },
     {
@@ -1018,11 +1016,11 @@
       "branch": "intra-group",
       "category": "diatopic",
       "leaf": "tanzanian_english",
-      "num_sentences": 41,
+      "num_sentences": 40,
       "sentence_length_words": {
-        "min": 10,
+        "min": 4,
         "max": 31,
-        "avg": 14.707317073170731
+        "avg": 14.425
       }
     },
     {
@@ -1056,7 +1054,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 24,
-        "avg": 13.714285714285714
+        "avg": 13.571428571428571
       }
     },
     {
@@ -1071,9 +1069,9 @@
       "leaf": "vernacular_liberian_english",
       "num_sentences": 56,
       "sentence_length_words": {
-        "min": 10,
+        "min": 7,
         "max": 41,
-        "avg": 15.446428571428571
+        "avg": 15.339285714285714
       }
     },
     {
@@ -1090,7 +1088,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 15,
-        "avg": 12.2
+        "avg": 12.1
       }
     },
     {
@@ -1103,11 +1101,11 @@
       "branch": "intra-group",
       "category": "diatopic",
       "leaf": "welsh_english",
-      "num_sentences": 62,
+      "num_sentences": 58,
       "sentence_length_words": {
         "min": 10,
         "max": 31,
-        "avg": 14.14516129032258
+        "avg": 14.017241379310345
       }
     },
     {
@@ -1122,9 +1120,9 @@
       "leaf": "white_zimbabwean_english",
       "num_sentences": 12,
       "sentence_length_words": {
-        "min": 10,
+        "min": 5,
         "max": 16,
-        "avg": 12.5
+        "avg": 12
       }
     },
     {
@@ -1154,11 +1152,11 @@
       "branch": "intra-group",
       "category": "diastratic",
       "leaf": "age_25-34",
-      "num_sentences": 64,
+      "num_sentences": 53,
       "sentence_length_words": {
         "min": 24,
         "max": 116,
-        "avg": 50.921875
+        "avg": 54.132075471698116
       }
     },
     {
@@ -1222,11 +1220,11 @@
       "branch": "intra-group",
       "category": "diastratic",
       "leaf": "education_bachelor",
-      "num_sentences": 64,
+      "num_sentences": 56,
       "sentence_length_words": {
         "min": 28,
         "max": 90,
-        "avg": 45.65625
+        "avg": 47.267857142857146
       }
     },
     {
@@ -1375,11 +1373,11 @@
       "branch": "intra-group",
       "category": "diastratic",
       "leaf": "ethnic_caucasian",
-      "num_sentences": 64,
+      "num_sentences": 61,
       "sentence_length_words": {
         "min": 25,
         "max": 119,
-        "avg": 49.8125
+        "avg": 50.540983606557376
       }
     },
     {
@@ -1460,11 +1458,11 @@
       "branch": "intra-group",
       "category": "diastratic",
       "leaf": "gender_female",
-      "num_sentences": 64,
+      "num_sentences": 63,
       "sentence_length_words": {
         "min": 24,
         "max": 114,
-        "avg": 52.046875
+        "avg": 52.23809523809524
       }
     },
     {
@@ -1477,11 +1475,11 @@
       "branch": "intra-group",
       "category": "diastratic",
       "leaf": "gender_male",
-      "num_sentences": 64,
+      "num_sentences": 56,
       "sentence_length_words": {
         "min": 28,
         "max": 103,
-        "avg": 48.125
+        "avg": 49.732142857142854
       }
     },
     {
@@ -1511,11 +1509,11 @@
       "branch": "intra-group",
       "category": "diastratic",
       "leaf": "politics_leftwing",
-      "num_sentences": 64,
+      "num_sentences": 59,
       "sentence_length_words": {
         "min": 24,
         "max": 134,
-        "avg": 54.328125
+        "avg": 55.3728813559322
       }
     },
     {
@@ -1549,7 +1547,7 @@
       "sentence_length_words": {
         "min": 76,
         "max": 100,
-        "avg": 88.6875
+        "avg": 88.578125
       }
     },
     {
@@ -1562,11 +1560,11 @@
       "branch": "intra-group",
       "category": "diaphasic",
       "leaf": "instructional",
-      "num_sentences": 13,
+      "num_sentences": 12,
       "sentence_length_words": {
         "min": 78,
         "max": 99,
-        "avg": 87.38461538461539
+        "avg": 86.75
       }
     },
     {
@@ -1579,28 +1577,11 @@
       "branch": "intra-group",
       "category": "diaphasic",
       "leaf": "interactive",
-      "num_sentences": 64,
+      "num_sentences": 62,
       "sentence_length_words": {
-        "min": 72,
+        "min": 69,
         "max": 100,
-        "avg": 87.1875
-      }
-    },
-    {
-      "path": [
-        "language_variation",
-        "intra-group",
-        "diaphasic",
-        "lyrical"
-      ],
-      "branch": "intra-group",
-      "category": "diaphasic",
-      "leaf": "lyrical",
-      "num_sentences": 12,
-      "sentence_length_words": {
-        "min": 79,
-        "max": 100,
-        "avg": 88.91666666666667
+        "avg": 86.51612903225806
       }
     },
     {
@@ -1615,9 +1596,9 @@
       "leaf": "narrative",
       "num_sentences": 64,
       "sentence_length_words": {
-        "min": 71,
+        "min": 70,
         "max": 100,
-        "avg": 87.875
+        "avg": 87.671875
       }
     },
     {
@@ -1632,9 +1613,9 @@
       "leaf": "opinion",
       "num_sentences": 60,
       "sentence_length_words": {
-        "min": 73,
+        "min": 72,
         "max": 100,
-        "avg": 86.68333333333334
+        "avg": 86
       }
     },
     {
@@ -1649,9 +1630,9 @@
       "leaf": "persuasive",
       "num_sentences": 40,
       "sentence_length_words": {
-        "min": 52,
+        "min": 51,
         "max": 100,
-        "avg": 86
+        "avg": 84.45
       }
     },
     {
@@ -1685,7 +1666,7 @@
       "sentence_length_words": {
         "min": 10,
         "max": 98,
-        "avg": 46.640625
+        "avg": 46.578125
       }
     }
   ]
