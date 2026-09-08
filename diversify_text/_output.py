@@ -19,8 +19,30 @@ _log = logging.getLogger(__name__)
 # ------------------------------------------------------------------
 # Type alias
 # ------------------------------------------------------------------
+class DiversifyResult(list):
+    """In-memory diversify output: a ``list[dict]`` that can evaluate itself.
+ 
+    Behaves exactly like the list of ``{"original": ..., "paraphrases":
+    [...]}`` records it has always been, and additionally remembers the
+    device generation ran on so :meth:`evaluate` can reuse it.
+ 
+    Example
+    -------
+    >>> results = diversify("The experiment was conducted in a lab.")
+    >>> results.evaluate()  # same as evaluate(results)
+    """
+ 
+    def __init__(self, records=(), device: str | None = None) -> None:
+        super().__init__(records)
+        self.device = device
+ 
+    def evaluate(self, **kwargs: Any):
+        """Score these paraphrases.  See :func:`diversify_text.evaluate`."""
+        from diversify_text._evaluate import evaluate as _evaluate
+ 
+        return _evaluate(self, **kwargs)
 
-DiversifyOutput = Union[list[dict], Path]
+DiversifyOutput = Union[DiversifyResult, Path]
 
 
 # ------------------------------------------------------------------
@@ -116,11 +138,12 @@ def resolve_output_path(
 
 class OutputWriter:
     """Incrementally writes diversify results to the right format.
-
+ 
     Modes
     -----
-    * **In-memory** (``output_path is None``): accumulates
-      ``list[dict]`` with keys ``"original"`` and ``"paraphrases"``.
+    * **In-memory** (``output_path is None``): accumulates records with
+      keys ``"original"`` and ``"paraphrases"`` and returns them as a
+      :class:`DiversifyResult`.
     * **JSONL** (``output_path is not None``): writes one JSON object
       per line to a ``.jsonl`` file.
     """
@@ -130,9 +153,10 @@ class OutputWriter:
         input_context: InputContext,
         n: int,
         output_path: Path | None,
+        device: str | None = None,
     ) -> None:
         """Initialize the writer.
-
+ 
         Parameters
         ----------
         input_context : InputContext
@@ -141,7 +165,11 @@ class OutputWriter:
             Number of paraphrase styles requested per text.
         output_path : Path or None
             Where to write results on disk.  ``None`` means results
-            are kept in memory and returned as ``list[dict]``.
+            are kept in memory and returned as a
+            :class:`DiversifyResult`.
+        device : str or None
+            Device generation ran on, recorded on the in-memory result
+            so ``.evaluate()`` can default to it.
         """
         self._input_context = input_context
         self._n = n
@@ -150,7 +178,7 @@ class OutputWriter:
         self._handle: IO[str] | None = None
         # In-memory accumulator — used only when output_path is None.
         self._accumulated: list[dict[str, Any]] = []
-
+        self._device = device
     # --- lifecycle: open / write / close ---
 
     def open(self) -> None:
@@ -216,11 +244,12 @@ class OutputWriter:
 
     def finish(self) -> DiversifyOutput:
         """Close the file handle and return the final result.
-
+ 
         Returns
         -------
-        list[dict]
-            When ``output_path`` was ``None`` (in-memory mode).  Each dict
+        DiversifyResult
+            When ``output_path`` was ``None`` (in-memory mode).  A
+            ``list[dict]`` with an added ``evaluate()`` method; each dict
             has keys ``"original"`` and ``"paraphrases"``.
         Path
             When results were written to disk — the ``.jsonl`` path.
@@ -230,8 +259,8 @@ class OutputWriter:
             self._handle = None
 
         if self._output_path is None:
-            # In-memory mode: return the accumulated list of dicts.
-            return self._accumulated
+            # In-memory mode: return the accumulated records.
+            return DiversifyResult(self._accumulated, device=self._device)
 
         # Disk mode: return the output path.
         return self._output_path

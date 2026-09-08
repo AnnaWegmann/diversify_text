@@ -10,25 +10,32 @@ pip install diversify-text
 
 ## Table of contents
 
-- [Usage](#usage)
-  - [Single text](#single-text)
-  - [Control number of styles](#control-number-of-styles)
-  - [Pick styles from the bank](#pick-styles-from-the-bank)
-  - [Bring your own style examples](#bring-your-own-style-examples)
-  - [Repeats](#repeats)
-  - [Prompting method](#prompting-method)
-  - [Zero-shot method](#zero-shot-method)
-  - [Caching](#caching)
-  - [Using the class directly](#using-the-class-directly)
-  - [List of texts](#list-of-texts)
-  - [Creating a custom method](#creating-a-custom-method)
-- [Install](#install)
-- [Contributing](#contributing)
-  - [Development setup](#development-setup)
-  - [Running tests](#running-tests)
-  - [Working with uv](#working-with-uv)
-  - [Building docs locally](#building-docs-locally)
-- [Citation](#citation)
+- [diversify-text](#diversify-text)
+  - [Table of contents](#table-of-contents)
+  - [Usage](#usage)
+    - [Single text](#single-text)
+    - [Control number of styles](#control-number-of-styles)
+    - [Pick styles from the bank](#pick-styles-from-the-bank)
+    - [Bring your own style examples](#bring-your-own-style-examples)
+    - [Repeats](#repeats)
+    - [Prompting method](#prompting-method)
+    - [Zero-shot method](#zero-shot-method)
+    - [Caching](#caching)
+    - [Using the class directly](#using-the-class-directly)
+    - [List of texts](#list-of-texts)
+    - [Evaluating paraphrases](#evaluating-paraphrases)
+    - [Creating a custom method](#creating-a-custom-method)
+  - [Install](#install)
+  - [Contributing](#contributing)
+    - [Development setup](#development-setup)
+    - [Running tests](#running-tests)
+    - [Working with uv](#working-with-uv)
+      - [Adding packages with `uv add`](#adding-packages-with-uv-add)
+      - [Adding packages to the dev group](#adding-packages-to-the-dev-group)
+      - [Switching between dev and standard mode](#switching-between-dev-and-standard-mode)
+      - [Best practice: run `uv lock -U`](#best-practice-run-uv-lock--u)
+    - [Building docs locally](#building-docs-locally)
+  - [Citation](#citation)
 
 ## Usage
 
@@ -273,6 +280,44 @@ results = diversify([
     {"original": "She graduated ...", "paraphrases": [{"style": "informal", "text": "..."}, ...]},
 ]
 ```
+### Evaluating paraphrases
+
+Score paraphrases against the originals they came from. The originals are
+already in the output, so nothing needs to be passed in again:
+
+```python
+from diversify_text import diversify, evaluate
+
+results = diversify("The experiment was conducted in a controlled lab setting.")
+
+results.evaluate()      # method on the output
+evaluate(results)       # identical, as a function
+```
+
+Five metrics run by default: `style_similarity` (how similarly two texts
+are *written*), `bertscore` and `mis` (meaning overlap), `rouge` and
+`chrf` (word and character overlap).
+
+Pick a subset with `metrics`, configure them with `metric_kwargs`:
+
+```python
+results.evaluate(
+    metrics=["bertscore", "rouge"],
+    metric_kwargs={
+        "bertscore": {"model": "microsoft/deberta-xlarge-mnli"},
+        "rouge": {"variants": ["rouge1", "rougeL"]},
+    },
+)
+```
+
+`style_similarity` and `bertscore` accept a `model`; the others have
+fixed ones. `variants` selects which sub-scores are reported.
+
+`granularity` sets the level of detail — `"dataset"` (default), `"text"`,
+`"pair"`, or `"all"`. Results can be written out with `.to_jsonl(path)`.
+
+Output written to disk returns a `Path`, which has no `.evaluate()` —
+pass the path to `evaluate()` instead.
 
 ### Creating a custom method
 
