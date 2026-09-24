@@ -39,7 +39,7 @@ or to the method constructor:
 
 ``model`` works for the ``prompting`` and ``zero_shot`` methods; the
 ``tinystyler`` method has a fixed model, so passing ``model`` with it
-raises an error.
+raises an error. See :ref:`which-model` below for models we have tried.
 
 Instruct-tuned models are recommended. Chat templates are applied automatically
 when the tokenizer provides one.
@@ -141,6 +141,121 @@ style. An instruction can place the input text itself with
        method="zero_shot",
        style_texts={"pirate": ["Rewrite the text as an old-timey pirate would say it."]},
    )
+
+.. _which-model:
+
+Which model?
+------------
+
+The default model is a reasonable choice; read on only if you want to
+try a different one.
+
+These notes are based on manually trying the models on a small set of
+sentences and styles — first impressions, not a systematic evaluation.
+Which model works best can change with your texts, styles, and
+hardware. Last updated September 2026.
+
+Generation speed depends mostly on model size: producing a token
+requires reading all model weights from memory once, so on the same
+machine, expect speed to scale roughly with one over the parameter
+count. The models we tried:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 12 58
+
+   * - Model
+     - Parameters
+     - Notes
+   * - `SmolLM3-3B <https://huggingface.co/HuggingFaceTB/SmolLM3-3B>`_
+     - 3B
+     - The default. Tends to add details that are not in the input.
+   * - `Qwen3-4B-Instruct-2507 <https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507>`_
+     - 4B
+     - Faithful to the input and concise.
+   * - `gemma-4-E2B-it <https://huggingface.co/google/gemma-4-E2B-it>`_
+     - 5B
+     - The most natural-sounding outputs in our trials. Sometimes
+       writes numbers out as words.
+   * - `Qwen3.5-4B <https://huggingface.co/Qwen/Qwen3.5-4B>`_
+     - 4B
+     - Similar to Qwen3-4B-Instruct-2507. Occasionally repeats an
+       emoji many times.
+   * - `Ministral-3-3B-Instruct-2512 <https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512>`_
+     - 3B
+     - With this library's prompts, outputs often contain commentary
+       and formatting ("Here's a paraphrase: ..."). Not recommended.
+
+Some bank styles exceed what models of this size can do:
+``old_english``, for example, produces Old-English-looking text with
+much of the content lost, with every model above.
+
+Example outputs
+^^^^^^^^^^^^^^^
+
+Outputs are shown as generated. For dialect styles we can not judge
+how authentic the outputs are — the examples only show how differently
+the models behave.
+
+``all_caps`` — input: *She graduated from MIT in 2019 and now works as
+a data scientist.*
+
+.. list-table::
+   :widths: 25 75
+
+   * - SmolLM3-3B
+     - THE WOMAN WHO CAME FROM MIT IN 2019 IS NOW A DATA SCIENTIST.
+   * - Qwen3-4B-Instruct-2507
+     - SHE GRADUATED FROM MIT IN 2019 AND NOW WORKS AS A DATA SCIENTIST.
+   * - gemma-4-E2B-it
+     - SHE GRADUATED FROM MIT IN TWO THOUSAND NINETEEN AND NOW WORKS AS
+       A DATA SCIENTIST.
+   * - Qwen3.5-4B
+     - SHE GRADUATED FROM MIT IN 2019 AND NOW WORKS AS A DATA SCIENTIST.
+   * - Ministral-3-3B
+     - I DIDN'T EXPECT SHE WOULD GET THIS FAR IN HER CAREER SO
+       QUICKLY—GRADUATING FROM MIT IN 2019 IS A MAJOR ACHIEVEMENT.
+       NOW, AS A DATA SCIENTIST, SHE IS
+
+``arianagrande`` (from the bank's individual-styles group) — input:
+*I loved the movie, but the ending felt rushed.*
+
+.. list-table::
+   :widths: 25 75
+
+   * - SmolLM3-3B
+     - OMG, I just watched that flick and it was so good, but the
+       ending was like a roller coaster - too fast, too much. I was
+       like "WTF, where's the drama?" But the whole movie was worth
+       it! [...]
+   * - Qwen3-4B-Instruct-2507
+     - omg i absolutely loved the movie 💛 but the ending? so fast 🙈
+       like i didn't even get to breathe before it was over. 🌌
+   * - gemma-4-E2B-it
+     - omg the movie was fire 🔥 but the ending kinda rushed me 😩
+   * - Qwen3.5-4B
+     - i loved the movie but the ending felt so rushed 🌑🌑🌑🌑🌑
+   * - Ministral-3-3B
+     - ☁️❤️❤️❤️❤️❤️ Ohhh, I *knew* this film was gonna steal my
+       heart—until... well, that last act? *Whew.*
+
+``scottish_english`` — input: *Could you send me the report before
+Friday?*
+
+.. list-table::
+   :widths: 25 75
+
+   * - SmolLM3-3B
+     - Ye'll want tae send me that report afore Friday, that's for sure.
+   * - Qwen3-4B-Instruct-2507
+     - Could ye send me the report before Friday?
+   * - gemma-4-E2B-it
+     - Could ye send oot the report afore Friday?
+   * - Qwen3.5-4B
+     - Could you post the report to me before Friday?
+   * - Ministral-3-3B
+     - The report's due by Friday afore. — Aye, I'll send it to you
+       befo' Friday proper.
 
 Development
 -----------
