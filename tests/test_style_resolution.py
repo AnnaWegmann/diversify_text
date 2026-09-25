@@ -102,5 +102,43 @@ class TestResolveStyleDict(unittest.TestCase):
         )
 
 
+class TestMaxLenStyleText(unittest.TestCase):
+
+    # 14 words; repeated, it stands in for a prose excerpt far too long
+    # for a model's context window.
+    _SENTENCE = (
+        "This is a very long prose text, way more than fits the context window. "
+    )
+
+    def test_long_text_is_cut(self):
+        result = resolve_style_dict(
+            style_texts=["It was a dark and stormy night."], max_len_style_text=5
+        )
+        self.assertEqual(result, {"style_1": ["It was a dark and"]})
+
+    def test_short_text_is_unchanged(self):
+        result = resolve_style_dict(
+            style_texts=["Call me Ishmael."], max_len_style_text=5
+        )
+        self.assertEqual(result, {"style_1": ["Call me Ishmael."]})
+
+    def test_line_breaks_are_kept_up_to_the_cut(self):
+        poem = "Roses are red,\n  violets are blue,\n\nsugar is sweet"
+        result = resolve_style_dict(style_texts=[poem], max_len_style_text=5)
+        self.assertEqual(result, {"style_1": ["Roses are red,\n  violets are"]})
+
+    def test_none_disables_truncation(self):
+        long_prose = self._SENTENCE * 100  # 1400 words
+        result = resolve_style_dict(
+            style_texts=[long_prose], max_len_style_text=None
+        )
+        self.assertEqual(result, {"style_1": [long_prose]})
+
+    def test_limit_below_one_raises(self):
+        with self.assertRaises(ValueError):
+            resolve_style_dict(
+                style_texts=["Any text at all."], max_len_style_text=0
+            )
+
 if __name__ == "__main__":
     unittest.main()
