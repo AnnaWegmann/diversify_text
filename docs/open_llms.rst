@@ -147,18 +147,15 @@ style. An instruction can place the input text itself with
 Which model?
 ------------
 
-The default model is a reasonable choice; read on only if you want to
-try a different one.
-
 These notes are based on manually trying the models on a small set of
 sentences and styles — first impressions, not a systematic evaluation.
 Which model works best can change with your texts, styles, and
-hardware. Last updated September 2026.
+hardware.
 
 Generation speed depends mostly on model size: producing a token
 requires reading all model weights from memory once, so on the same
 machine, expect speed to scale roughly with one over the parameter
-count. The models we tried:
+count.
 
 .. list-table::
    :header-rows: 1
@@ -169,10 +166,10 @@ count. The models we tried:
      - Notes
    * - `SmolLM3-3B <https://huggingface.co/HuggingFaceTB/SmolLM3-3B>`_
      - 3B
-     - The default. Tends to add details that are not in the input.
+     - The **default** because fastest. Quality ok-ish. Tends to add info that is not in the input. Sometimes starts replies with "Here's your paraphrase" or similar.
    * - `Qwen3-4B-Instruct-2507 <https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507>`_
      - 4B
-     - Faithful to the input and concise.
+     - Mostly faithful to the input and concise.
    * - `gemma-4-E2B-it <https://huggingface.co/google/gemma-4-E2B-it>`_
      - 5B
      - The most natural-sounding outputs in our trials. Sometimes
