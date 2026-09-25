@@ -25,11 +25,10 @@ class ZeroShotMethod(CausalLMMethod):
 
     name = "zero_shot"
     style_bank = ZERO_SHOT_STYLE_BANK
+    truncate_style_texts = False  # instructions (in style_bank) should be used in full
     # The default unusual and surface styles are example-based
     unusual_style_bank: dict[str, list[str]] = {}
     surface_style_bank: dict[str, list[str]] = {}
-    # Style texts are instructions; cutting one would break the prompt
-    truncate_style_texts = False
 
     def generate(
         self,
