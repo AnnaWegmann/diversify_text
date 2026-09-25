@@ -61,7 +61,7 @@ def resolve_style_dict(
     max_len_style_text : int or None
         Maximum number of whitespace-separated words per style text.
         Longer texts (bank and user styles alike) are cut after that
-        many words, keeping the original whitespace up to the cut.
+        many words.
         ``None`` disables truncation.  Defaults to
         :data:`DEFAULT_MAX_LEN_STYLE_TEXT`.
 
