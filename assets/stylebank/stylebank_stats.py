@@ -3,6 +3,8 @@
 
 The script walks the nested stylebank structure, finds every leaf list of
 sentences, and reports:
+- a headline summary: number of leaves, total number of texts, texts per
+  leaf (min/max/avg) and words per text (min/max/avg)
 - total number of leaf categories
 - number of leaf categories per top-level branch
 - sentence counts per leaf category
@@ -73,17 +75,20 @@ def make_table(headers: list[str], rows: list[list[Any]]) -> str:
     return "\n".join(lines)
 
 
+def format_range(summary: dict[str, float | int | None]) -> str:
+    return f"{format_number(summary['min'])}-{format_number(summary['max'])} (avg {format_number(summary['avg'])})"
+
+
 def print_summary(stats: dict[str, Any]) -> None:
-    overall_rows = [[
-        "num_leafs",
-        stats["num_leafs"],
-        "sentences/leaf avg",
-        format_number(stats["sentences_per_leaf"]["avg"]),
-        "sentence words avg",
-        format_number(stats["sentence_length_words"]["avg"]),
-    ]]
-    print("Overall")
-    print(make_table(["metric", "value", "metric", "value", "metric", "value"], overall_rows))
+    summary = stats["summary"]
+    summary_rows = [
+        ["leaves", summary["num_leafs"]],
+        ["texts", summary["num_texts"]],
+        ["texts per leaf", format_range(summary["texts_per_leaf"])],
+        ["words per text", format_range(summary["text_length_words"])],
+    ]
+    print("Summary")
+    print(make_table(["metric", "value"], summary_rows))
     print()
 
     category_rows = [
@@ -192,6 +197,12 @@ def build_stats(data: Any) -> dict[str, Any]:
 
     return {
         "input_file": None,
+        "summary": {
+            "num_leafs": len(leaves),
+            "num_texts": len(all_sentence_lengths),
+            "texts_per_leaf": summarise_numbers(sentences_per_leaf),
+            "text_length_words": summarise_numbers(all_sentence_lengths),
+        },
         "num_leafs": len(leaves),
         "num_leafs_per_group": leaf_counts_by_branch,
         "num_leafs_per_category": leaf_counts_by_category,
