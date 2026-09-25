@@ -25,6 +25,7 @@ _BANK_ORDER: list[str] = [
     "britneyspears",  # idiolect
     "late_modern_english",  # diachronic
     "earlier_african_american_vernacular_english",  # diatopic
+    "prose", # diaphasic
     "age_55-74",  # diastratic
     "jamaican_creole",  # diatopic
     "barackobama",  # idiolect
