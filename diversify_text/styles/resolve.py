@@ -11,6 +11,7 @@ exactly one place and bad input fails early with a clear message.
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Mapping
 
 from diversify_text.styles.bank import DEFAULT_STYLE_BANK, UNUSUAL_STYLE_BANK
@@ -20,6 +21,13 @@ logger = logging.getLogger(__name__)
 #: Suffix appended to a user style whose name clashes with a selected bank style.
 _USER_SUFFIX = "_user"
 
+#: Default maximum number of words per style text passed to a method.
+#: Longer texts are cut after their first ``DEFAULT_MAX_LEN_STYLE_TEXT``
+#: words; the style bank itself keeps the full texts.
+DEFAULT_MAX_LEN_STYLE_TEXT = 500
+
+_WORD = re.compile(r"\S+")
+
 
 def resolve_style_dict(
     styles: list[str | int] | None = None,
@@ -27,6 +35,7 @@ def resolve_style_dict(
     *,
     bank: dict[str, list[str]] | None = None,
     unusual_bank: dict[str, list[str]] | None = None,
+    max_len_style_text: int | None = DEFAULT_MAX_LEN_STYLE_TEXT,
 ) -> dict[str, list[str]]:
     """Resolve *styles* and *style_texts* into one ordered style dict.
 
@@ -49,6 +58,12 @@ def resolve_style_dict(
         When *bank* is ``None`` this defaults to
         :data:`~diversify_text.styles.bank.UNUSUAL_STYLE_BANK`.
         If the user provides their own bank this defaults to None.
+    max_len_style_text : int or None
+        Maximum number of whitespace-separated words per style text.
+        Longer texts (bank and user styles alike) are cut after that
+        many words.
+        ``None`` disables truncation.  Defaults to
+        :data:`DEFAULT_MAX_LEN_STYLE_TEXT`.
 
     Returns
     -------
@@ -61,7 +76,8 @@ def resolve_style_dict(
     ValueError
         For unknown names, out-of-range indices, a bank style requested
         twice, a style with no example texts, an unresolvable name
-        clash, or when neither parameter is provided.
+        clash, a *max_len_style_text* below 1, or when neither parameter
+        is provided.
     TypeError
         For input shapes that match none of the accepted forms.
     """
@@ -76,6 +92,8 @@ def resolve_style_dict(
             unusual_bank = UNUSUAL_STYLE_BANK
     if unusual_bank is None:
         unusual_bank = {}
+    if max_len_style_text is not None and max_len_style_text < 1:
+        raise ValueError("max_len_style_text must be >= 1 or None.")
 
     resolved: dict[str, list[str]] = {}
 
@@ -140,7 +158,33 @@ def resolve_style_dict(
                 name = renamed
             resolved[name] = examples
 
+    if max_len_style_text is not None:
+        truncated = []
+        for name, examples in resolved.items():
+            cut = [_truncate_words(x, max_len_style_text) for x in examples]
+            if cut != examples:
+                truncated.append(name)
+                resolved[name] = cut
+        if truncated:
+            logger.info(
+                "Truncated style texts longer than %d words for styles: %s.",
+                max_len_style_text, ", ".join(truncated),
+            )
+
     return resolved
+
+
+def _truncate_words(text: str, max_words: int) -> str:
+    """Cut *text* after its first *max_words* whitespace-separated words.
+
+    Keeps the original text (line breaks, indentation) up to the end of
+    the last kept word; shorter texts are returned unchanged.
+    """
+    for i, match in enumerate(_WORD.finditer(text), start=1):
+        if i == max_words:
+            end = match.end()
+            return text if _WORD.search(text, end) is None else text[:end]
+    return text
 
 
 def _normalize_style_texts(

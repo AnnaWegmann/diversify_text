@@ -48,7 +48,7 @@ Language variation
 
 The 85 leaf nodes of the taxonomy form the basis of the text collection included in the StyleBank. Their inclusion was guided by the availability of suitable corpora corresponding to each category. To populate the StyleBank, we collected texts from the corpora listed in the table below.
 
-Each leaf node is populated with between 10 and 64 texts (mean: 42 texts per leaf). In total, the StyleBank contains 3,609 texts. All texts in the StyleBank are between 4 and 47k words in length (mean: 54 words). We manually checked all texts to assess their quality.
+Each leaf node is populated with between 10 and 64 texts (mean: 42 texts per leaf). In total, the StyleBank contains 3,609 texts. All texts in the StyleBank are between 4 and 47k words in length (mean: 54 words). When passed to a model, each text is cut after its first 500 words (see `max_len_style_text`); the StyleBank itself keeps the full texts. We manually checked all texts to assess their quality.
 
 | Variation Dimension | Leaf Node            | Resource                                                                                                                            |
 | ------------------- | -------------------- |-------------------------------------------------------------------------------------------------------------------------------------|

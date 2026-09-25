@@ -9,9 +9,13 @@ from diversify_text.styles.bank import (
     SURFACE_STYLE_BANK,
     UNUSUAL_STYLE_BANK,
 )
-from diversify_text.styles.resolve import resolve_style_dict
+from diversify_text.styles.resolve import (
+    DEFAULT_MAX_LEN_STYLE_TEXT,
+    resolve_style_dict,
+)
 
 __all__ = [
+    "DEFAULT_MAX_LEN_STYLE_TEXT",
     "DEFAULT_STYLE_BANK",
     "SURFACE_STYLE_BANK",
     "UNUSUAL_STYLE_BANK",

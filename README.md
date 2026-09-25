@@ -157,6 +157,8 @@ results = diversify(
 
 `styles` and `style_texts` can be combined in one call (bank styles come first in the output). `n` cannot be combined with either — the number of styles is already determined, so passing `n` raises an error.
 
+Style texts longer than 500 words (e.g. the long prose excerpts in the style bank) are cut after their first 500 words before they reach the model. Change the limit with `max_len_style_text`, or pass `max_len_style_text=None` to keep full texts.
+
 ### Repeats
 
 `repeats` controls how many paraphrases are generated *per style* (default 1). With more than one repeat, the output interleaves the styles:
