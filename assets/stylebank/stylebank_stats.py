@@ -3,8 +3,7 @@
 
 The script walks the nested stylebank structure, finds every leaf list of
 sentences, and reports:
-- a headline summary: number of leaves, total number of texts, texts per
-  leaf (min/max/avg) and words per text (min/max/avg)
+- number of leaves, total number of texts, texts per leaf (min/max/avg) and words per text (min/max/avg)
 - total number of leaf categories
 - number of leaf categories per top-level branch
 - sentence counts per leaf category
@@ -87,7 +86,6 @@ def print_summary(stats: dict[str, Any]) -> None:
         ["texts per leaf", format_range(summary["texts_per_leaf"])],
         ["words per text", format_range(summary["text_length_words"])],
     ]
-    print("Summary")
     print(make_table(["metric", "value"], summary_rows))
     print()
 
