@@ -23,7 +23,7 @@ from diversify_text._preprocess import preprocess
 import diversify_text._cache as _cache
 from diversify_text.filter.mis import MISFilter
 from diversify_text.method import DEFAULT_METHOD_REGISTRY, DiversificationMethod
-from diversify_text.styles import resolve_style_dict
+from diversify_text.styles import DEFAULT_MAX_LEN_STYLE_TEXT, resolve_style_dict
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,7 @@ class Diversifier:
         n: int | None = None,
         styles: list[str | int] | None = None,
         style_texts: list[str] | list[list[str]] | dict[str, list[str]] | None = None,
+        max_len_style_text: int | None = DEFAULT_MAX_LEN_STYLE_TEXT,
         repeats: int = 1,
         text_column: str = "text",
         batch_size: int = 32,
@@ -128,6 +129,13 @@ class Diversifier:
             list is one style, a list of lists is several styles, a
             dict maps style names to example texts.  Can be combined
             with *styles*.
+        max_len_style_text : int or None
+            Maximum number of words per style text passed to the method
+            (default ``500``).  Longer texts, e.g. long prose excerpts
+            in the style bank, are cut after that many words; the bank
+            itself is unchanged.  ``None`` disables truncation.  Ignored
+            by methods whose style texts are instructions
+            (``"zero_shot"``).
         repeats : int
             How many paraphrases to generate per style (default 1).
             The output interleaves the styles: style A, style B,
@@ -185,6 +193,8 @@ class Diversifier:
         # number of paraphrases; n only selects from the bank when
         # nothing else is given.
         bank = self._method.style_bank
+        if not self._method.truncate_style_texts:
+            max_len_style_text = None
         if styles is not None or style_texts is not None:
             if n is not None:
                 raise ValueError(
@@ -201,6 +211,7 @@ class Diversifier:
                     **self._method.unusual_style_bank,
                     **self._method.surface_style_bank,
                 },
+                max_len_style_text=max_len_style_text,
             )
         else:
             if n is None:
@@ -214,7 +225,11 @@ class Diversifier:
                     f"n={n} exceeds the number of available styles "
                     f"({len(bank)})."
                 )
-            style_dict = resolve_style_dict(styles=list(bank)[:n], bank=bank)
+            style_dict = resolve_style_dict(
+                styles=list(bank)[:n],
+                bank=bank,
+                max_len_style_text=max_len_style_text,
+            )
         if repeats < 1:
             raise ValueError("repeats must be >= 1.")
         if batch_size < 1:
@@ -412,8 +427,8 @@ def diversify(
     **kwargs
         Forwarded to :class:`Diversifier` (``min_score``,
         ``n_candidates``) and :meth:`Diversifier.diversify`
-        (``n``, ``styles``, ``style_texts``, ``repeats``,
-        ``text_column``, ``batch_size``, ``max_new_tokens``,
+        (``n``, ``styles``, ``style_texts``, ``max_len_style_text``,
+        ``repeats``, ``text_column``, ``batch_size``, ``max_new_tokens``,
         ``temperature``, ``top_p``, ``seed``, ``method_kwargs``,
         ``preprocess_kwargs``, ``output_dir``, ``output_name``).
 

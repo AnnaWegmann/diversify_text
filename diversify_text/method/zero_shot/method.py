@@ -28,6 +28,8 @@ class ZeroShotMethod(CausalLMMethod):
     # The default unusual and surface styles are example-based
     unusual_style_bank: dict[str, list[str]] = {}
     surface_style_bank: dict[str, list[str]] = {}
+    # Style texts are instructions; cutting one would break the prompt
+    truncate_style_texts = False
 
     def generate(
         self,

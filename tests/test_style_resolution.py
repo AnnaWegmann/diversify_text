@@ -102,5 +102,45 @@ class TestResolveStyleDict(unittest.TestCase):
         )
 
 
+class TestMaxLenStyleText(unittest.TestCase):
+
+    def test_long_bank_and_user_texts_are_cut(self):
+        bank = {"prose": ["one two three four", "short"]}
+        result = resolve_style_dict(
+            styles=["prose"],
+            style_texts={"mine": ["a b c d e"]},
+            bank=bank,
+            max_len_style_text=3,
+        )
+        self.assertEqual(
+            result, {"prose": ["one two three", "short"], "mine": ["a b c"]}
+        )
+        # The bank itself is untouched.
+        self.assertEqual(bank["prose"][0], "one two three four")
+
+    def test_original_whitespace_is_kept_up_to_the_cut(self):
+        text = "Roses are red,\n  violets are\n\nblue"
+        result = resolve_style_dict(style_texts=[text], max_len_style_text=5)
+        self.assertEqual(result, {"style_1": ["Roses are red,\n  violets are"]})
+
+    def test_text_at_the_limit_is_unchanged(self):
+        text = "  one two three \n"
+        result = resolve_style_dict(style_texts=[text], max_len_style_text=3)
+        self.assertEqual(result, {"style_1": [text]})
+
+    def test_none_disables_truncation(self):
+        text = " ".join(["w"] * 1000)
+        result = resolve_style_dict(style_texts=[text], max_len_style_text=None)
+        self.assertEqual(result, {"style_1": [text]})
+
+    def test_default_limit_is_500_words(self):
+        result = resolve_style_dict(style_texts=[" ".join(["w"] * 600)])
+        self.assertEqual(len(result["style_1"][0].split()), 500)
+
+    def test_limit_below_one_raises(self):
+        with self.assertRaises(ValueError):
+            resolve_style_dict(style_texts=["a"], max_len_style_text=0)
+
+
 if __name__ == "__main__":
     unittest.main()

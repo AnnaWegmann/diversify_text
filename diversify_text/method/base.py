@@ -35,6 +35,11 @@ class DiversificationMethod(ABC):
     #: ``unusual_style_bank``.
     surface_style_bank: dict[str, list[str]] = SURFACE_STYLE_BANK
 
+    #: Whether style texts are truncated to ``max_len_style_text`` words
+    #: before generation.  Methods whose style texts are instructions
+    #: rather than examples turn this off, so an instruction is never cut.
+    truncate_style_texts: bool = True
+
     def prepare(self) -> None:
         """Load any resources (models, tokenizers) needed before generation.
 
