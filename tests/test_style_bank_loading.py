@@ -13,7 +13,7 @@ from diversify_text.styles._load import flatten_style_bank, load_style_bank, _RE
 class TestLoadStyleJSON:
     def test_type_check(self):
         bank = load_style_bank()
-        assert len(bank) == 84
+        assert len(bank) == 85
         for name, examples in bank.items():
             assert isinstance(name, str) and name
             assert isinstance(examples, list) and examples
