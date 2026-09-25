@@ -1,5 +1,19 @@
 {
   "input_file": "stylebank.json",
+  "summary": {
+    "num_leafs": 85,
+    "num_texts": 3609,
+    "texts_per_leaf": {
+      "min": 10,
+      "max": 64,
+      "avg": 42.45882352941177
+    },
+    "text_length_words": {
+      "min": 4,
+      "max": 47219,
+      "avg": 53.52950955943474
+    }
+  },
   "num_leafs": 85,
   "num_leafs_per_group": {
     "individual": 14,
