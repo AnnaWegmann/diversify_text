@@ -202,17 +202,17 @@ a data scientist.*
 
    * - SmolLM3-3B
      - THE WOMAN WHO CAME FROM MIT IN 2019 IS NOW A DATA SCIENTIST.
+   * - Ministral-3-3B
+     - I DIDN'T EXPECT SHE WOULD GET THIS FAR IN HER CAREER SO
+       QUICKLY—GRADUATING FROM MIT IN 2019 IS A MAJOR ACHIEVEMENT.
+       NOW, AS A DATA SCIENTIST, SHE IS
+   * - Qwen3.5-4B
+     - SHE GRADUATED FROM MIT IN 2019 AND NOW WORKS AS A DATA SCIENTIST.
    * - Qwen3-4B-Instruct-2507
      - SHE GRADUATED FROM MIT IN 2019 AND NOW WORKS AS A DATA SCIENTIST.
    * - gemma-4-E2B-it
      - SHE GRADUATED FROM MIT IN TWO THOUSAND NINETEEN AND NOW WORKS AS
        A DATA SCIENTIST.
-   * - Qwen3.5-4B
-     - SHE GRADUATED FROM MIT IN 2019 AND NOW WORKS AS A DATA SCIENTIST.
-   * - Ministral-3-3B
-     - I DIDN'T EXPECT SHE WOULD GET THIS FAR IN HER CAREER SO
-       QUICKLY—GRADUATING FROM MIT IN 2019 IS A MAJOR ACHIEVEMENT.
-       NOW, AS A DATA SCIENTIST, SHE IS
 
 ``arianagrande`` (from the bank's individual-styles group) — input:
 *I loved the movie, but the ending felt rushed.*
@@ -225,16 +225,16 @@ a data scientist.*
        ending was like a roller coaster - too fast, too much. I was
        like "WTF, where's the drama?" But the whole movie was worth
        it! [...]
+   * - Ministral-3-3B
+     - ☁️❤️❤️❤️❤️❤️ Ohhh, I *knew* this film was gonna steal my
+       heart—until... well, that last act? *Whew.*
+   * - Qwen3.5-4B
+     - i loved the movie but the ending felt so rushed 🌑🌑🌑🌑🌑
    * - Qwen3-4B-Instruct-2507
      - omg i absolutely loved the movie 💛 but the ending? so fast 🙈
        like i didn't even get to breathe before it was over. 🌌
    * - gemma-4-E2B-it
      - omg the movie was fire 🔥 but the ending kinda rushed me 😩
-   * - Qwen3.5-4B
-     - i loved the movie but the ending felt so rushed 🌑🌑🌑🌑🌑
-   * - Ministral-3-3B
-     - ☁️❤️❤️❤️❤️❤️ Ohhh, I *knew* this film was gonna steal my
-       heart—until... well, that last act? *Whew.*
 
 ``scottish_english`` — input: *Could you send me the report before
 Friday?*
@@ -244,15 +244,15 @@ Friday?*
 
    * - SmolLM3-3B
      - Ye'll want tae send me that report afore Friday, that's for sure.
+   * - Ministral-3-3B
+     - The report's due by Friday afore. — Aye, I'll send it to you
+       befo' Friday proper.
+   * - Qwen3.5-4B
+     - Could you post the report to me before Friday?
    * - Qwen3-4B-Instruct-2507
      - Could ye send me the report before Friday?
    * - gemma-4-E2B-it
      - Could ye send oot the report afore Friday?
-   * - Qwen3.5-4B
-     - Could you post the report to me before Friday?
-   * - Ministral-3-3B
-     - The report's due by Friday afore. — Aye, I'll send it to you
-       befo' Friday proper.
 
 Development
 -----------
