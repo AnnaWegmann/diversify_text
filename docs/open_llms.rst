@@ -166,10 +166,10 @@ count.
      - Notes
    * - `SmolLM3-3B <https://huggingface.co/HuggingFaceTB/SmolLM3-3B>`_
      - 3B
-     - The **default** because fastest. Quality ok-ish. Tends to add info that is not in the input. Sometimes starts replies with "Here's your paraphrase" or similar.
+     - The **default** because fastest. Quality ok-ish. Tends to add info that is not in the input. Sometimes starts replies with "Here\'s a paraphrased version of the document in the same style as the examples provided:"
    * - `Ministral-3-3B-Instruct-2512 <https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512>`_
      - 3B
-     - With this library's prompts, outputs often contain commentary
+     - Outputs often contain commentary
        and formatting ("Here's a paraphrase: ..."). Not recommended.
    * - `Qwen3.5-4B <https://huggingface.co/Qwen/Qwen3.5-4B>`_
      - 4B
@@ -180,8 +180,7 @@ count.
      - Best 4B. Mostly faithful to the input and concise.
    * - `gemma-4-E2B-it <https://huggingface.co/google/gemma-4-E2B-it>`_
      - 5B
-     - Best 5B. Best **overall**. The most natural-sounding outputs in our trials. Sometimes
-       writes numbers out as words.
+     - Best 5B. Best of tested **overall**. The most natural-sounding outputs. Some emoji repetitions happening though.
 
 
 Some bank styles exceed what models of this size can do:
