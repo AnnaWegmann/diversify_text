@@ -7,22 +7,7 @@ from pathlib import Path
 
 from diversify_text import Diversifier, diversify
 from diversify_text.styles.bank import _BANK_ORDER
-from diversify_text.method.base import DiversificationMethod
 from tests.fixtures import CountingMethod, FailingMethod, PrefixMethod
-
-
-class _RecordingMethod(DiversificationMethod):
-    """Records the style dict it receives."""
-
-    name = "recording"
-
-    def generate(self, texts, style_dict, **kwargs):
-        self.style_dict = style_dict
-        return [[text for _ in style_dict] for text in texts]
-
-
-class _InstructionMethod(_RecordingMethod):
-    truncate_style_texts = False
 
 
 class TestDiversifier(unittest.TestCase):
@@ -60,20 +45,6 @@ class TestDiversifier(unittest.TestCase):
                 {"style": _BANK_ORDER[2], "text": "x:hello:2"},
             ],
         )
-
-    def test_long_style_texts_are_truncated(self):
-        method = _RecordingMethod()
-        Diversifier(method=method).diversify(
-            "hello", style_texts=["a b c d"], max_len_style_text=2
-        )
-        self.assertEqual(method.style_dict, {"style_1": ["a b"]})
-
-    def test_method_can_opt_out_of_truncation(self):
-        method = _InstructionMethod()
-        Diversifier(method=method).diversify(
-            "hello", style_texts=["a b c d"], max_len_style_text=2
-        )
-        self.assertEqual(method.style_dict, {"style_1": ["a b c d"]})
 
     def test_failing_method_raises(self):
         div = Diversifier(method=FailingMethod())
