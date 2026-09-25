@@ -132,10 +132,9 @@ class Diversifier:
         max_len_style_text : int or None
             Maximum number of words per style text passed to the method
             (default ``500``).  Longer texts, e.g. long prose excerpts
-            in the style bank, are cut after that many words; the bank
-            itself is unchanged.  ``None`` disables truncation.  Ignored
-            by methods whose style texts are instructions
-            (``"zero_shot"``).
+            in the style bank, are cut after that many words.
+            ``None`` disables truncation. Ignored by some methods
+            (e.g., ``"zero_shot"``).
         repeats : int
             How many paraphrases to generate per style (default 1).
             The output interleaves the styles: style A, style B,
