@@ -52,10 +52,10 @@ We manually scanned, removed and edited the examples to make sure they are of hi
 
 We also made more additions: 
 
-We run `extract_lyrical_sample.py` extract ALL 78 lyrical/prose texts across train/dev/test from https://huggingface.co/datasets/TajaKuzmanPungersek/X-GENRE-text-genre-dataset. Then starting from the first example, we manually went through the generated json file to fill up the `lyrical` leaf to 10 (some lyrics had been removed in the manual edits). Additionally, we created the `prose` leaf and filled it up to 10 as well starting from the first of the 78 example texts going until 10 high quality samples had been added.
+We run `extract_lyrical_sample.py` extract ALL 78 lyrical/prose texts across train/dev/test from https://huggingface.co/datasets/TajaKuzmanPungersek/X-GENRE-text-genre-dataset. Then starting from the first example, we manually went through the generated json file to fill up the `lyrical` leaf to 13 (some lyrics had been removed in the manual edits). Additionally, we created the `prose` leaf and filled it up to 10 as well starting from the first of the 78 example texts going until 10 high quality samples had been added.
 
 
-### 4. Generate statistics (optional)
+### 5. Generate statistics (optional)
 
 To generate statistics for the resulting StyleBank, run:
 
