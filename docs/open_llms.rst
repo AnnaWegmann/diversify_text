@@ -167,21 +167,22 @@ count.
    * - `SmolLM3-3B <https://huggingface.co/HuggingFaceTB/SmolLM3-3B>`_
      - 3B
      - The **default** because fastest. Quality ok-ish. Tends to add info that is not in the input. Sometimes starts replies with "Here's your paraphrase" or similar.
-   * - `Qwen3-4B-Instruct-2507 <https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507>`_
-     - 4B
-     - Mostly faithful to the input and concise.
-   * - `gemma-4-E2B-it <https://huggingface.co/google/gemma-4-E2B-it>`_
-     - 5B
-     - The most natural-sounding outputs in our trials. Sometimes
-       writes numbers out as words.
-   * - `Qwen3.5-4B <https://huggingface.co/Qwen/Qwen3.5-4B>`_
-     - 4B
-     - Similar to Qwen3-4B-Instruct-2507. Occasionally repeats an
-       emoji many times.
    * - `Ministral-3-3B-Instruct-2512 <https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512>`_
      - 3B
      - With this library's prompts, outputs often contain commentary
        and formatting ("Here's a paraphrase: ..."). Not recommended.
+   * - `Qwen3.5-4B <https://huggingface.co/Qwen/Qwen3.5-4B>`_
+     - 4B
+     - Similar to Qwen3-4B-Instruct-2507. Occasionally repeats an
+       emoji many times.
+   * - `Qwen3-4B-Instruct-2507 <https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507>`_
+     - 4B
+     - Best 4B. Mostly faithful to the input and concise.
+   * - `gemma-4-E2B-it <https://huggingface.co/google/gemma-4-E2B-it>`_
+     - 5B
+     - Best 5B. Best **overall**. The most natural-sounding outputs in our trials. Sometimes
+       writes numbers out as words.
+
 
 Some bank styles exceed what models of this size can do:
 ``old_english``, for example, produces Old-English-looking text with
